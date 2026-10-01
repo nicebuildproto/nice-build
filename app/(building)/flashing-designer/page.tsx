@@ -1,18 +1,11 @@
-import Link from "next/link"
+import type { Metadata } from "next"
+import { FlashingDesigner } from "@/components/flashing/FlashingDesigner"
+
+export const metadata: Metadata = {
+  title: "Flashing Designer · Nice Build",
+  description: "Draw a flashing profile, choose a material, see the price.",
+}
 
 export default function FlashingDesignerPage() {
-  return (
-    <main className="mx-auto w-full max-w-xl px-6 py-16">
-      <Link
-        href="/"
-        className="text-sm text-[var(--nb-secondary)] hover:text-[var(--nb-primary)]"
-      >
-        Nice Build
-      </Link>
-      <h1 className="mt-3 text-2xl font-medium tracking-tight text-[var(--nb-primary)]">
-        Flashing Designer
-      </h1>
-      <p className="mt-2 text-sm text-[var(--nb-secondary)]">Coming soon.</p>
-    </main>
-  )
+  return <FlashingDesigner />
 }

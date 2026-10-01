@@ -25,7 +25,7 @@ export const registry: ToolEntry[] = [
     title: "Flashing Designer",
     description: "Design a custom flashing profile and get an instant price.",
     route: "/flashing-designer",
-    status: "coming-soon",
+    status: "live",
   },
   {
     slug: "work-style",
