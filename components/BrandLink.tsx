@@ -15,7 +15,7 @@ export function BrandLink({
     <Link
       href="/"
       className={cn(
-        "group/logo relative inline-flex items-center rounded-md outline-none focus-visible:ring-3 focus-visible:ring-[color-mix(in_oklab,var(--nb-yellow)_45%,transparent)]",
+        "inline-flex items-center rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
         className
       )}
     >

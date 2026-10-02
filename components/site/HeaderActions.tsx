@@ -47,7 +47,7 @@ export function HeaderActions() {
         size="icon-sm"
         aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
         onClick={toggleTheme}
-        className="text-[var(--nb-secondary)] hover:bg-[color-mix(in_oklab,var(--nb-yellow)_18%,transparent)] hover:text-[var(--nb-primary)]"
+        className="text-[var(--nb-secondary)] hover:bg-[var(--nb-accent)] hover:text-[var(--nb-primary)]"
       >
         {theme === "dark" ? <Sun /> : <Moon />}
       </Button>
@@ -63,12 +63,11 @@ export function HeaderActions() {
         }}
       >
         <DialogTrigger
-          className="inline-flex h-7 items-center justify-center rounded-[min(var(--radius-md),12px)] border border-border bg-background px-2.5 text-[0.8rem] font-medium text-[var(--nb-primary)] transition-colors outline-none hover:border-[color-mix(in_oklab,var(--nb-yellow)_55%,var(--border))] hover:bg-[color-mix(in_oklab,var(--nb-yellow)_14%,transparent)] focus-visible:ring-3 focus-visible:ring-[color-mix(in_oklab,var(--nb-yellow)_40%,transparent)]"
+          className="inline-flex h-7 items-center justify-center rounded-[min(var(--radius-md),12px)] border border-border bg-background px-2.5 text-[0.8rem] font-medium text-[var(--nb-primary)] transition-colors outline-none hover:bg-[var(--nb-accent)] focus-visible:ring-3 focus-visible:ring-ring/50"
         >
           Log in
         </DialogTrigger>
         <DialogContent>
-          <span aria-hidden className="mb-4 block h-px w-8 bg-[var(--nb-yellow)]" />
           {done ? (
             <DialogHeader>
               <DialogTitle>Accounts are on the way.</DialogTitle>

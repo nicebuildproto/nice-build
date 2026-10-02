@@ -138,38 +138,3 @@
     @apply bg-background font-sans text-foreground;
   }
 }
-
-.nb-free {
-  background-image: linear-gradient(
-    110deg,
-    var(--nb-primary) 0%,
-    var(--nb-primary) 38%,
-    color-mix(in oklab, #ff0101 36%, var(--nb-primary)) 50%,
-    var(--nb-primary) 62%,
-    var(--nb-primary) 100%
-  );
-  background-size: 260% 100%;
-  background-position: 0% 50%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: nb-free-drift 16s ease-in-out infinite;
-}
-
-@keyframes nb-free-drift {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .nb-free {
-    animation: none;
-    background-image: none;
-    color: color-mix(in oklab, #ff0101 32%, var(--nb-primary));
-  }
-}

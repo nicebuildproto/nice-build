@@ -8,7 +8,7 @@ export function BackLink({ href, className }: { href: string; className?: string
       href={href}
       aria-label="Back"
       className={cn(
-        "group mb-6 inline-flex size-9 items-center justify-center rounded-full bg-[var(--nb-accent)] text-[var(--nb-secondary)] outline-none transition-colors hover:text-[var(--nb-primary)] focus-visible:ring-3 focus-visible:ring-[color-mix(in_oklab,#ff0101_35%,transparent)]",
+        "group mb-6 inline-flex size-9 items-center justify-center rounded-full bg-[var(--nb-accent)] text-[var(--nb-secondary)] outline-none transition-colors hover:text-[var(--nb-primary)] focus-visible:ring-3 focus-visible:ring-ring/50",
         className
       )}
     >

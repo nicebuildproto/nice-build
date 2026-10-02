@@ -84,9 +84,9 @@ export function HomeCatalog() {
     <div className="flex flex-col">
       <header className={`relative z-20 mb-14 max-w-3xl sm:mb-20 ${reveal}`}>
         <h1 className="font-mono text-[2.5rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance text-[var(--nb-primary)] sm:text-[length:var(--text-5xl)]">
-          Your <span className="nb-free">free</span>
+          Your (free)
           <br />
-          digital toolkit.
+          Digital toolkit.
         </h1>
 
         <div className="relative mt-8 max-w-2xl sm:mt-10">
@@ -96,8 +96,7 @@ export function HomeCatalog() {
           <div
             className={cn(
               "flex items-center gap-3 rounded-2xl border border-border bg-card px-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-[border-color,box-shadow] duration-150",
-              open &&
-                "border-[color-mix(in_oklab,var(--nb-yellow)_65%,var(--border))] shadow-[0_0_0_3px_color-mix(in_oklab,var(--nb-yellow)_22%,transparent)]"
+              open && "border-foreground/15 shadow-[0_0_0_3px_var(--nb-accent)]"
             )}
           >
             <Search aria-hidden className="size-4 shrink-0 text-[var(--nb-secondary)]" />
@@ -169,7 +168,7 @@ export function HomeCatalog() {
                           onClick={() => openResult(tool)}
                           className={cn(
                             "flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left transition-colors",
-                            selected && "bg-[color-mix(in_oklab,var(--nb-yellow)_16%,transparent)]",
+                            selected && "bg-[var(--nb-accent)]",
                             !liveTool && "cursor-default opacity-55"
                           )}
                         >

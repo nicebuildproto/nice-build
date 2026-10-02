@@ -29,7 +29,7 @@ export function SiteFooter() {
               <Link
                 key={link.label}
                 href={link.href}
-                className="text-[13px] text-[var(--nb-secondary)] underline-offset-4 hover:text-[var(--nb-primary)] hover:underline hover:decoration-[var(--nb-yellow)]"
+                className="text-[13px] text-[var(--nb-secondary)] transition-colors hover:text-[var(--nb-primary)]"
               >
                 {link.label}
               </Link>
@@ -37,7 +37,7 @@ export function SiteFooter() {
               <a
                 key={link.label}
                 href={link.href}
-                className="text-[13px] text-[var(--nb-secondary)] underline-offset-4 hover:text-[var(--nb-primary)] hover:underline hover:decoration-[var(--nb-yellow)]"
+                className="text-[13px] text-[var(--nb-secondary)] transition-colors hover:text-[var(--nb-primary)]"
               >
                 {link.label}
               </a>
