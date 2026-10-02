@@ -1,33 +1,44 @@
-import { ToolCard } from "@/components/ToolCard"
 import { getFeaturedTools, getToolsByCategory, type categories } from "@/lib/registry"
+import { cn } from "@/lib/utils"
+import { ArrowRight } from "lucide-react"
 import Link from "next/link"
 
 type CategoryItem = (typeof categories)[number]
 
 export function CategoryTile({ category }: { category: CategoryItem }) {
   const tools = getToolsByCategory(category.key)
-  const featured = getFeaturedTools(category.key, 3)
+  const featured = getFeaturedTools(category.key, 2)
 
   return (
-    <section className="flex flex-col gap-5">
-      <h2 className="flex items-baseline justify-between gap-4 text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
-        {category.label}
-        <span className="text-[11px] font-normal tracking-normal text-[var(--nb-secondary)]/70 normal-case tabular-nums">
-          {tools.length === 1 ? "1 tool" : `${tools.length} tools`}
+    <Link
+      href={`/category/${category.key}`}
+      className={cn(
+        "group/cat -mx-3 flex flex-col gap-1.5 rounded-xl px-3 py-4",
+        "outline-none transition-colors duration-150 ease-out",
+        "hover:bg-[var(--nb-accent)]",
+        "focus-visible:ring-3 focus-visible:ring-ring/50"
+      )}
+    >
+      <div className="flex items-baseline justify-between gap-4">
+        <h2 className="text-[15px] font-medium tracking-[-0.01em] text-[var(--nb-primary)]">
+          {category.label}
+        </h2>
+        <span className="flex shrink-0 items-center gap-1.5 text-[13px] text-[var(--nb-secondary)] tabular-nums">
+          {tools.length}
+          <ArrowRight
+            aria-hidden
+            className="size-3.5 text-[var(--nb-secondary)] transition-transform duration-150 ease-out group-hover/cat:translate-x-0.5 group-hover/cat:text-[var(--nb-primary)]"
+          />
         </span>
-      </h2>
-      <p className="text-[13px] leading-relaxed text-[var(--nb-secondary)]">{category.description}</p>
-      <div className="grid gap-4">
-        {featured.map((tool) => (
-          <ToolCard key={tool.slug} tool={tool} />
-        ))}
       </div>
-      <Link
-        href={`/category/${category.key}`}
-        className="w-fit text-[13px] text-[var(--nb-primary)] underline-offset-4 hover:underline"
-      >
-        Browse all →
-      </Link>
-    </section>
+      <p className="text-[13px] leading-relaxed text-[var(--nb-secondary)]">
+        {category.description}
+      </p>
+      {featured.length > 0 ? (
+        <p className="text-[13px] text-[var(--nb-secondary)]/70">
+          {featured.map((tool) => tool.title).join(" · ")}
+        </p>
+      ) : null}
+    </Link>
   )
 }

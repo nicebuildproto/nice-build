@@ -4,7 +4,8 @@ import { CategoryTile } from "@/components/CategoryTile"
 import { ToolCard } from "@/components/ToolCard"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { categories, searchTools } from "@/lib/registry"
+import { categories, getLiveTools, searchTools } from "@/lib/registry"
+import Link from "next/link"
 import { useMemo, useState } from "react"
 
 const reveal =
@@ -13,10 +14,11 @@ const reveal =
 export function HomeCatalog() {
   const [query, setQuery] = useState("")
   const matches = useMemo(() => searchTools(query), [query])
+  const live = useMemo(() => getLiveTools(), [])
   const isSearching = query.trim().length > 0
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-14">
       <div className={`flex max-w-md flex-col gap-2 ${reveal}`}>
         <Label htmlFor="tool-search" className="sr-only">
           Search tools
@@ -42,16 +44,37 @@ export function HomeCatalog() {
           </div>
         )
       ) : (
-        <div className="grid gap-16 sm:grid-cols-2 sm:gap-x-10 sm:gap-y-16">
-          {categories.map((category, index) => (
-            <div
-              key={category.key}
-              className={reveal}
-              style={{ animationDelay: `${80 + index * 40}ms` }}
-            >
-              <CategoryTile category={category} />
+        <div className="flex flex-col gap-14">
+          {live.length > 0 ? (
+            <section className={`flex flex-col gap-4 ${reveal}`} style={{ animationDelay: "60ms" }}>
+              <h2 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
+                Live
+              </h2>
+              <ul className="flex flex-wrap gap-x-6 gap-y-2">
+                {live.map((tool) => (
+                  <li key={tool.slug}>
+                    <Link
+                      href={tool.route}
+                      className="text-[15px] font-medium tracking-[-0.01em] text-[var(--nb-primary)] underline-offset-4 hover:underline"
+                    >
+                      {tool.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          <section className={`flex flex-col gap-3 ${reveal}`} style={{ animationDelay: "120ms" }}>
+            <h2 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
+              Browse
+            </h2>
+            <div className="grid sm:grid-cols-2 sm:gap-x-8">
+              {categories.map((category) => (
+                <CategoryTile key={category.key} category={category} />
+              ))}
             </div>
-          ))}
+          </section>
         </div>
       )}
     </div>
