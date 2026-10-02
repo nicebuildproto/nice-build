@@ -9,8 +9,8 @@ export function NiceLogo({
 }) {
   return (
     <img
-      src="/nice-build-logo.svg"
-      alt="Nice Build"
+      src="/nice-tools-logo.png"
+      alt="Nice Tools"
       width={296}
       height={70}
       className={cn("h-6 w-auto max-w-full dark:invert", className)}

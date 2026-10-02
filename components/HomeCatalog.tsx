@@ -6,7 +6,6 @@ import { ToolCard } from "@/components/ToolCard"
 import { categories, getCategory, getLiveTools, searchTools, type ToolEntry } from "@/lib/registry"
 import { cn } from "@/lib/utils"
 import { Search, X } from "lucide-react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useId, useMemo, useRef, useState } from "react"
 
@@ -211,32 +210,10 @@ export function HomeCatalog() {
             </section>
           )
         ) : (
-          <>
-            {live.length > 0 ? (
-              <section className={`flex flex-col gap-4 ${reveal}`} style={{ animationDelay: "60ms" }}>
-                <h2 className="flex items-center gap-2 text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
-                  <span aria-hidden className="size-1.5 rounded-full bg-[var(--nb-yellow)]" />
-                  Live
-                </h2>
-                <ul className="-mx-3 flex flex-wrap gap-x-1 gap-y-1">
-                  {live.map((tool) => (
-                    <li key={tool.slug}>
-                      <Link
-                        href={tool.route}
-                        className="inline-flex rounded-full bg-transparent px-3 py-1.5 text-[15px] font-medium tracking-[-0.01em] text-[var(--nb-primary)] transition-colors hover:bg-[var(--nb-accent)]"
-                      >
-                        {tool.title}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ) : null}
-
             <section
               id="browse"
               className={`flex scroll-mt-24 flex-col gap-4 ${reveal}`}
-              style={{ animationDelay: "120ms" }}
+              style={{ animationDelay: "60ms" }}
             >
               <h2 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
                 Browse
@@ -247,7 +224,6 @@ export function HomeCatalog() {
                 ))}
               </div>
             </section>
-          </>
         )}
       </div>
     </div>

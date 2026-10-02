@@ -16,14 +16,10 @@ export function SiteFooter() {
       <div
         className={cn(
           siteContainer,
-          "flex flex-col gap-5 py-8 sm:flex-row sm:items-center sm:justify-between sm:py-10"
+          "flex justify-start py-8 sm:py-10"
         )}
       >
-        <p className="flex items-center gap-2 text-[13px] font-medium tracking-[-0.01em] text-[var(--nb-primary)]">
-          <span aria-hidden className="size-1.5 rounded-full bg-[var(--nb-yellow)]" />
-          Nice Build
-        </p>
-        <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2">
+        <nav aria-label="Footer" className="flex flex-wrap justify-start gap-x-5 gap-y-2">
           {links.map((link) =>
             link.href.startsWith("/") ? (
               <Link
