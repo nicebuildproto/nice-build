@@ -1,6 +1,5 @@
-import { CategorySection } from "@/components/CategorySection"
+import { HomeCatalog } from "@/components/HomeCatalog"
 import { NiceLogo } from "@/components/NiceLogo"
-import { categories } from "@/lib/registry"
 
 const reveal =
   "animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300 ease-out motion-reduce:animate-none"
@@ -15,17 +14,7 @@ export default function Home() {
         </h1>
       </header>
 
-      <div className="flex flex-col gap-16 sm:gap-20">
-        {categories.map((category, index) => (
-          <div
-            key={category.key}
-            className={reveal}
-            style={{ animationDelay: `${80 + index * 60}ms` }}
-          >
-            <CategorySection category={category.key} label={category.label} />
-          </div>
-        ))}
-      </div>
+      <HomeCatalog />
     </main>
   )
 }

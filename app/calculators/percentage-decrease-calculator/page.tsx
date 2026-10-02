@@ -3,20 +3,20 @@ import { SoftwareApplicationJsonLd } from "@/components/seo/SoftwareApplicationJ
 import { percentagePages } from "@/lib/calculators/content"
 import type { Metadata } from "next"
 
-const page = percentagePages.basic
+const page = percentagePages.decrease
 
 export const metadata: Metadata = {
   title: `${page.title} — Nice Build`,
   description: page.description,
 }
 
-export default function PercentageCalculatorPage() {
+export default function PercentageDecreaseCalculatorPage() {
   return (
     <>
       <SoftwareApplicationJsonLd
         name={page.title}
         description={page.description}
-        path="/percentage-calculator"
+        path="/calculators/percentage-decrease-calculator"
       />
       <PercentageClusterView page={page} />
     </>
