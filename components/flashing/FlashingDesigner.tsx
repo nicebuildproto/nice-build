@@ -1,5 +1,6 @@
 "use client"
 
+import { BrandLink } from "@/components/BrandLink"
 import { Button } from "@/components/ui/button"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { createEditor, editorReducer } from "@/lib/flashing/editor"
@@ -21,7 +22,6 @@ import {
   type MaterialId,
 } from "@/lib/flashing/pricing"
 import { templateById } from "@/lib/flashing/templates"
-import Link from "next/link"
 import { useMemo, useReducer, useState } from "react"
 import { AlignStep } from "./AlignStep"
 import { DesignStep } from "./DesignStep"
@@ -135,9 +135,7 @@ export function FlashingDesigner() {
     <TooltipProvider delay={300}>
       <main className="flex min-h-[100dvh] flex-1 flex-col lg:h-[100dvh]">
         <header className="flex h-14 shrink-0 items-center gap-2 border-b border-black/[0.06] px-6 text-sm">
-          <Link href="/" className="text-[var(--nb-secondary)] transition-colors hover:text-[var(--nb-primary)]">
-            Nice Build
-          </Link>
+          <BrandLink className="transition-opacity hover:opacity-70" logoClassName="h-5" />
           <span className="text-black/20">/</span>
           <span className="font-medium">Flashing Designer</span>
           <span className="ml-3 hidden text-[var(--nb-secondary)] md:inline">
