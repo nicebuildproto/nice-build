@@ -1,6 +1,7 @@
 "use client"
 
 import { BrandLink } from "@/components/BrandLink"
+import { HeaderActions } from "@/components/site/HeaderActions"
 import { Button } from "@/components/ui/button"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { createEditor, editorReducer } from "@/lib/flashing/editor"
@@ -134,16 +135,19 @@ export function FlashingDesigner() {
   return (
     <TooltipProvider delay={300}>
       <main className="flex min-h-[100dvh] flex-1 flex-col lg:h-[100dvh]">
-        <header className="shrink-0 border-b border-black/[0.06] text-sm">
-          <div className="flex h-12 items-center gap-2 px-6">
-            <BrandLink className="transition-opacity hover:opacity-70" logoClassName="h-5" />
-            <span className="text-black/20">/</span>
-            <span className="font-medium">Flashing Designer</span>
+        <header className="shrink-0 border-b border-border text-sm">
+          <div className="flex h-14 items-center gap-2 px-5 sm:px-6">
+            <BrandLink logoClassName="h-6" />
+            <span className="text-[var(--nb-secondary)]/40">/</span>
+            <span className="min-w-0 truncate font-medium">Flashing Designer</span>
             {stage !== "edit" ? (
-              <span className="ml-3 hidden text-[var(--nb-secondary)] md:inline">
+              <span className="ml-3 hidden text-[var(--nb-secondary)] lg:inline">
                 Draw a profile, choose a material, see the price.
               </span>
             ) : null}
+            <div className="ml-auto shrink-0">
+              <HeaderActions />
+            </div>
           </div>
           {stage === "edit" && pieceLengthMm !== null ? (
             <div className="border-t border-black/[0.04] px-6 py-2">

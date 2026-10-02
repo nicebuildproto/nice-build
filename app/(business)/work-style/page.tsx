@@ -1,13 +1,12 @@
-import { BrandLink } from "@/components/BrandLink"
+import { PageShell } from "@/components/site/PageShell"
 
 export default function WorkStylePage() {
   return (
-    <main className="mx-auto w-full max-w-xl px-6 py-16">
-      <BrandLink className="opacity-80 transition-opacity hover:opacity-100" logoClassName="h-5" />
-      <h1 className="mt-3 text-2xl font-medium tracking-tight text-[var(--nb-primary)]">
+    <PageShell backHref="/category/people-teams" width="tool">
+      <h1 className="text-3xl leading-[1.1] font-semibold tracking-[-0.03em] text-[var(--nb-primary)] sm:text-4xl">
         Work Style Quiz
       </h1>
-      <p className="mt-2 text-sm text-[var(--nb-secondary)]">Coming soon.</p>
-    </main>
+      <p className="mt-3 text-sm text-[var(--nb-secondary)]">Coming soon.</p>
+    </PageShell>
   )
 }

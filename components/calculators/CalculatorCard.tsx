@@ -92,7 +92,7 @@ export function CalculatorCard({
                 className="flex h-14 items-baseline text-5xl leading-none font-semibold tracking-[-0.04em] text-[var(--nb-primary)] tabular-nums"
               >
                 {formatted === null ? (
-                  <span className="text-black/15">—</span>
+                  <span className="text-foreground/20">—</span>
                 ) : (
                   <span
                     key={formatted}

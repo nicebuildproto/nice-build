@@ -1,4 +1,5 @@
-import { BrandLink } from "@/components/BrandLink"
+import { PageShell } from "@/components/site/PageShell"
+import { catalogGrid } from "@/components/site/frame"
 import { ToolCard } from "@/components/ToolCard"
 import { categories, getCategory, getToolsByCategory, isCategory } from "@/lib/registry"
 import type { Metadata } from "next"
@@ -33,25 +34,25 @@ export default async function CategoryPage({ params }: PageProps<"/category/[slu
   const tools = getToolsByCategory(category.key)
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-6 pt-10 pb-24 sm:pt-14">
-      <BrandLink className="opacity-80 transition-opacity hover:opacity-100" logoClassName="h-5" />
-
-      <header className="mt-10 mb-10 flex flex-col gap-3">
+    <PageShell backHref="/">
+      <header className="mb-10 flex flex-col gap-3">
         <h1 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
           {category.label}
         </h1>
-        <p className="text-[13px] leading-relaxed text-[var(--nb-secondary)]">{category.description}</p>
+        <p className="max-w-2xl text-[13px] leading-relaxed text-[var(--nb-secondary)]">
+          {category.description}
+        </p>
       </header>
 
       {tools.length === 0 ? (
         <p className="text-sm text-[var(--nb-secondary)]">Nothing here yet.</p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className={catalogGrid}>
           {tools.map((tool) => (
             <ToolCard key={tool.slug} tool={tool} />
           ))}
         </div>
       )}
-    </main>
+    </PageShell>
   )
 }

@@ -24,17 +24,29 @@ export interface ToolEntry {
   tags?: string[]
 }
 
-export const categories: { key: Category; label: string; description: string }[] = [
-  { key: "calculators", label: "Calculators", description: "Quick, clean calculations for everyday numbers." },
-  { key: "developer", label: "Developer Tools", description: "Formatters, converters, and generators for building software." },
-  { key: "files-media", label: "Files & Media", description: "Convert, compress, and clean up files and images." },
-  { key: "design-creative", label: "Design & Creative", description: "Colour, gradient, and visual tools for designers." },
-  { key: "data-viz", label: "Data Visualization", description: "Turn data into clean, shareable diagrams and charts." },
-  { key: "business", label: "Business Tools", description: "Invoices, quotes, and everyday business calculations." },
-  { key: "home-trade", label: "Home & Trade", description: "Material estimates and tools for building and renovating." },
-  { key: "people-teams", label: "People & Teams", description: "Understand how you and your team actually work." },
-  { key: "text-tools", label: "Text Tools", description: "Count, clean, and compare text." },
-  { key: "everyday-fun", label: "Everyday & Fun", description: "Small, useful tools for everyday moments." },
+export type CategoryIcon =
+  | "Calculator"
+  | "Code2"
+  | "FileStack"
+  | "Palette"
+  | "BarChart3"
+  | "Briefcase"
+  | "Hammer"
+  | "Users"
+  | "Type"
+  | "Sparkles"
+
+export const categories: { key: Category; label: string; description: string; icon: CategoryIcon }[] = [
+  { key: "calculators", label: "Calculators", description: "Quick, clean calculations for everyday numbers.", icon: "Calculator" },
+  { key: "developer", label: "Developer Tools", description: "Formatters, converters, and generators for building software.", icon: "Code2" },
+  { key: "files-media", label: "Files & Media", description: "Convert, compress, and clean up files and images.", icon: "FileStack" },
+  { key: "design-creative", label: "Design & Creative", description: "Colour, gradient, and visual tools for designers.", icon: "Palette" },
+  { key: "data-viz", label: "Data Visualization", description: "Turn data into clean, shareable diagrams and charts.", icon: "BarChart3" },
+  { key: "business", label: "Business Tools", description: "Invoices, quotes, and everyday business calculations.", icon: "Briefcase" },
+  { key: "home-trade", label: "Home & Trade", description: "Material estimates and tools for building and renovating.", icon: "Hammer" },
+  { key: "people-teams", label: "People & Teams", description: "Understand how you and your team actually work.", icon: "Users" },
+  { key: "text-tools", label: "Text Tools", description: "Count, clean, and compare text.", icon: "Type" },
+  { key: "everyday-fun", label: "Everyday & Fun", description: "Small, useful tools for everyday moments.", icon: "Sparkles" },
 ]
 
 export const registry: ToolEntry[] = [
@@ -323,6 +335,16 @@ export const registry: ToolEntry[] = [
     tags: ["case", "text", "convert"],
   },
   {
+    slug: "dice-roller",
+    category: "everyday-fun",
+    title: "Dice Roller",
+    description: "Roll a handful of dice.",
+    route: "/dice-roller",
+    status: "live",
+    featured: true,
+    tags: ["dice", "roll", "random", "game"],
+  },
+  {
     slug: "age-calculator",
     category: "everyday-fun",
     title: "Age Calculator",
@@ -384,7 +406,8 @@ export function searchTools(query: string) {
   if (!needle) return []
 
   return registry.filter((tool) => {
-    const haystack = [tool.title, tool.description, ...(tool.tags ?? [])]
+    const category = getCategory(tool.category)?.label ?? ""
+    const haystack = [tool.title, tool.description, category, ...(tool.tags ?? [])]
       .join(" ")
       .toLowerCase()
     return haystack.includes(needle)

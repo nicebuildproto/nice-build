@@ -1,6 +1,7 @@
 "use client"
 
 import { BrandLink } from "@/components/BrandLink"
+import { HeaderActions } from "@/components/site/HeaderActions"
 import { CustomizePanel } from "@/components/sankey/CustomizePanel"
 import { DataTable, NodeColorTable } from "@/components/sankey/DataTable"
 import { ExampleCards } from "@/components/sankey/ExampleCards"
@@ -251,10 +252,10 @@ export function SankeyGenerator() {
   const empty = flows.length === 0
 
   return (
-    <div className="flex h-dvh min-h-0 flex-col bg-white text-[var(--nb-primary)]">
-      <header className="flex shrink-0 items-center justify-between gap-4 border-b border-black/[0.06] px-4 py-3 sm:px-6">
+    <div className="flex h-dvh min-h-0 flex-col bg-background text-[var(--nb-primary)]">
+      <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6">
         <div className="flex min-w-0 items-center gap-4">
-          <BrandLink logoClassName="h-5" />
+          <BrandLink logoClassName="h-6" />
           <div className="min-w-0">
             <h1 className="text-[15px] font-medium tracking-[-0.01em]">Sankey Diagram Generator</h1>
             <p className="hidden text-[13px] text-[var(--nb-secondary)] sm:block">
@@ -262,7 +263,7 @@ export function SankeyGenerator() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-1.5">
           <Button type="button" variant="ghost" size="sm" onClick={() => setStyleOpen(true)}>
             <SlidersHorizontal />
             Customize
@@ -283,6 +284,8 @@ export function SankeyGenerator() {
               <DropdownMenuItem onClick={copyDiagram}>Copy image</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <span aria-hidden className="mx-1 hidden h-4 w-px bg-border sm:block" />
+          <HeaderActions />
         </div>
       </header>
 
