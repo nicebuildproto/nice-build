@@ -149,6 +149,16 @@ export const registry: ToolEntry[] = [
     tags: ["exif", "privacy", "photo"],
   },
   {
+    slug: "sankey-generator",
+    category: "design-creative",
+    title: "Sankey Diagram Generator",
+    description: "Create clear, beautiful Sankey diagrams from your data.",
+    route: "/sankey-generator",
+    status: "live",
+    featured: true,
+    tags: ["sankey", "diagram", "flow", "chart"],
+  },
+  {
     slug: "colour-palette-generator",
     category: "design-creative",
     title: "Colour Palette Generator",
@@ -176,16 +186,6 @@ export const registry: ToolEntry[] = [
     route: "/gradient-generator",
     status: "coming-soon",
     tags: ["gradient", "css", "colour"],
-  },
-  {
-    slug: "sankey",
-    category: "data-viz",
-    title: "Sankey Diagram Generator",
-    description: "Turn flow data into a clean, shareable Sankey diagram.",
-    route: "/sankey",
-    status: "coming-soon",
-    featured: true,
-    tags: ["sankey", "flow", "chart"],
   },
   {
     slug: "funnel-chart",
