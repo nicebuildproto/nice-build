@@ -11,13 +11,19 @@ type Col = "source" | "target" | "value"
 
 export function DataTable({
   rows,
+  flowColors,
+  defaultFlowColor,
   onChange,
+  onFlowColor,
   onAdd,
   onDelete,
   onDuplicate,
 }: {
   rows: SankeyRow[]
+  flowColors: Record<string, string>
+  defaultFlowColor: string
   onChange: (id: string, key: Col, value: string) => void
+  onFlowColor: (id: string, color: string) => void
   onAdd: () => void
   onDelete: (id: string) => void
   onDuplicate: (id: string) => void
@@ -65,66 +71,91 @@ export function DataTable({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-[1fr_1fr_72px_56px] gap-1.5 px-0.5 text-[11px] font-medium tracking-[0.08em] text-[var(--nb-secondary)] uppercase">
-        <span>Source</span>
-        <span>Target</span>
-        <span>Value</span>
-        <span className="sr-only">Row actions</span>
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        {rows.map((row, index) => {
-          const issue = rowIssue(row)
-          return (
-            <div key={row.id} className="grid grid-cols-[1fr_1fr_72px_56px] items-center gap-1.5">
-              <Cell
-                cellId={`${row.id}-source`}
-                value={row.source}
-                invalid={issue === "missing-source"}
-                placeholder="Revenue"
-                onChange={(value) => onChange(row.id, "source", value)}
-                onKeyDown={(event) => onKeyDown(event, index, "source")}
-              />
-              <Cell
-                cellId={`${row.id}-target`}
-                value={row.target}
-                invalid={issue === "missing-target"}
-                placeholder="Product"
-                onChange={(value) => onChange(row.id, "target", value)}
-                onKeyDown={(event) => onKeyDown(event, index, "target")}
-              />
-              <Cell
-                cellId={`${row.id}-value`}
-                value={row.value}
-                invalid={issue === "invalid-value" || issue === "negative"}
-                placeholder="500"
-                inputMode="decimal"
-                onChange={(value) => onChange(row.id, "value", value)}
-                onKeyDown={(event) => onKeyDown(event, index, "value")}
-              />
-              <div className="flex items-center justify-end gap-0.5">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-xs"
-                  aria-label="Duplicate row"
-                  onClick={() => onDuplicate(row.id)}
-                >
-                  <Copy />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-xs"
-                  aria-label="Delete row"
-                  onClick={() => onDelete(row.id)}
-                >
-                  <Trash2 />
-                </Button>
-              </div>
-            </div>
-          )
-        })}
+      <div className="overflow-x-auto rounded-lg border border-black/[0.08]">
+        <table className="w-full min-w-[420px] border-collapse text-[13px]">
+          <thead>
+            <tr className="bg-[var(--nb-accent)] text-left text-[11px] font-medium tracking-[0.08em] text-[var(--nb-secondary)] uppercase">
+              <th className="px-2 py-2 font-medium">Source</th>
+              <th className="px-2 py-2 font-medium">Target</th>
+              <th className="w-24 px-2 py-2 font-medium">Value</th>
+              <th className="w-16 px-2 py-2 font-medium">Colour</th>
+              <th className="w-16 px-1 py-2">
+                <span className="sr-only">Row actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, index) => {
+              const issue = rowIssue(row)
+              return (
+                <tr key={row.id} className="border-t border-black/[0.06]">
+                  <td className="p-0">
+                    <Cell
+                      cellId={`${row.id}-source`}
+                      value={row.source}
+                      invalid={issue === "missing-source"}
+                      placeholder="Revenue"
+                      onChange={(value) => onChange(row.id, "source", value)}
+                      onKeyDown={(event) => onKeyDown(event, index, "source")}
+                    />
+                  </td>
+                  <td className="border-l border-black/[0.06] p-0">
+                    <Cell
+                      cellId={`${row.id}-target`}
+                      value={row.target}
+                      invalid={issue === "missing-target"}
+                      placeholder="Product"
+                      onChange={(value) => onChange(row.id, "target", value)}
+                      onKeyDown={(event) => onKeyDown(event, index, "target")}
+                    />
+                  </td>
+                  <td className="border-l border-black/[0.06] p-0">
+                    <Cell
+                      cellId={`${row.id}-value`}
+                      value={row.value}
+                      invalid={issue === "invalid-value" || issue === "negative"}
+                      placeholder="500"
+                      inputMode="decimal"
+                      onChange={(value) => onChange(row.id, "value", value)}
+                      onKeyDown={(event) => onKeyDown(event, index, "value")}
+                    />
+                  </td>
+                  <td className="border-l border-black/[0.06] px-2">
+                    <input
+                      type="color"
+                      aria-label={`Flow colour for row ${index + 1}`}
+                      value={flowColors[row.id] ?? defaultFlowColor}
+                      onChange={(event) => onFlowColor(row.id, event.target.value)}
+                      className="size-7 cursor-pointer rounded-md border border-black/10 bg-white p-0.5"
+                    />
+                  </td>
+                  <td className="border-l border-black/[0.06] px-1">
+                    <div className="flex items-center justify-end">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-xs"
+                        aria-label="Duplicate row"
+                        onClick={() => onDuplicate(row.id)}
+                      >
+                        <Copy />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-xs"
+                        aria-label="Delete row"
+                        onClick={() => onDelete(row.id)}
+                      >
+                        <Trash2 />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
       </div>
 
       <Button type="button" variant="ghost" size="sm" className="-ml-2 w-fit" onClick={onAdd}>
@@ -135,6 +166,54 @@ export function DataTable({
       {firstIssue ? (
         <p className="text-[13px] text-[var(--nb-secondary)]">{issueMessage(firstIssue)}</p>
       ) : null}
+    </div>
+  )
+}
+
+export function NodeColorTable({
+  nodes,
+  colors,
+  fallback,
+  onChange,
+}: {
+  nodes: string[]
+  colors: Record<string, string>
+  fallback: string
+  onChange: (name: string, color: string) => void
+}) {
+  if (nodes.length === 0) return null
+
+  return (
+    <div className="mt-6 flex flex-col gap-2">
+      <h3 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
+        Nodes
+      </h3>
+      <div className="overflow-x-auto rounded-lg border border-black/[0.08]">
+        <table className="w-full border-collapse text-[13px]">
+          <thead>
+            <tr className="bg-[var(--nb-accent)] text-left text-[11px] font-medium tracking-[0.08em] text-[var(--nb-secondary)] uppercase">
+              <th className="px-2 py-2 font-medium">Node</th>
+              <th className="w-16 px-2 py-2 font-medium">Colour</th>
+            </tr>
+          </thead>
+          <tbody>
+            {nodes.map((name) => (
+              <tr key={name} className="border-t border-black/[0.06]">
+                <td className="px-2 py-1.5 text-[var(--nb-primary)]">{name}</td>
+                <td className="border-l border-black/[0.06] px-2 py-1.5">
+                  <input
+                    type="color"
+                    aria-label={`${name} colour`}
+                    value={colors[name] ?? fallback}
+                    onChange={(event) => onChange(name, event.target.value)}
+                    className="size-7 cursor-pointer rounded-md border border-black/10 bg-white p-0.5"
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
@@ -166,7 +245,10 @@ function Cell({
       aria-invalid={invalid || undefined}
       onChange={(event) => onChange(event.target.value)}
       onKeyDown={onKeyDown}
-      className={cn("h-8 text-[13px]", invalid && "border-destructive/50")}
+      className={cn(
+        "h-9 rounded-none border-0 bg-transparent px-2 shadow-none focus-visible:ring-1",
+        invalid && "bg-destructive/5"
+      )}
     />
   )
 }

@@ -134,20 +134,52 @@ export function FlashingDesigner() {
   return (
     <TooltipProvider delay={300}>
       <main className="flex min-h-[100dvh] flex-1 flex-col lg:h-[100dvh]">
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b border-black/[0.06] px-6 text-sm">
-          <BrandLink className="transition-opacity hover:opacity-70" logoClassName="h-5" />
-          <span className="text-black/20">/</span>
-          <span className="font-medium">Flashing Designer</span>
-          <span className="ml-3 hidden text-[var(--nb-secondary)] md:inline">
-            Draw a profile, choose a material, see the price.
-          </span>
+        <header className="shrink-0 border-b border-black/[0.06] text-sm">
+          <div className="flex h-12 items-center gap-2 px-6">
+            <BrandLink className="transition-opacity hover:opacity-70" logoClassName="h-5" />
+            <span className="text-black/20">/</span>
+            <span className="font-medium">Flashing Designer</span>
+            {stage !== "edit" ? (
+              <span className="ml-3 hidden text-[var(--nb-secondary)] md:inline">
+                Draw a profile, choose a material, see the price.
+              </span>
+            ) : null}
+          </div>
+          {stage === "edit" && pieceLengthMm !== null ? (
+            <div className="border-t border-black/[0.04] px-6 py-2">
+              <PriceBar
+                review={currentStep === "review"}
+                pieceLengthMm={pieceLengthMm}
+                onPieceLengthChange={setPieceLengthMm}
+                quantity={quantity}
+                onQuantityChange={setQuantity}
+                girthMm={liveGirth}
+                folds={foldCount(points)}
+                materialSummary={materialSummary}
+                price={price}
+                pending={pricePending}
+                onAddToCart={() => {
+                  const { itemCode } = order()
+                  console.log("Add to cart", { itemCode, quantity, pieceLengthMm, total: price.total })
+                  showToast(`Added ${quantity} × ${itemCode} to cart`)
+                }}
+                onRequestQuote={() => {
+                  const { itemCode } = order()
+                  console.log("Request quote", { itemCode, quantity, pieceLengthMm, total: price.total })
+                  showToast("Quote request noted")
+                }}
+              />
+            </div>
+          ) : null}
         </header>
 
         {stage === "length" ? (
           <LengthStep
             initial={pieceLengthMm}
-            onSubmit={(value) => {
+            initialQuantity={quantity}
+            onSubmit={(value, nextQuantity) => {
               setPieceLengthMm(value)
+              setQuantity(nextQuantity)
               setStage("template")
             }}
           />
@@ -272,28 +304,6 @@ export function FlashingDesigner() {
               </div>
             </div>
 
-            <PriceBar
-              review={currentStep === "review"}
-              pieceLengthMm={pieceLengthMm ?? 0}
-              onPieceLengthChange={setPieceLengthMm}
-              quantity={quantity}
-              onQuantityChange={setQuantity}
-              girthMm={liveGirth}
-              folds={foldCount(points)}
-              materialSummary={materialSummary}
-              price={price}
-              pending={pricePending}
-              onAddToCart={() => {
-                const { itemCode } = order()
-                console.log("Add to cart", { itemCode, quantity, pieceLengthMm, total: price.total })
-                showToast(`Added ${quantity} × ${itemCode} to cart`)
-              }}
-              onRequestQuote={() => {
-                const { itemCode } = order()
-                console.log("Request quote", { itemCode, quantity, pieceLengthMm, total: price.total })
-                showToast("Quote request noted")
-              }}
-            />
           </div>
         ) : null}
 

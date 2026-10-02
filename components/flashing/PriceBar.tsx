@@ -38,10 +38,12 @@ export function PriceBar({
   onAddToCart: () => void
   onRequestQuote: () => void
 }) {
-  const shown = useAnimatedNumber(review ? price.total : price.perPiece)
+  const metres = pieceLengthMm / 1000
+  const perMetre = metres > 0 ? price.perPiece / metres : null
+  const shown = useAnimatedNumber(perMetre ?? 0)
 
   return (
-    <div className="flex flex-wrap items-end gap-x-8 gap-y-4 border-t border-black/[0.06] bg-white px-6 py-4">
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
       <NumberField
         label="Piece length"
         suffix="mm"
@@ -50,57 +52,50 @@ export function PriceBar({
         max={PIECE_LENGTH_MAX}
         onChange={onPieceLengthChange}
       />
-      {review ? (
-        <NumberField label="Quantity" value={quantity} min={1} max={999} onChange={onQuantityChange} />
-      ) : null}
+      <NumberField label="Quantity" value={quantity} min={1} max={999} onChange={onQuantityChange} />
       <Stat label="Total length of metal">
-        <GirthReadout girthMm={girthMm} className="text-sm" />
+        <GirthReadout girthMm={girthMm} className="text-[13px]" />
       </Stat>
       <Stat label="Folds">
-        <span className="text-sm tabular-nums">{folds}</span>
+        <span className="text-[13px] tabular-nums">{folds}</span>
       </Stat>
       <Stat label="Material" className="min-w-0">
-        <span className="block max-w-56 truncate text-sm">{materialSummary}</span>
+        <span className="block max-w-40 truncate text-[13px]" title={materialSummary}>
+          {materialSummary}
+        </span>
       </Stat>
-
-      <div className="ml-auto flex items-end gap-6">
-        <div className="text-right">
-          <span className="block text-xs text-[var(--nb-secondary)]">
-            {review
-              ? quantity > 1
-                ? `Total · ${quantity} × ${formatPrice(price.perPiece)}`
-                : "Total"
-              : "Price per piece"}
+      <Stat label="Price per metre">
+        <span
+          className={cn(
+            "text-[13px] font-medium tabular-nums transition-opacity duration-300",
+            pending && "opacity-40"
+          )}
+          aria-live="polite"
+        >
+          {perMetre === null ? "—" : formatPrice(shown)}
+        </span>
+      </Stat>
+      {review ? (
+        <div className="ml-auto flex items-center gap-3">
+          <span className="text-[13px] text-[var(--nb-secondary)] tabular-nums">
+            {quantity > 1 ? `${quantity} × ${formatPrice(price.perPiece)} · ` : ""}
+            {formatPrice(price.total)}
           </span>
-          <span
-            className={cn(
-              "block font-semibold tracking-tight tabular-nums transition-opacity duration-300",
-              review ? "text-3xl" : "text-2xl",
-              pending && "opacity-40"
-            )}
-            aria-live="polite"
-          >
-            {formatPrice(shown)}
-          </span>
+          <Button variant="outline" size="sm" onClick={onRequestQuote}>
+            Request quote
+          </Button>
+          <Button size="sm" onClick={onAddToCart}>
+            Add to cart
+          </Button>
         </div>
-        {review ? (
-          <div className="flex gap-2">
-            <Button variant="outline" size="lg" onClick={onRequestQuote}>
-              Request quote
-            </Button>
-            <Button size="lg" onClick={onAddToCart}>
-              Add to cart
-            </Button>
-          </div>
-        ) : null}
-      </div>
+      ) : null}
     </div>
   )
 }
 
 function Stat({ label, className, children }: { label: string; className?: string; children: ReactNode }) {
   return (
-    <div className={cn("flex flex-col gap-1 pb-1.5", className)}>
+    <div className={cn("flex flex-col gap-0.5", className)}>
       <span className="text-xs text-[var(--nb-secondary)]">{label}</span>
       {children}
     </div>
@@ -157,7 +152,7 @@ function NumberField({
           onKeyDown={(event) => {
             if (event.key === "Enter") event.currentTarget.blur()
           }}
-          className={cn("h-9 tabular-nums", suffix ? "w-28 pr-10" : "w-20")}
+          className={cn("h-8 tabular-nums", suffix ? "w-24 pr-9" : "w-16")}
         />
         {suffix ? (
           <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs text-[var(--nb-secondary)]">

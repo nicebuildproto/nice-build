@@ -8,10 +8,14 @@ export function SankeySvg({
   layout,
   style,
   selectedNode,
+  selectedLink,
   hoveredLink,
+  nodeColors,
+  flowColors,
   zoom,
   pan,
   onSelectNode,
+  onSelectLink,
   onHoverLink,
   onNodePointerDown,
   svgRef,
@@ -20,10 +24,14 @@ export function SankeySvg({
   layout: SankeyLayout
   style: StyleSettings
   selectedNode: string | null
+  selectedLink: string | null
   hoveredLink: string | null
+  nodeColors: Record<string, string>
+  flowColors: Record<string, string>
   zoom: number
   pan: { x: number; y: number }
   onSelectNode: (id: string | null) => void
+  onSelectLink: (id: string | null) => void
   onHoverLink: (id: string | null) => void
   onNodePointerDown: (id: string, event: React.PointerEvent) => void
   svgRef: React.RefObject<SVGSVGElement | null>
@@ -42,7 +50,10 @@ export function SankeySvg({
       role="img"
       aria-label="Sankey diagram"
       onPointerDown={(event) => {
-        if (event.target === event.currentTarget) onSelectNode(null)
+        if (event.target === event.currentTarget) {
+          onSelectNode(null)
+          onSelectLink(null)
+        }
       }}
     >
       <rect
@@ -51,16 +62,26 @@ export function SankeySvg({
         width={viewW}
         height={viewH}
         fill={style.background}
-        onPointerDown={() => onSelectNode(null)}
+        onPointerDown={() => {
+          onSelectNode(null)
+          onSelectLink(null)
+        }}
       />
 
       {layout.links.map((link) => (
         <path
           key={link.id}
           d={link.path}
-          fill={style.flowColor}
-          fillOpacity={hoveredLink === link.id ? Math.min(1, style.flowOpacity + 0.16) : style.flowOpacity}
-          className="transition-[fill-opacity] duration-150"
+          fill={flowColors[link.id] ?? style.flowColor}
+          fillOpacity={hoveredLink === link.id || selectedLink === link.id ? Math.min(1, style.flowOpacity + 0.16) : style.flowOpacity}
+          className="cursor-pointer transition-[fill-opacity] duration-150"
+          stroke={selectedLink === link.id ? style.labelColor : "transparent"}
+          strokeWidth={selectedLink === link.id ? 1.5 / zoom : 0}
+          onPointerDown={(event) => {
+            event.stopPropagation()
+            onSelectNode(null)
+            onSelectLink(link.id)
+          }}
           onPointerEnter={() => onHoverLink(link.id)}
           onPointerLeave={() => onHoverLink(null)}
         >
@@ -83,7 +104,10 @@ export function SankeySvg({
           <g
             key={node.id}
             className="cursor-grab active:cursor-grabbing"
-            onPointerDown={(event) => onNodePointerDown(node.id, event)}
+            onPointerDown={(event) => {
+              onSelectLink(null)
+              onNodePointerDown(node.id, event)
+            }}
           >
             <rect
               x={node.x}
@@ -91,7 +115,7 @@ export function SankeySvg({
               width={node.width}
               height={node.height}
               rx={3}
-              fill={style.nodeColor}
+              fill={nodeColors[node.id] ?? style.nodeColor}
               stroke={selected ? style.labelColor : "transparent"}
               strokeWidth={selected ? 2 / zoom : 0}
             />

@@ -11,22 +11,28 @@ import { ProfileIcon } from "./ProfileShape"
 
 export function LengthStep({
   initial,
+  initialQuantity,
   onSubmit,
 }: {
   initial: number | null
-  onSubmit: (lengthMm: number) => void
+  initialQuantity: number
+  onSubmit: (lengthMm: number, quantity: number) => void
 }) {
   const [text, setText] = useState(initial ? String(initial) : "")
+  const [quantityText, setQuantityText] = useState(String(initialQuantity))
   const [error, setError] = useState<string | null>(null)
 
   const submit = () => {
     const value = Math.round(Number(text))
+    const quantity = Math.round(Number(quantityText))
     if (text.trim() === "" || !Number.isFinite(value)) {
       setError("Enter a length in millimetres.")
     } else if (value < PIECE_LENGTH_MIN || value > PIECE_LENGTH_MAX) {
       setError(`Pieces can be ${PIECE_LENGTH_MIN} to ${PIECE_LENGTH_MAX} mm long.`)
+    } else if (quantityText.trim() === "" || !Number.isFinite(quantity) || quantity < 1 || quantity > 999) {
+      setError("Enter a quantity from 1 to 999.")
     } else {
-      onSubmit(value)
+      onSubmit(value, quantity)
     }
   }
 
@@ -65,6 +71,20 @@ export function LengthStep({
           </span>
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
         </div>
+        <label className="flex flex-col gap-2">
+          <span className="text-sm text-[var(--nb-secondary)]">How many pieces?</span>
+          <Input
+            type="text"
+            inputMode="numeric"
+            aria-label="Quantity"
+            value={quantityText}
+            onChange={(event) => {
+              setQuantityText(event.target.value)
+              setError(null)
+            }}
+            className="h-12 w-24 text-lg tabular-nums"
+          />
+        </label>
         <Button type="submit" size="lg" className="h-11">
           Continue
         </Button>

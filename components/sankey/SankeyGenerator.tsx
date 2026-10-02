@@ -2,7 +2,7 @@
 
 import { BrandLink } from "@/components/BrandLink"
 import { CustomizePanel } from "@/components/sankey/CustomizePanel"
-import { DataTable } from "@/components/sankey/DataTable"
+import { DataTable, NodeColorTable } from "@/components/sankey/DataTable"
 import { ExampleCards } from "@/components/sankey/ExampleCards"
 import { SankeySvg } from "@/components/sankey/SankeySvg"
 import { Button } from "@/components/ui/button"
@@ -37,6 +37,9 @@ export function SankeyGenerator() {
   const [style, setStyle] = useState<StyleSettings>(defaultStyle)
   const [offsets, setOffsets] = useState<Record<string, NodeOffset>>({})
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
+  const [selectedLink, setSelectedLink] = useState<string | null>(null)
+  const [nodeColors, setNodeColors] = useState<Record<string, string>>({})
+  const [flowColors, setFlowColors] = useState<Record<string, string>>({})
   const [hoveredLink, setHoveredLink] = useState<string | null>(null)
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
@@ -55,6 +58,14 @@ export function SankeyGenerator() {
   } | null>(null)
 
   const flows = useMemo(() => validFlows(rows), [rows])
+  const nodeNames = useMemo(() => {
+    const names: string[] = []
+    for (const flow of flows) {
+      if (!names.includes(flow.source)) names.push(flow.source)
+      if (!names.includes(flow.target)) names.push(flow.target)
+    }
+    return names
+  }, [flows])
   const layout = useMemo(
     () => layoutSankey(flows, style, offsets, frame),
     [flows, style, offsets, frame]
@@ -84,6 +95,9 @@ export function SankeyGenerator() {
     setRows(example.rows.map((row) => ({ ...row, id: newRow().id })))
     setOffsets({})
     setSelectedNode(null)
+    setSelectedLink(null)
+    setNodeColors({})
+    setFlowColors({})
     setZoom(1)
     setPan({ x: 0, y: 0 })
     setExamplesOpen(false)
@@ -109,6 +123,7 @@ export function SankeyGenerator() {
     event.preventDefault()
     event.stopPropagation()
     setSelectedNode(id)
+    setSelectedLink(null)
     const origin = offsets[id] ?? { x: 0, y: 0 }
     dragRef.current = { id, startX: event.clientX, startY: event.clientY, origin }
   }
@@ -192,7 +207,10 @@ export function SankeyGenerator() {
         ) : null}
         <DataTable
           rows={rows}
+          flowColors={flowColors}
+          defaultFlowColor={style.flowColor}
           onChange={updateRow}
+          onFlowColor={(id, color) => setFlowColors((current) => ({ ...current, [id]: color }))}
           onAdd={() => setRows((current) => [...current, newRow()])}
           onDelete={(id) =>
             setRows((current) => (current.length === 1 ? [newRow()] : current.filter((row) => row.id !== id)))
@@ -205,6 +223,12 @@ export function SankeyGenerator() {
               return [...current.slice(0, index + 1), copy, ...current.slice(index + 1)]
             })
           }
+        />
+        <NodeColorTable
+          nodes={nodeNames}
+          colors={nodeColors}
+          fallback={style.nodeColor}
+          onChange={(name, color) => setNodeColors((current) => ({ ...current, [name]: color }))}
         />
         <p className="mt-4 text-[12px] leading-relaxed text-[var(--nb-secondary)]">
           Paste from Excel or Sheets. Each row is source, target, value.
@@ -239,6 +263,10 @@ export function SankeyGenerator() {
           </div>
         </div>
         <div className="flex items-center gap-1.5">
+          <Button type="button" variant="ghost" size="sm" onClick={() => setStyleOpen(true)}>
+            <SlidersHorizontal />
+            Customize
+          </Button>
           <Button type="button" variant="ghost" size="sm" onClick={resetAll}>
             Reset
           </Button>
@@ -258,8 +286,8 @@ export function SankeyGenerator() {
         </div>
       </header>
 
-      <div className="grid min-h-0 flex-1 md:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_280px]">
-        <aside className="hidden min-h-0 border-r border-black/[0.06] p-5 md:flex">{dataPanel}</aside>
+      <div className="grid min-h-0 flex-1 md:grid-cols-[minmax(440px,1.05fr)_minmax(0,1fr)]">
+        <aside className="hidden min-h-0 border-r border-black/[0.06] p-4 md:flex">{dataPanel}</aside>
 
         <section className="relative flex min-h-0 flex-col">
           <div ref={canvasRef} className="relative min-h-0 flex-1">
@@ -277,10 +305,14 @@ export function SankeyGenerator() {
                 layout={layout}
                 style={style}
                 selectedNode={selectedNode}
+                selectedLink={selectedLink}
                 hoveredLink={hoveredLink}
+                nodeColors={nodeColors}
+                flowColors={flowColors}
                 zoom={zoom}
                 pan={pan}
                 onSelectNode={setSelectedNode}
+                onSelectLink={setSelectedLink}
                 onHoverLink={setHoveredLink}
                 onNodePointerDown={onNodePointerDown}
                 svgRef={svgRef}
@@ -293,10 +325,6 @@ export function SankeyGenerator() {
               <Button type="button" variant="outline" size="sm" className="md:hidden" onClick={() => setDataOpen(true)}>
                 <Table2 />
                 Data
-              </Button>
-              <Button type="button" variant="outline" size="sm" className="xl:hidden" onClick={() => setStyleOpen(true)}>
-                <SlidersHorizontal />
-                Customize
               </Button>
             </div>
             <div className="pointer-events-auto ml-auto flex items-center gap-1 rounded-lg border border-black/[0.06] bg-white/90 p-1 backdrop-blur-sm">
@@ -341,11 +369,10 @@ export function SankeyGenerator() {
           </div>
         </section>
 
-        <aside className="hidden min-h-0 border-l border-black/[0.06] p-5 xl:flex">{stylePanel}</aside>
       </div>
 
       <Sheet open={dataOpen} onOpenChange={setDataOpen}>
-        <SheetContent side="left" className="w-full max-w-md p-5">
+        <SheetContent side="left" className="w-full max-w-xl p-5">
           <SheetHeader className="p-0 pb-4">
             <SheetTitle>Data</SheetTitle>
           </SheetHeader>
