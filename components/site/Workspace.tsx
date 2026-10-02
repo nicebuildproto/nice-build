@@ -24,8 +24,23 @@ const defaultPins = [
 const pinCardClass =
   "h-full min-h-36 justify-between [--card-spacing:--spacing(6)] shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-[translate,box-shadow] duration-150 ease-out group-hover/pin:-translate-y-1 group-hover/pin:shadow-[0_2px_4px_rgba(0,0,0,0.04),0_12px_32px_-8px_rgba(0,0,0,0.12)] motion-reduce:transition-none motion-reduce:group-hover/pin:translate-y-0"
 
-const floatingCardClass =
-  "h-full min-h-36 justify-between [--card-spacing:--spacing(6)] scale-[1.02] shadow-[0_16px_40px_-16px_rgba(0,0,0,0.4)] motion-reduce:scale-100"
+type PinDrag = {
+  slug: string
+  pointerId: number
+  startX: number
+  startY: number
+  offsetX: number
+  offsetY: number
+  dragging: boolean
+  fromIndex: number
+  overIndex: number
+  order: string[]
+  slots: DOMRect[]
+  source: HTMLElement
+  ghost: HTMLElement | null
+  cursor: string
+  userSelect: string
+}
 
 function readPins() {
   try {
@@ -59,6 +74,32 @@ function moveSlug(slugs: string[], slug: string, toIndex: number) {
   return next
 }
 
+function slotIndexAtPoint(x: number, y: number, slots: DOMRect[]) {
+  let index = 0
+  for (const rect of slots) {
+    const centerX = rect.left + rect.width / 2
+    const centerY = rect.top + rect.height / 2
+    const sameRow = Math.abs(centerY - y) <= rect.height / 2
+    if (centerY < y - rect.height / 2 || (sameRow && centerX < x)) index += 1
+  }
+  return Math.max(0, Math.min(index, Math.max(slots.length - 1, 0)))
+}
+
+function shiftedIndex(index: number, from: number, to: number) {
+  if (index === from) return to
+  if (from < to && index > from && index <= to) return index - 1
+  if (to < from && index >= to && index < from) return index + 1
+  return index
+}
+
+function clearPinStyles(grid: HTMLElement | null) {
+  grid?.querySelectorAll<HTMLElement>("[data-pin]").forEach((node) => {
+    node.style.transform = ""
+    node.style.transition = ""
+    node.style.opacity = ""
+  })
+}
+
 export function Workspace({ onClose }: { onClose: () => void }) {
   const titleId = useId()
   const searchId = useId()
@@ -71,29 +112,14 @@ export function Workspace({ onClose }: { onClose: () => void }) {
   const pinsRef = useRef<string[] | null>(null)
   const positions = useRef(new Map<string, DOMRect>())
   const suppressClick = useRef(false)
-  const dragRef = useRef<{
-    slug: string
-    pointerId: number
-    startX: number
-    startY: number
-    offsetX: number
-    offsetY: number
-    width: number
-    height: number
-    dragging: boolean
-  } | null>(null)
+  const skipFlip = useRef(false)
+  const dragListeners = useRef<(() => void) | null>(null)
+  const dragRef = useRef<PinDrag | null>(null)
   const [pins, setPins] = useState<string[] | null>(null)
   const [query, setQuery] = useState("")
   const [active, setActive] = useState(0)
   const [moved, setMoved] = useState(false)
   const [status, setStatus] = useState("")
-  const [dragSlug, setDragSlug] = useState<string | null>(null)
-  const [dragVisual, setDragVisual] = useState<{
-    x: number
-    y: number
-    width: number
-    height: number
-  } | null>(null)
 
   useEffect(() => {
     const stored = readPins()
@@ -108,6 +134,11 @@ export function Workspace({ onClose }: { onClose: () => void }) {
   useLayoutEffect(() => {
     const grid = gridRef.current
     if (!grid) return
+    const dropping = skipFlip.current
+    if (dropping) {
+      clearPinStyles(grid)
+      skipFlip.current = false
+    }
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     const next = new Map<string, DOMRect>()
     grid.querySelectorAll<HTMLElement>("[data-pin]").forEach((node) => {
@@ -115,7 +146,7 @@ export function Workspace({ onClose }: { onClose: () => void }) {
       if (!slug) return
       const rect = node.getBoundingClientRect()
       const prev = positions.current.get(slug)
-      if (prev && slug !== dragRef.current?.slug && !reduce) {
+      if (prev && !dropping && !dragRef.current?.dragging && !reduce) {
         const dx = prev.left - rect.left
         const dy = prev.top - rect.top
         if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
@@ -129,6 +160,15 @@ export function Workspace({ onClose }: { onClose: () => void }) {
     })
     positions.current = next
   }, [pins])
+
+  useEffect(
+    () => () => {
+      dragListeners.current?.()
+      dragRef.current?.ghost?.remove()
+      clearPinStyles(gridRef.current)
+    },
+    []
+  )
 
   useEffect(() => {
     const previous = document.activeElement
@@ -202,34 +242,18 @@ export function Workspace({ onClose }: { onClose: () => void }) {
     )
   }
 
-  function rememberPositions() {
-    const grid = gridRef.current
-    if (!grid) return
-    const next = new Map<string, DOMRect>()
-    grid.querySelectorAll<HTMLElement>("[data-pin]").forEach((node) => {
-      if (node.dataset.pin) next.set(node.dataset.pin, node.getBoundingClientRect())
-    })
-    positions.current = next
+  function stopDragListeners() {
+    dragListeners.current?.()
+    dragListeners.current = null
   }
 
-  function indexAtPoint(x: number, y: number, slug: string) {
-    const grid = gridRef.current
-    if (!grid) return 0
-    const nodes = [...grid.querySelectorAll<HTMLElement>("[data-pin]")]
-    let index = 0
-    for (const node of nodes) {
-      if (node.dataset.pin === slug) continue
-      const rect = node.getBoundingClientRect()
-      const centerX = rect.left + rect.width / 2
-      const centerY = rect.top + rect.height / 2
-      const sameRow = Math.abs(centerY - y) <= rect.height / 2
-      if (centerY < y - rect.height / 2 || (sameRow && centerX < x)) index += 1
-    }
-    return index
-  }
-
-  function onPinPointerDown(event: PointerEvent<HTMLAnchorElement>, tool: ToolEntry) {
+  function onPinPointerDown(event: PointerEvent<HTMLDivElement>, tool: ToolEntry) {
     if (event.button !== 0) return
+    const target = event.target
+    if (target instanceof Element && target.closest("[data-remove]")) return
+    const order = pinsRef.current
+    if (!order) return
+    stopDragListeners()
     const rect = event.currentTarget.getBoundingClientRect()
     dragRef.current = {
       slug: tool.slug,
@@ -238,70 +262,123 @@ export function Workspace({ onClose }: { onClose: () => void }) {
       startY: event.clientY,
       offsetX: event.clientX - rect.left,
       offsetY: event.clientY - rect.top,
-      width: rect.width,
-      height: rect.height,
       dragging: false,
+      fromIndex: order.indexOf(tool.slug),
+      overIndex: order.indexOf(tool.slug),
+      order: [...order],
+      slots: [],
+      source: event.currentTarget,
+      ghost: null,
+      cursor: document.body.style.cursor,
+      userSelect: document.body.style.userSelect,
     }
-    try {
-      event.currentTarget.setPointerCapture(event.pointerId)
-    } catch {
-      // Some pointer events cannot be captured. Drag still follows the card.
+
+    const move = (pointerEvent: globalThis.PointerEvent) => onWindowPointerMove(pointerEvent)
+    const end = (pointerEvent: globalThis.PointerEvent) => finishDrag(pointerEvent)
+    window.addEventListener("pointermove", move, { passive: false })
+    window.addEventListener("pointerup", end)
+    window.addEventListener("pointercancel", end)
+    dragListeners.current = () => {
+      window.removeEventListener("pointermove", move)
+      window.removeEventListener("pointerup", end)
+      window.removeEventListener("pointercancel", end)
     }
   }
 
-  function onPinPointerMove(event: PointerEvent<HTMLAnchorElement>) {
+  function beginDrag(drag: PinDrag) {
+    const grid = gridRef.current
+    if (!grid || drag.fromIndex < 0) return
+    const nodes = [...grid.querySelectorAll<HTMLElement>("[data-pin]")]
+    nodes.forEach((node) => node.getAnimations().forEach((animation) => animation.cancel()))
+    drag.slots = nodes.map((node) => node.getBoundingClientRect())
+    const ghost = drag.source.cloneNode(true) as HTMLElement
+    ghost.querySelector("[data-remove]")?.remove()
+    const rect = drag.slots[drag.fromIndex] ?? drag.source.getBoundingClientRect()
+    ghost.style.position = "fixed"
+    ghost.style.left = `${rect.left}px`
+    ghost.style.top = `${rect.top}px`
+    ghost.style.width = `${rect.width}px`
+    ghost.style.height = `${rect.height}px`
+    ghost.style.margin = "0"
+    ghost.style.zIndex = "100"
+    ghost.style.pointerEvents = "none"
+    ghost.style.opacity = "1"
+    ghost.style.transition = "none"
+    ghost.style.transform = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ? "none"
+      : "scale(1.02)"
+    ghost.style.boxShadow = "0 16px 40px -16px rgba(0,0,0,0.4)"
+    document.body.appendChild(ghost)
+    drag.source.style.opacity = "0"
+    drag.ghost = ghost
+    drag.dragging = true
+    suppressClick.current = true
+    document.body.style.cursor = "grabbing"
+    document.body.style.userSelect = "none"
+  }
+
+  function shiftPins(drag: PinDrag) {
+    const grid = gridRef.current
+    if (!grid) return
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    const nodes = [...grid.querySelectorAll<HTMLElement>("[data-pin]")]
+    nodes.forEach((node, index) => {
+      if (node.dataset.pin === drag.slug) return
+      const from = drag.slots[index]
+      const to = drag.slots[shiftedIndex(index, drag.fromIndex, drag.overIndex)]
+      if (!from || !to) return
+      node.style.transition = reduce ? "none" : "transform 180ms cubic-bezier(0.2, 0, 0, 1)"
+      node.style.transform = `translate(${to.left - from.left}px, ${to.top - from.top}px)`
+    })
+  }
+
+  function onWindowPointerMove(event: globalThis.PointerEvent) {
     const drag = dragRef.current
     if (!drag || event.pointerId !== drag.pointerId) return
     const dx = event.clientX - drag.startX
     const dy = event.clientY - drag.startY
     if (!drag.dragging) {
       if (dx * dx + dy * dy < 36) return
-      drag.dragging = true
-      setDragSlug(drag.slug)
+      beginDrag(drag)
+      if (!drag.dragging) return
     }
 
-    setDragVisual({
-      x: event.clientX - drag.offsetX,
-      y: event.clientY - drag.offsetY,
-      width: drag.width,
-      height: drag.height,
-    })
-
-    const scroller = scrollerRef.current
-    if (scroller) {
-      const bounds = scroller.getBoundingClientRect()
-      if (event.clientY < bounds.top + 56) scroller.scrollTop -= 14
-      else if (event.clientY > bounds.bottom - 56) scroller.scrollTop += 14
+    event.preventDefault()
+    if (drag.ghost) {
+      drag.ghost.style.left = `${event.clientX - drag.offsetX}px`
+      drag.ghost.style.top = `${event.clientY - drag.offsetY}px`
     }
-
-    const current = pinsRef.current
-    if (!current) return
-    const toIndex = indexAtPoint(event.clientX, event.clientY, drag.slug)
-    const next = moveSlug(current, drag.slug, toIndex)
-    if (next === current) return
-    rememberPositions()
-    pinsRef.current = next
-    setPins(next)
+    if (drag.slots.length === 0) return
+    const overIndex = slotIndexAtPoint(event.clientX, event.clientY, drag.slots)
+    if (overIndex === drag.overIndex) return
+    drag.overIndex = overIndex
+    shiftPins(drag)
   }
 
-  function finishDrag(event: PointerEvent<HTMLAnchorElement>) {
+  function finishDrag(event: globalThis.PointerEvent) {
     const drag = dragRef.current
     if (!drag || event.pointerId !== drag.pointerId) return
+    stopDragListeners()
+    drag.ghost?.remove()
+    document.body.style.cursor = drag.cursor
+    document.body.style.userSelect = drag.userSelect
     if (drag.dragging) {
-      suppressClick.current = true
       window.setTimeout(() => {
         suppressClick.current = false
-      }, 0)
-      if (pinsRef.current) writePins(pinsRef.current)
-      const title = getLiveTools().find((tool) => tool.slug === drag.slug)?.title
-      if (title) setStatus(`Moved ${title}`)
+      }, 400)
+      const next = moveSlug(drag.order, drag.slug, drag.overIndex)
+      if (next === drag.order) {
+        clearPinStyles(gridRef.current)
+      } else {
+        skipFlip.current = true
+        pinsRef.current = next
+        setPins(next)
+        writePins(next)
+        const title = getLiveTools().find((tool) => tool.slug === drag.slug)?.title
+        if (title) setStatus(`Moved ${title}`)
+      }
     }
     dragRef.current = null
-    setDragSlug(null)
-    setDragVisual(null)
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId)
-    }
   }
 
   function onDialogKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -354,7 +431,6 @@ export function Workspace({ onClose }: { onClose: () => void }) {
   const trimmed = query.trim()
   const highlight = trimmed.length > 0 || moved
   const ready = pins !== null
-  const draggedTool = dragSlug ? pinnedTools.find((tool) => tool.slug === dragSlug) : undefined
 
   return createPortal(
     <div
@@ -363,10 +439,7 @@ export function Workspace({ onClose }: { onClose: () => void }) {
       aria-modal="true"
       aria-labelledby={titleId}
       onKeyDown={onDialogKeyDown}
-      className={cn(
-        "fixed inset-0 z-[80] flex flex-col bg-background animate-in fade-in duration-200 ease-out motion-reduce:animate-none",
-        dragSlug && "cursor-grabbing select-none"
-      )}
+      className="fixed inset-0 z-[80] flex flex-col bg-background animate-in fade-in duration-200 ease-out motion-reduce:animate-none"
     >
       <header className="shrink-0 bg-background">
         <div className={cn(siteContainer, "flex h-14 items-center justify-between gap-3")}>
@@ -431,15 +504,17 @@ export function Workspace({ onClose }: { onClose: () => void }) {
               <div ref={gridRef} className={catalogGrid}>
                 {pinnedTools.map((tool) => {
                   const category = getCategory(tool.category)
-                  const dragging = dragSlug === tool.slug
                   return (
-                    <div key={tool.slug} data-pin={tool.slug} className="group/pin relative h-full">
-                      {dragging ? (
-                        <div className="pointer-events-none absolute inset-0 rounded-xl bg-[var(--nb-accent)]" />
-                      ) : null}
+                    <div
+                      key={tool.slug}
+                      data-pin={tool.slug}
+                      onPointerDown={(event) => onPinPointerDown(event, tool)}
+                      className="group/pin relative h-full cursor-grab touch-none"
+                    >
                       <Link
                         href={tool.route}
                         draggable={false}
+                        onDragStart={(event) => event.preventDefault()}
                         onClick={(event) => {
                           if (suppressClick.current) {
                             event.preventDefault()
@@ -447,17 +522,9 @@ export function Workspace({ onClose }: { onClose: () => void }) {
                           }
                           onClose()
                         }}
-                        onPointerDown={(event) => onPinPointerDown(event, tool)}
-                        onPointerMove={onPinPointerMove}
-                        onPointerUp={finishDrag}
-                        onPointerCancel={finishDrag}
-                        className={cn(
-                          "relative block h-full cursor-grab touch-none rounded-xl outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50 active:cursor-grabbing",
-                          dragging && "invisible",
-                          dragSlug && dragSlug !== tool.slug && "pointer-events-none"
-                        )}
+                        className="relative block h-full rounded-xl outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50"
                       >
-                        <Card className={cn(pinCardClass, dragSlug && "group-hover/pin:translate-y-0 group-hover/pin:shadow-[0_1px_2px_rgba(0,0,0,0.03)]")}>
+                        <Card className={pinCardClass}>
                           <CardHeader>
                             <div className="flex flex-col gap-2 pr-8">
                               <p className="text-[12px] text-[var(--nb-secondary)]">{category?.label}</p>
@@ -473,12 +540,11 @@ export function Workspace({ onClose }: { onClose: () => void }) {
                       </Link>
                       <button
                         type="button"
+                        data-remove
                         aria-label={`Remove ${tool.title}`}
+                        onPointerDown={(event) => event.stopPropagation()}
                         onClick={() => removeTool(tool)}
-                        className={cn(
-                          "absolute top-5 right-5 z-10 inline-flex size-7 items-center justify-center rounded-full bg-[var(--nb-accent)] text-[var(--nb-secondary)] opacity-100 outline-none transition-opacity hover:text-[var(--nb-primary)] focus-visible:ring-3 focus-visible:ring-ring/50 sm:opacity-0 sm:group-focus-within/pin:opacity-100 sm:group-hover/pin:opacity-100",
-                          dragging && "invisible"
-                        )}
+                        className="absolute top-5 right-5 z-10 inline-flex size-7 items-center justify-center rounded-full bg-[var(--nb-accent)] text-[var(--nb-secondary)] opacity-100 outline-none transition-opacity hover:text-[var(--nb-primary)] focus-visible:ring-3 focus-visible:ring-ring/50 sm:pointer-events-none sm:opacity-0 sm:group-focus-within/pin:pointer-events-auto sm:group-focus-within/pin:opacity-100 sm:group-hover/pin:pointer-events-auto sm:group-hover/pin:opacity-100"
                       >
                         <X aria-hidden className="size-3.5" />
                       </button>
@@ -593,31 +659,6 @@ export function Workspace({ onClose }: { onClose: () => void }) {
           </section>
         </div>
       </div>
-      {dragVisual && draggedTool ? (
-        <div
-          className="pointer-events-none fixed top-0 left-0 z-[90]"
-          style={{
-            transform: `translate(${dragVisual.x}px, ${dragVisual.y}px)`,
-            width: dragVisual.width,
-          }}
-        >
-          <Card className={floatingCardClass}>
-            <CardHeader>
-              <div className="flex flex-col gap-2 pr-8">
-                <p className="text-[12px] text-[var(--nb-secondary)]">
-                  {getCategory(draggedTool.category)?.label}
-                </p>
-                <CardTitle className="text-[15px] font-medium tracking-[-0.01em] text-[var(--nb-primary)]">
-                  {draggedTool.title}
-                </CardTitle>
-                <CardDescription className="line-clamp-2 text-[13px] leading-relaxed text-[var(--nb-secondary)]">
-                  {draggedTool.description}
-                </CardDescription>
-              </div>
-            </CardHeader>
-          </Card>
-        </div>
-      ) : null}
     </div>,
     document.body
   )

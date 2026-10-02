@@ -85,7 +85,7 @@ export function HomeCatalog() {
         <h1 className="font-mono text-[2.5rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance text-[var(--nb-primary)] sm:text-[length:var(--text-5xl)]">
           Your (free)
           <br />
-          Digital toolkit.
+          digital toolkit.
         </h1>
 
         <div className="relative mt-8 max-w-2xl sm:mt-10">
