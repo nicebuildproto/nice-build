@@ -17,7 +17,7 @@ export default function SankeyGeneratorPage() {
       <SoftwareApplicationJsonLd
         name="Sankey Diagram Generator"
         description="Create clear, beautiful Sankey diagrams from your data."
-        path="/sankey-generator"
+        path="/design-creative/sankey-generator"
       />
       <SankeyGenerator />
     </>

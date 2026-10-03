@@ -6,7 +6,11 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 export function generateStaticParams() {
-  return Object.keys(toolViews).map((slug) => ({ slug }))
+  return Object.keys(toolViews).flatMap((slug) => {
+    const tool = registry.find((item) => item.slug === slug)
+    if (!tool) return []
+    return [{ category: tool.category, slug }]
+  })
 }
 
 export const dynamicParams = true
@@ -14,10 +18,10 @@ export const dynamicParams = true
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ category: string; slug: string }>
 }): Promise<Metadata> {
-  const { slug } = await params
-  const tool = registry.find((item) => item.slug === slug)
+  const { category, slug } = await params
+  const tool = registry.find((item) => item.slug === slug && item.category === category)
   if (!tool) return {}
   return {
     title: `${tool.title} — Nice Build`,
@@ -25,9 +29,13 @@ export async function generateMetadata({
   }
 }
 
-export default async function SimpleToolPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
-  const tool = registry.find((item) => item.slug === slug)
+export default async function SimpleToolPage({
+  params,
+}: {
+  params: Promise<{ category: string; slug: string }>
+}) {
+  const { category, slug } = await params
+  const tool = registry.find((item) => item.slug === slug && item.category === category)
   const view = toolViews[slug]
   if (!tool || !view) notFound()
 

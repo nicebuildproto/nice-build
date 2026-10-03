@@ -14,7 +14,11 @@ export const metadata: Metadata = {
 export default function DiceRollerPage() {
   return (
     <>
-      <SoftwareApplicationJsonLd name={title} description={description} path="/dice-roller" />
+      <SoftwareApplicationJsonLd
+        name={title}
+        description={description}
+        path="/everyday-fun/dice-roller"
+      />
       <PageShell backHref="/category/everyday-fun" width="narrow">
         <DiceRoller />
       </PageShell>

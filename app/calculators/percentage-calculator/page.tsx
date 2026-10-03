@@ -16,7 +16,7 @@ export default function PercentageCalculatorPage() {
       <SoftwareApplicationJsonLd
         name={page.title}
         description={page.description}
-        path="/percentage-calculator"
+        path="/calculators/percentage-calculator"
       />
       <PercentageClusterView page={page} />
     </>
