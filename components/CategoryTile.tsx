@@ -3,10 +3,12 @@ import { getFeaturedTools, getToolsByCategory, type categories, type CategoryIco
 import {
   ArrowRight,
   BarChart3,
+  Bitcoin,
   Briefcase,
   Calculator,
   Code2,
   FileStack,
+  Gamepad2,
   Hammer,
   Palette,
   Sparkles,
@@ -28,6 +30,8 @@ const categoryIcons: Record<CategoryIcon, LucideIcon> = {
   Users,
   Type,
   Sparkles,
+  Gamepad2,
+  Bitcoin,
 }
 
 export function CategoryTile({ category }: { category: CategoryItem }) {

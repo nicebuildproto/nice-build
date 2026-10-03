@@ -1,3 +1,5 @@
+import { libraryTools } from "./tools/library"
+
 export type ToolStatus = "live" | "coming-soon"
 
 export type Category =
@@ -11,6 +13,8 @@ export type Category =
   | "people-teams"
   | "text-tools"
   | "everyday-fun"
+  | "gaming-hardware"
+  | "crypto"
 
 export interface ToolEntry {
   slug: string
@@ -35,6 +39,8 @@ export type CategoryIcon =
   | "Users"
   | "Type"
   | "Sparkles"
+  | "Gamepad2"
+  | "Bitcoin"
 
 export const categories: { key: Category; label: string; description: string; icon: CategoryIcon }[] = [
   { key: "calculators", label: "Calculators", description: "Quick, clean calculations for everyday numbers.", icon: "Calculator" },
@@ -47,6 +53,8 @@ export const categories: { key: Category; label: string; description: string; ic
   { key: "people-teams", label: "People & Teams", description: "Understand how you and your team actually work.", icon: "Users" },
   { key: "text-tools", label: "Text Tools", description: "Count, clean, and compare text.", icon: "Type" },
   { key: "everyday-fun", label: "Everyday & Fun", description: "Small, useful tools for everyday moments.", icon: "Sparkles" },
+  { key: "gaming-hardware", label: "Gaming & Hardware", description: "Test your gear and convert the numbers players actually use.", icon: "Gamepad2" },
+  { key: "crypto", label: "Crypto", description: "Profit, size, and yield from figures you type in. No wallet and no live prices.", icon: "Bitcoin" },
 ]
 
 // Every tool lives at /[category]/[slug]. Add new tools on that path.
@@ -374,6 +382,7 @@ export const registry: ToolEntry[] = [
     status: "live",
     tags: ["random", "picker", "names"],
   },
+  ...libraryTools,
 ]
 
 export function isCategory(value: string): value is Category {
