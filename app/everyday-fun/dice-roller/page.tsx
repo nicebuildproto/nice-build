@@ -1,6 +1,7 @@
 import { DiceRoller } from "@/components/dice/DiceRoller"
 import { SoftwareApplicationJsonLd } from "@/components/seo/SoftwareApplicationJsonLd"
 import { PageShell } from "@/components/site/PageShell"
+import { ToolGuide } from "@/components/tools/ToolGuide"
 import type { Metadata } from "next"
 
 const title = "Dice Roller"
@@ -21,6 +22,7 @@ export default function DiceRollerPage() {
       />
       <PageShell backHref="/category/everyday-fun" width="narrow">
         <DiceRoller />
+        <ToolGuide slug="dice-roller" />
       </PageShell>
     </>
   )

@@ -1,0 +1,142 @@
+import { guide, type ToolGuideCopy } from "@/lib/tools/guides/types"
+
+export const calculatorGuides: Record<string, ToolGuideCopy> = {
+  "percentage-calculator": guide(
+    "25 is 12.5% of 200. Separately, 15% of 80 is 12. Use the left card for “what share is this?”, and the right card for “how much is this percent?”",
+    ["How do I work out “X is what percent of Y”?", "Divide X by Y, then multiply by 100. If Y is 0, there is no percentage to show — a number cannot be a share of nothing."],
+    ["How do I work out “what is X% of Y”?", "Multiply Y by X, then divide by 100. 15% of 80 is 80 × 0.15, which is 12."],
+    ["Is this the same as a percentage increase?", "No. This page answers “what share?” and “how much is this percent?”. To grow or shrink a starting amount, use the increase, decrease, or discount calculators."],
+  ),
+  "percentage-increase-calculator": guide(
+    "A $50 item increases by 20%. The increase is $10, so the new price is $60. The same steps work for a 4% raise on a $90,000 salary: the rise is $3,600 and the new salary is $93,600.",
+    ["How do you calculate a percentage increase?", "Multiply the original amount by the percent, divide by 100, then add that to the original. New amount = original × (1 + percent ÷ 100)."],
+    ["Is this the same as “what is X% of Y”?", "That question only gives the increase itself. This calculator also adds it back, so you see both the rise and the new total."],
+    ["What if I increase twice in a row?", "Apply the second increase to the new amount, not the original. A 10% rise then another 10% is 21% in total, not 20%."],
+  ),
+  "percentage-decrease-calculator": guide(
+    "An $80 bill decreases by 15%. The drop is $12, so $68 remains. The same method works for a 30% fall in website traffic: 10,000 visits becomes 7,000.",
+    ["How is a decrease different from a discount?", "The maths is the same. This page is framed around any shrinking number — usage, headcount, inventory — not a shop price tag."],
+    ["Can the result go below zero?", "A 100% decrease reaches zero. More than 100% goes negative, which is valid for some ledgers and not for quantities. Check the context before you use it."],
+    ["How do I reverse a decrease?", "You cannot just add the same percent back. After a 20% drop, you need a 25% increase to return to the original, because you are growing from a smaller base."],
+  ),
+  "discount-calculator": guide(
+    "A $120 jacket at 25% off. You save $30 and pay $90. If a $64 weekly shop has 10% off, you save $6.40 and pay $57.60.",
+    ["Is a discount the same as a percentage decrease?", "Same arithmetic, different job. A discount is always “money off a price”. Use the decrease calculator when the number is not a retail price."],
+    ["How do stacked discounts work?", "Apply them one after another to the already-reduced price. 20% off, then an extra 10% off, is 28% off in total — not 30%."],
+    ["Does this include GST?", "No. It only applies the percent you enter to the amount you enter. Add or remove tax first if the sticker price is not the figure you want to discount."],
+  ),
+  "tip-calculator": guide(
+    "A $86 dinner, a 10% tip, split two ways. The tip is $8.60, the table total is $94.60, and each person pays $47.30.",
+    ["How is the tip split calculated?", "Tip is the bill times the percent. Add that to the bill, then divide by the number of people."],
+    ["Should I tip on the pre-tax amount?", "Either is common. Enter the figure you want to tip on. This calculator does not separate tax from the bill."],
+    ["What if the tip is already included?", "Set the tip percent to 0. You will still see the bill split evenly across the people."],
+  ),
+  "general-calculator": guide(
+    "12 × (4 + 1) is 60. Brackets run first, then multiplication and division, then addition and subtraction. A trailing percent sign is the remainder operator, so 10 % 3 is 1.",
+    ["Which operations can I type?", "Plus, minus, times, divide, brackets, decimals, and remainder (%). It does not run functions such as square root."],
+    ["Does it follow normal order of operations?", "Yes. Multiplication and division happen before addition and subtraction. Use brackets when you want a different order."],
+    ["Is anything sent to a server?", "No. The expression is evaluated in your browser."],
+  ),
+  "loan-calculator": guide(
+    "Borrow $20,000 at 6.5% a year for 5 years. The monthly repayment is about $391, interest over the term is about $13,480, and you repay about $33,480 in total.",
+    ["How is the monthly repayment worked out?", "It uses the standard amortising formula: the annual rate is divided by 12, then applied over the number of months. A 0% rate simply divides the amount by the months."],
+    ["Does this include fees or a balloon payment?", "No. It assumes a fixed rate, a fixed term, and a balance that is paid down to zero."],
+    ["Is the rate nominal or comparison?", "Enter the nominal annual rate. The calculator compounds it monthly, which is how most personal loans are quoted."],
+  ),
+  "compound-interest-calculator": guide(
+    "Start with $5,000, add $200 each month, and earn 4.5% compounded monthly for 10 years. The balance finishes near $36,400, because deposits and interest both keep earning.",
+    ["What does the compounding setting change?", "Yearly, quarterly, monthly, or daily changes how often interest is added. More frequent compounding grows the balance a little faster at the same annual rate."],
+    ["Is the deposit added every compounding period?", "Yes. A monthly setting means the deposit is made each month. Switch to yearly if you only add money once a year."],
+    ["Does this include tax on interest?", "No. The result is the mathematical balance before any tax on earnings."],
+  ),
+  "savings-calculator": guide(
+    "Start with $1,000 and add $400 a month for 5 years at 4% a year, compounded monthly. You put in $25,000. The balance is a little higher than that, and the difference is the growth.",
+    ["How is the future balance calculated?", "The starting amount grows at the monthly rate, and each monthly deposit grows for the months left in the term."],
+    ["What if the interest rate is zero?", "The balance is the starting amount plus every deposit. Nothing extra is added."],
+    ["Can I use this for a savings goal date?", "This page projects a balance from a term you choose. Change the years until the balance passes the goal you have in mind."],
+  ),
+  "roi-calculator": guide(
+    "You put in $1,000 and get $1,350 back. Profit is $350. ROI is 35%, because 350 ÷ 1,000 = 0.35.",
+    ["What is ROI?", "Return on investment is profit divided by the amount you put in, shown as a percent. Profit is what came back minus what you invested."],
+    ["Can ROI be negative?", "Yes. If the returned amount is lower than the invested amount, profit and ROI are both negative."],
+    ["Does this annualise the return?", "No. It is the return on the amounts you enter, with no time period applied."],
+  ),
+  "sales-tax-calculator": guide(
+    "Add 10% GST to an $80 net price and the tax is $8, so the total is $88. Extract 10% from an $88 total and the tax is $8, so the net price is $80.",
+    ["What is the difference between adding and extracting tax?", "Add puts the percent on top of the amount. Extract pulls the tax back out of a figure that already includes it."],
+    ["How do I extract GST in Australia?", "Choose extract and enter 10%. The net amount is the total divided by 1.10, and the tax is the remainder."],
+    ["Does this know local tax rules?", "No. It applies the rate you type. Use 10 for Australian GST, or another rate if you are pricing for somewhere else."],
+  ),
+  "time-duration-calculator": guide(
+    "From 09:30 to 17:45 is 8 hours and 15 minutes. If the end clock is earlier than the start, the span crosses midnight: 22:00 to 06:30 is 8 hours and 30 minutes.",
+    ["What time format should I use?", "A 24-hour clock, hours and minutes, such as 09:30. You can add seconds, such as 09:30:15."],
+    ["Does an earlier end time count as the next day?", "Yes. The calculator adds 24 hours when the end is before the start, and it says so under the result."],
+    ["Can I enter 12-hour times with am and pm?", "No. Convert them first. 5:45 pm is 17:45."],
+  ),
+  "date-difference-calculator": guide(
+    "From 1 January 2026 to 3 October 2026 is 275 days, about 39.3 weeks, and 9 calendar months.",
+    ["Are the start and end dates included?", "The day count is the difference between the two dates. From a date to the same date is 0 days."],
+    ["How are calendar months counted?", "Whole months are counted from the start date. If the end day is earlier in the month than the start day, the last partial month is not counted."],
+    ["Does this account for time zones?", "No. Both dates are treated as local calendar dates, with no time of day."],
+  ),
+  "take-home-salary-calculator": guide(
+    "A $95,000 salary, taxed as an Australian resident on the stage 3 brackets plus a 2% Medicare levy, leaves a little over $72,000 a year, or about $6,000 a month.",
+    ["Which tax rates does this use?", "Resident brackets of 0%, 16%, 30%, 37%, and 45%, plus a flat 2% Medicare levy. Tax offsets and HELP repayments are not included."],
+    ["Is superannuation taken out?", "No. Enter taxable salary, not a package that still needs super removed. Employer super is not deducted here."],
+    ["Is this my exact pay?", "It is an estimate for planning. Your notice of assessment can differ because of offsets, deductions, and other levies."],
+  ),
+  "salary-to-hourly-calculator": guide(
+    "A $95,000 salary over 38 hours a week and 52 weeks a year is about $48 an hour. Change the weeks if you want to exclude annual leave.",
+    ["How is the hourly rate calculated?", "Annual salary divided by hours a week, then divided by weeks a year."],
+    ["Should I use 52 weeks or 48?", "52 includes paid leave in the hourly rate. Use fewer weeks if you want the rate only for the weeks you work."],
+    ["Does this include super?", "Only if super is already inside the salary you enter. The calculator does not add or remove it."],
+  ),
+  "overtime-calculator": guide(
+    "At $42 an hour, 38 ordinary hours are $1,596. Four hours at 1.5 times are $252. The week comes to $1,848.",
+    ["How is overtime priced?", "Ordinary hours use the base rate. Overtime hours use the base rate times the multiplier you set. The default multiplier is 1.5."],
+    ["Can I use a double-time multiplier?", "Yes. Set the multiplier to 2 for double time, or any other factor your award uses."],
+    ["Does this know penalty rates?", "No. It applies one multiplier to all of the overtime hours. Split a shift into separate runs if the rate changes part way through."],
+  ),
+  "bmi-calculator": guide(
+    "A person who is 178 cm and 72 kg has a BMI of about 22.7, which sits in the healthy weight range on the adult WHO bands.",
+    ["How is BMI calculated?", "Weight in kilograms divided by height in metres squared. Centimetres are converted to metres first."],
+    ["What do the ranges mean?", "Under 18.5 is underweight, under 25 is a healthy weight, under 30 is overweight, and 30 or more is obese. These are adult screening bands, not a diagnosis."],
+    ["Is BMI useful for athletes or children?", "It does not distinguish muscle from fat, and the adult bands are not meant for children. Treat the number as a rough screen."],
+  ),
+  "calorie-calculator": guide(
+    "A 34-year-old woman, 168 cm and 68 kg, with moderate activity, has a maintenance need around 2,200 kcal. A lose goal subtracts 500 kcal. A gain goal adds 300 kcal.",
+    ["Which equation is used?", "Mifflin–St Jeor for basal metabolic rate, multiplied by an activity factor to estimate daily energy use."],
+    ["What do the activity levels mean?", "Sedentary is little movement. Light is some walking. Moderate is regular exercise. Very and extra active are for hard training or physical work."],
+    ["Is this a meal plan?", "No. It is a calorie target for planning. A clinician should set targets when health conditions are involved."],
+  ),
+  "bmr-calculator": guide(
+    "Using Mifflin–St Jeor, a 34-year-old woman at 68 kg and 168 cm has a BMR of about 1,400 kcal. That is the estimate for rest, before any activity is added.",
+    ["What is BMR?", "Basal metabolic rate is the energy your body uses at rest. It does not include walking, exercise, or digestion."],
+    ["Why does sex change the result?", "The Mifflin–St Jeor equation adds 5 kcal for male and subtracts 161 kcal for female after the weight, height, and age terms."],
+    ["How is this different from TDEE?", "BMR is rest only. TDEE multiplies BMR by an activity factor so it estimates a full day."],
+  ),
+  "tdee-calculator": guide(
+    "The same 34-year-old woman at rest uses about 1,400 kcal. At a moderate activity factor of 1.55, estimated daily use is about 2,170 kcal.",
+    ["What is TDEE?", "Total daily energy expenditure. It is BMR times a factor for how active the day is."],
+    ["Which formula is the BMR based on?", "Mifflin–St Jeor, from weight in kilograms, height in centimetres, age, and sex."],
+    ["Should I eat my TDEE to maintain weight?", "TDEE is the usual planning figure for maintenance. Real intake still depends on how the week actually looks."],
+  ),
+  "gpa-calculator": guide(
+    "An A worth 3 credits and a B worth 3 credits average to 3.50. Grade points are A and A+ 4.0, A− 3.7, B+ 3.3, B 3.0, then down to F at 0.",
+    ["How do I enter a course?", "One line each: the letter grade, then the credits. A− 3 is a valid line. Plus and minus signs are read."],
+    ["Is this a 4.0 scale?", "Yes. A and A+ are both 4.0. It is not a 7-point or 100-point scale."],
+    ["What if a line is rejected?", "The line needs a letter and a number, such as B+ 4. Words like “credit” or “distinction” are not read."],
+  ),
+  "grade-calculator": guide(
+    "86 points out of 100 is 86%, which is a B on the scale used here. 92 out of 100 is an A. 59 out of 100 is an F.",
+    ["Where are the letter boundaries?", "A from 90, B from 80, C from 70, D from 60, and F below 60. Schools often use a different scale."],
+    ["Can the score be above 100%?", "Yes, if points earned are higher than points possible. The letter will still be an A once you pass 90%."],
+    ["Does this weight several assignments?", "No. Enter the combined points, or run it once per assignment and combine the results yourself."],
+  ),
+  "unit-converter": guide(
+    "1 metre is 3.2808 feet. 0°C is 32°F. A litre is about 4.227 cups. The two units have to be the same kind of measure.",
+    ["Which units can I convert?", "Length, weight, temperature, volume, and area. The lists share one menu, and mixed kinds are rejected."],
+    ["Are the cups metric or US?", "Volume uses US customary cups, tablespoons, teaspoons, and fluid ounces, next to millilitres and litres."],
+    ["How is temperature converted?", "Celsius, Fahrenheit, and Kelvin use the standard offsets. A negative temperature is allowed."],
+  ),
+}

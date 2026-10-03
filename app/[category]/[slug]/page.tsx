@@ -1,5 +1,6 @@
 import { SoftwareApplicationJsonLd } from "@/components/seo/SoftwareApplicationJsonLd"
 import { PageShell } from "@/components/site/PageShell"
+import { ToolGuide } from "@/components/tools/ToolGuide"
 import { toolViews } from "@/components/tools/views"
 import { registry } from "@/lib/registry"
 import type { Metadata } from "next"
@@ -52,6 +53,7 @@ export default async function SimpleToolPage({
           <p className="max-w-xl text-sm text-[var(--nb-secondary)]">{tool.description}</p>
         </header>
         <View />
+        <ToolGuide slug={tool.slug} />
       </PageShell>
     </>
   )

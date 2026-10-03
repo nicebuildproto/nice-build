@@ -1,7 +1,7 @@
 "use client"
 
 import { CalculatorCard } from "@/components/calculators/CalculatorCard"
-import { RelatedCalculators } from "@/components/calculators/RelatedCalculators"
+import { ToolGuide } from "@/components/tools/ToolGuide"
 import { PageShell } from "@/components/site/PageShell"
 import type { PercentagePageContent } from "@/lib/calculators/content"
 import { usePercentage } from "@/lib/calculators/usePercentage"
@@ -99,30 +99,7 @@ export function PercentageClusterView({ page }: { page: PercentagePageContent })
         </div>
       )}
 
-      <section className="mt-16 flex max-w-2xl flex-col gap-3">
-        <h2 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
-          Worked example
-        </h2>
-        <p className="text-[13px] leading-relaxed text-[var(--nb-secondary)]">{page.example}</p>
-      </section>
-
-      <section className="mt-12 flex max-w-2xl flex-col gap-5">
-        <h2 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
-          FAQ
-        </h2>
-        <dl className="flex flex-col gap-5">
-          {page.faqs.map((faq) => (
-            <div key={faq.question} className="flex flex-col gap-1.5">
-              <dt className="text-[15px] font-medium tracking-[-0.01em] text-[var(--nb-primary)]">
-                {faq.question}
-              </dt>
-              <dd className="text-[13px] leading-relaxed text-[var(--nb-secondary)]">{faq.answer}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
-
-      <RelatedCalculators currentSlug={page.slug} />
+      <ToolGuide slug={page.slug} />
     </PageShell>
   )
 }
