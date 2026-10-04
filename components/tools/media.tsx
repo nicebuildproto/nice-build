@@ -1,9 +1,9 @@
 "use client"
 
 import { buttonVariants } from "@/components/ui/button"
-import { NumberField } from "@/components/tools/ui"
+import { CopyButton, FileDrop, NumberField } from "@/components/tools/ui"
 import { cn } from "@/lib/utils"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 type ImageMode = "resize" | "crop" | "png" | "jpg" | "webp" | "svg" | "base64"
 
@@ -114,26 +114,21 @@ function ImageStudio({ mode }: { mode: ImageMode }) {
           ))}
         </div>
       ) : null}
-      <label className="flex w-fit cursor-pointer flex-col gap-2 text-[13px]">
-        File
-        <input
-          type="file"
-          accept={mode === "svg" ? "image/svg+xml,.svg" : mode === "webp" ? "image/webp" : "image/*"}
-          className="text-sm"
-          onChange={(event) => {
-            const file = event.target.files?.[0]
-            if (file) void onFile(file)
-          }}
-        />
-      </label>
+      <FileDrop
+        accept={mode === "svg" ? "image/svg+xml,.svg" : mode === "webp" ? "image/webp" : "image/*"}
+        onFile={(file) => void onFile(file)}
+      />
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
       {result?.text ? (
-        <textarea readOnly value={result.text} rows={6} className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm" />
+        <div className="flex flex-col gap-4">
+          <textarea readOnly value={result.text} rows={6} className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm" />
+          <CopyButton text={result.text} label="Copy result" />
+        </div>
       ) : null}
       {result && !result.text ? (
         <div className="flex flex-col gap-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={result.url} alt="" className="max-h-80 w-auto rounded-xl border border-border" />
+          <img src={result.url} alt={result.name} className="max-h-80 w-auto rounded-xl border border-border" />
           <a href={result.url} download={result.name} className={cn(buttonVariants(), "w-fit")}>
             Download
           </a>
@@ -148,23 +143,26 @@ export function FaviconGenerator() {
   const [colour, setColour] = useState("#111111")
   const [url, setUrl] = useState<string | null>(null)
 
-  function draw() {
-    const canvas = document.createElement("canvas")
-    canvas.width = 64
-    canvas.height = 64
-    const context = canvas.getContext("2d")
-    if (!context) return
-    context.fillStyle = colour
-    context.beginPath()
-    context.roundRect(0, 0, 64, 64, 12)
-    context.fill()
-    context.fillStyle = "#ffffff"
-    context.font = "600 36px sans-serif"
-    context.textAlign = "center"
-    context.textBaseline = "middle"
-    context.fillText(letter.trim().slice(0, 2) || "N", 32, 34)
-    setUrl(canvas.toDataURL("image/png"))
-  }
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const canvas = document.createElement("canvas")
+      canvas.width = 64
+      canvas.height = 64
+      const context = canvas.getContext("2d")
+      if (!context) return
+      context.fillStyle = colour
+      context.beginPath()
+      context.roundRect(0, 0, 64, 64, 12)
+      context.fill()
+      context.fillStyle = "#ffffff"
+      context.font = "600 36px sans-serif"
+      context.textAlign = "center"
+      context.textBaseline = "middle"
+      context.fillText(letter.trim().slice(0, 2) || "N", 32, 34)
+      setUrl(canvas.toDataURL("image/png"))
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [letter, colour])
 
   return (
     <div className="flex flex-col gap-6">
@@ -178,13 +176,10 @@ export function FaviconGenerator() {
           <input type="color" value={colour} onChange={(event) => setColour(event.target.value)} className="h-10 w-full rounded-lg border border-input bg-transparent p-1" />
         </label>
       </div>
-      <button type="button" onClick={draw} className={cn(buttonVariants(), "w-fit")}>
-        Draw
-      </button>
       {url ? (
         <div className="flex flex-col gap-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={url} alt="" className="size-16 rounded-xl border border-border" />
+          <img src={url} alt="Favicon preview" className="size-16 rounded-xl border border-border" />
           <a href={url} download="favicon.png" className={cn(buttonVariants({ variant: "outline" }), "w-fit")}>
             Download PNG
           </a>

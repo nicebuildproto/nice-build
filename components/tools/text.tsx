@@ -12,14 +12,17 @@ export function WordCounter() {
   return (
     <div className="flex flex-col gap-8">
       <TextArea label="Text" value={text} onChange={setText} rows={10} />
-      <dl className="grid grid-cols-2 gap-6 sm:grid-cols-3">
-        {stats.map((item) => (
-          <div key={item.label}>
-            <dt className="text-xs font-medium text-[var(--nb-secondary)]">{item.label}</dt>
-            <dd className="mt-1 text-3xl font-semibold tabular-nums">{item.value}</dd>
-          </div>
-        ))}
-      </dl>
+      <div className="flex flex-col gap-4" aria-live="polite">
+        <dl className="grid grid-cols-2 gap-6 sm:grid-cols-3">
+          {stats.map((item) => (
+            <div key={item.label}>
+              <dt className="text-xs font-medium text-[var(--nb-secondary)]">{item.label}</dt>
+              <dd className="mt-1 text-3xl font-semibold tabular-nums">{item.value}</dd>
+            </div>
+          ))}
+        </dl>
+        <CopyButton label="Copy result" text={stats.map((item) => `${item.label}: ${item.value}`).join("\n")} />
+      </div>
     </div>
   )
 }

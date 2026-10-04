@@ -26,10 +26,18 @@ export function TipCalculator() {
         <NumberField label="Tip" value={tip} onChange={setTip} suffix="%" min={0} />
         <NumberField label="People" value={people} onChange={setPeople} min={1} step="1" />
       </div>
-      <div className="flex flex-wrap gap-10">
-        <Stat label="Tip" value={result ? money(result.tipAmount) : "—"} />
-        <Stat label="Total" value={result ? money(result.total) : "—"} />
-        <Stat label="Each" value={result ? money(result.each) : "—"} />
+      <div className="flex flex-col gap-4" aria-live="polite">
+        <div className="flex flex-wrap gap-10">
+          <Stat label="Tip" value={result ? money(result.tipAmount) : "—"} />
+          <Stat label="Total" value={result ? money(result.total) : "—"} />
+          <Stat label="Each" value={result ? money(result.each) : "—"} />
+        </div>
+        {result ? (
+          <CopyButton
+            label="Copy result"
+            text={`Tip: ${money(result.tipAmount)}\nTotal: ${money(result.total)}\nEach: ${money(result.each)}`}
+          />
+        ) : null}
       </div>
     </div>
   )
@@ -56,10 +64,18 @@ export function MarginCalculator() {
         <NumberField label="Cost" value={cost} onChange={setCost} suffix="AUD" min={0} />
         <NumberField label="Sell price" value={price} onChange={setPrice} suffix="AUD" min={0} />
       </div>
-      <div className="flex flex-wrap gap-10">
-        <Stat label="Profit" value={result ? money(result.profit) : "—"} />
-        <Stat label="Margin" value={result?.margin === null || !result ? "—" : `${num(result.margin)}%`} />
-        <Stat label="Markup" value={result?.markup === null || !result ? "—" : `${num(result.markup)}%`} />
+      <div className="flex flex-col gap-4" aria-live="polite">
+        <div className="flex flex-wrap gap-10">
+          <Stat label="Profit" value={result ? money(result.profit) : "—"} />
+          <Stat label="Margin" value={result?.margin === null || !result ? "—" : `${num(result.margin)}%`} />
+          <Stat label="Markup" value={result?.markup === null || !result ? "—" : `${num(result.markup)}%`} />
+        </div>
+        {result ? (
+          <CopyButton
+            label="Copy result"
+            text={`Profit: ${money(result.profit)}\nMargin: ${result.margin === null ? "—" : `${num(result.margin)}%`}\nMarkup: ${result.markup === null ? "—" : `${num(result.markup)}%`}`}
+          />
+        ) : null}
       </div>
     </div>
   )
@@ -100,9 +116,12 @@ export function PaintCalculator() {
         <input type="checkbox" checked={ceiling} onChange={(event) => setCeiling(event.target.checked)} />
         Include the ceiling
       </label>
-      <div className="flex flex-wrap gap-10">
-        <Stat label="Area" value={result ? `${num(result.area, 1)} m²` : "—"} />
-        <Stat label="Paint" value={result ? `${num(result.litres, 1)} L` : "—"} />
+      <div className="flex flex-col gap-4" aria-live="polite">
+        <div className="flex flex-wrap gap-10">
+          <Stat label="Area" value={result ? `${num(result.area, 1)} m²` : "—"} />
+          <Stat label="Paint" value={result ? `${num(result.litres, 1)} L` : "—"} />
+        </div>
+        {result ? <CopyButton label="Copy result" text={`Area: ${num(result.area, 1)} m²\nPaint: ${num(result.litres, 1)} L`} /> : null}
       </div>
     </div>
   )
@@ -131,10 +150,18 @@ export function MeetingCost() {
         <NumberField label="Length" value={minutes} onChange={setMinutes} suffix="min" min={1} />
         <NumberField label="Times each month" value={perMonth} onChange={setPerMonth} min={0} />
       </div>
-      <div className="flex flex-wrap gap-10">
-        <Stat label="Each meeting" value={result ? money(result.meeting) : "—"} />
-        <Stat label="Each month" value={result ? money(result.month) : "—"} />
-        <Stat label="Each year" value={result ? money(result.year) : "—"} />
+      <div className="flex flex-col gap-4" aria-live="polite">
+        <div className="flex flex-wrap gap-10">
+          <Stat label="Each meeting" value={result ? money(result.meeting) : "—"} />
+          <Stat label="Each month" value={result ? money(result.month) : "—"} />
+          <Stat label="Each year" value={result ? money(result.year) : "—"} />
+        </div>
+        {result ? (
+          <CopyButton
+            label="Copy result"
+            text={`Each meeting: ${money(result.meeting)}\nEach month: ${money(result.month)}\nEach year: ${money(result.year)}`}
+          />
+        ) : null}
       </div>
     </div>
   )
@@ -157,10 +184,15 @@ export function AgeCalculator() {
           <Input type="date" value={asOf} onChange={(event) => setAsOf(event.target.value)} className="h-10" />
         </label>
       </div>
-      <div className="flex flex-wrap gap-10">
-        <Stat label="Years" value={result ? String(result.years) : "—"} />
-        <Stat label="Months" value={result ? String(result.months) : "—"} />
-        <Stat label="Days" value={result ? String(result.days) : "—"} />
+      <div className="flex flex-col gap-4" aria-live="polite">
+        <div className="flex flex-wrap gap-10">
+          <Stat label="Years" value={result ? String(result.years) : "—"} />
+          <Stat label="Months" value={result ? String(result.months) : "—"} />
+          <Stat label="Days" value={result ? String(result.days) : "—"} />
+        </div>
+        {result ? (
+          <CopyButton label="Copy result" text={`${result.years} years, ${result.months} months, ${result.days} days`} />
+        ) : null}
       </div>
     </div>
   )
@@ -220,7 +252,10 @@ export function MaterialEstimator() {
           <NumberField label="Coverage per pack" value={coverage} onChange={setCoverage} suffix="m²" />
         ) : null}
       </div>
-      <p className="text-2xl font-semibold tracking-[-0.03em] text-[var(--nb-primary)]">{result ?? "—"}</p>
+      <div className="flex flex-col gap-4" aria-live="polite">
+        <p className="text-2xl font-semibold tracking-[-0.03em] text-[var(--nb-primary)]">{result ?? "—"}</p>
+        {result ? <CopyButton label="Copy result" text={result} /> : null}
+      </div>
     </div>
   )
 }

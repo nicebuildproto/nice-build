@@ -47,7 +47,7 @@ export function NumberField({
           min={min}
           step={step}
           onChange={(event) => onChange(event.target.value)}
-          className={cn("h-10 tabular-nums", suffix && "pr-12")}
+          className={cn("h-10 tabular-nums", suffix && (suffix.length > 3 ? "pr-16" : "pr-12"))}
         />
         {suffix ? (
           <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-[var(--nb-secondary)]">
@@ -97,22 +97,76 @@ export function Stat({ label, value }: { label: string; value: string }) {
 }
 
 export function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) {
-  const [copied, setCopied] = useState(false)
+  const [state, setState] = useState<"idle" | "copied" | "failed">("idle")
 
   return (
     <Button
       type="button"
       variant="outline"
-      size="sm"
+      className="h-10 px-3"
       onClick={async () => {
-        await navigator.clipboard.writeText(text)
-        setCopied(true)
-        window.setTimeout(() => setCopied(false), 1400)
+        try {
+          await navigator.clipboard.writeText(text)
+          setState("copied")
+        } catch {
+          setState("failed")
+        }
+        window.setTimeout(() => setState("idle"), 1400)
       }}
     >
-      {copied ? <Check /> : <Copy />}
-      {copied ? "Copied" : label}
+      {state === "copied" ? <Check /> : <Copy />}
+      {state === "copied" ? "Copied" : state === "failed" ? "Could not copy" : label}
     </Button>
+  )
+}
+
+export function FileDrop({
+  accept,
+  onFile,
+  idle = "Drop a file here, or browse",
+}: {
+  accept: string
+  onFile: (file: File) => void
+  idle?: string
+}) {
+  const [name, setName] = useState<string | null>(null)
+  const [over, setOver] = useState(false)
+
+  function take(file: File | undefined) {
+    if (!file) return
+    setName(file.name)
+    onFile(file)
+  }
+
+  return (
+    <label
+      onDragOver={(event) => {
+        event.preventDefault()
+        setOver(true)
+      }}
+      onDragLeave={() => setOver(false)}
+      onDrop={(event) => {
+        event.preventDefault()
+        setOver(false)
+        take(event.dataTransfer.files?.[0])
+      }}
+      className={cn(
+        "flex min-h-28 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed px-4 py-8 text-center transition-colors has-[:focus-visible]:border-ring has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50",
+        over ? "border-[var(--nb-primary)] bg-[var(--nb-accent)]" : "border-border"
+      )}
+    >
+      <span className="text-sm text-[var(--nb-primary)]">{name ?? idle}</span>
+      <span className="text-xs text-[var(--nb-secondary)]">{name ? "Drop another file to replace it" : "Click to browse"}</span>
+      <input
+        type="file"
+        accept={accept}
+        className="sr-only"
+        onChange={(event) => {
+          take(event.target.files?.[0])
+          event.target.value = ""
+        }}
+      />
+    </label>
   )
 }
 

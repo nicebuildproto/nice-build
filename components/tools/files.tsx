@@ -1,5 +1,6 @@
 "use client"
 
+import { FileDrop } from "@/components/tools/ui"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
@@ -56,20 +57,13 @@ function ImageBench({ mode }: { mode: "compress" | "strip" }) {
           ? "The photo is redrawn in the browser and saved as a new JPEG. Camera and location data are not copied across."
           : "The image stays in this browser. Nothing is uploaded."}
       </p>
-      <label className="flex w-fit cursor-pointer flex-col gap-2 text-[13px]">
-        Image
-        <input
-          type="file"
-          accept="image/*"
-          className="text-sm"
-          onChange={(event) => {
-            const next = event.target.files?.[0]
-            if (!next) return
-            setFile(next)
-            void run(next)
-          }}
-        />
-      </label>
+      <FileDrop
+        accept="image/*"
+        onFile={(next) => {
+          setFile(next)
+          void run(next)
+        }}
+      />
       {mode === "compress" ? (
         <label className="flex max-w-sm flex-col gap-2 text-[13px]">
           Quality {Math.round(quality * 100)}%
@@ -95,7 +89,7 @@ function ImageBench({ mode }: { mode: "compress" | "strip" }) {
             {formatBytes(file.size)} → {formatBytes(result.bytes)}
           </p>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={result.url} alt="" className="max-h-80 w-auto rounded-xl border border-border" />
+          <img src={result.url} alt={result.name} className="max-h-80 w-auto rounded-xl border border-border" />
           <a href={result.url} download={result.name} className={cn(buttonVariants(), "w-fit")}>
             Download
           </a>

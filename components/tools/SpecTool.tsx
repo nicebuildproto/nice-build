@@ -7,7 +7,8 @@ import { toolSpecs, type SpecField, type SpecResult, type ToolSpec } from "@/lib
 import { cn } from "@/lib/utils"
 import { useEffect, useMemo, useState } from "react"
 
-const controlClass = "h-10 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+const controlClass =
+  "h-10 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
 
 export function BoundSpec({ slug }: { slug: string }) {
   const spec = toolSpecs[slug]
@@ -54,9 +55,14 @@ export function SpecTool({ spec }: { spec: ToolSpec }) {
 
   const shown = spec.random || spec.runAsync ? asyncResult : result
   const copyText = shown?.text ?? shown?.stats?.map((item) => `${item.label}: ${item.value}`).join("\n") ?? ""
+  const dirty = spec.fields.some((field) => (values[field.key] ?? "") !== field.default)
 
   function set(key: string, value: string) {
     setValues((current) => ({ ...current, [key]: value }))
+  }
+
+  function reset() {
+    setValues(Object.fromEntries(spec.fields.map((field) => [field.key, field.default])))
   }
 
   return (
@@ -69,38 +75,54 @@ export function SpecTool({ spec }: { spec: ToolSpec }) {
           ))}
         </div>
       ) : null}
-      {spec.action ? (
-        <Button type="button" className="w-fit" onClick={() => setNonce((current) => current + 1)}>
-          {spec.action}
-        </Button>
-      ) : null}
-      {shown?.demo ? (
-        <div className="grid h-32 place-items-center rounded-xl border border-border">
-          <div className="size-16 bg-[var(--nb-accent)]" style={shown.demo} />
+      {spec.action || dirty ? (
+        <div className="flex flex-wrap gap-2">
+          {spec.action ? (
+            <Button type="button" className="h-10" onClick={() => setNonce((current) => current + 1)}>
+              {spec.action}
+            </Button>
+          ) : null}
+          {dirty ? (
+            <Button type="button" variant="outline" className="h-10" onClick={reset}>
+              Reset
+            </Button>
+          ) : null}
         </div>
       ) : null}
-      {shown?.stats?.length ? (
-        <div className="flex flex-wrap gap-10">
-          {shown.stats.map((item) => (
-            <div key={item.label}>
-              <div className="text-xs font-medium text-[var(--nb-secondary)]">{item.label}</div>
-              <div className="mt-1 max-w-xl text-2xl leading-tight font-semibold tracking-[-0.04em] text-[var(--nb-primary)] tabular-nums">
-                {item.value}
+      <div className="flex flex-col gap-4" aria-live="polite">
+        {shown?.demo ? (
+          <div className="grid h-32 place-items-center rounded-xl border border-border">
+            <div className="size-16 bg-[var(--nb-accent)]" style={shown.demo} />
+          </div>
+        ) : null}
+        {shown?.stats?.length ? (
+          <div className="flex flex-wrap gap-x-10 gap-y-6">
+            {shown.stats.map((item) => (
+              <div key={item.label}>
+                <div className="text-xs font-medium text-[var(--nb-secondary)]">{item.label}</div>
+                <div
+                  className={cn(
+                    "mt-1 max-w-xl font-semibold tracking-[-0.04em] text-[var(--nb-primary)] tabular-nums",
+                    item.value.length > 18 ? "text-base leading-snug font-medium break-all" : "text-2xl leading-tight sm:text-3xl"
+                  )}
+                >
+                  {item.value}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      ) : null}
-      {shown?.text ? (
-        <pre className="overflow-x-auto rounded-xl border border-border bg-[var(--nb-accent)] p-4 text-sm leading-relaxed whitespace-pre-wrap text-[var(--nb-primary)]">
-          {shown.text}
-        </pre>
-      ) : null}
-      {shown?.note ? <p className="max-w-xl text-sm leading-relaxed text-[var(--nb-secondary)]">{shown.note}</p> : null}
-      {!shown && !spec.random && !spec.runAsync ? (
-        <p className="text-sm text-[var(--nb-secondary)]">Add the figures above.</p>
-      ) : null}
-      {copyText ? <CopyButton text={copyText} /> : null}
+            ))}
+          </div>
+        ) : null}
+        {shown?.text ? (
+          <pre className="overflow-x-auto rounded-xl border border-border bg-[var(--nb-accent)] p-4 text-sm leading-relaxed whitespace-pre-wrap text-[var(--nb-primary)]">
+            {shown.text}
+          </pre>
+        ) : null}
+        {shown?.note ? <p className="max-w-xl text-sm leading-relaxed text-[var(--nb-secondary)]">{shown.note}</p> : null}
+        {!shown && !spec.random && !spec.runAsync ? (
+          <p className="text-sm text-[var(--nb-secondary)]">Enter the figures to see a result.</p>
+        ) : null}
+        {copyText ? <CopyButton text={copyText} label="Copy result" /> : null}
+      </div>
     </div>
   )
 }
