@@ -23,10 +23,10 @@ export interface Colour {
 export const materials: Material[] = [
   {
     id: "colour",
-    label: "Pre-painted steel",
-    description: "Colour-coated on one face.",
+    label: "COLORBOND® steel",
+    description: "Pre-painted on one face.",
     code: "PP",
-    swatch: "#5E6266",
+    swatch: "#323232",
   },
   {
     id: "zincalume",
@@ -45,18 +45,18 @@ export const materials: Material[] = [
 ]
 
 export const colours: Colour[] = [
-  { id: "chalk", label: "Chalk", hex: "#E5E3D9", code: "CHK", sheen: "standard" },
-  { id: "cream", label: "Cream", hex: "#E6DCBE", code: "CRM", sheen: "standard" },
-  { id: "sandstone", label: "Sandstone", hex: "#CDC1A8", code: "SND", sheen: "standard" },
-  { id: "dune", label: "Dune", hex: "#B0A898", code: "DUN", sheen: "standard" },
-  { id: "stone", label: "Stone Grey", hex: "#8D8C85", code: "STN", sheen: "standard" },
-  { id: "eucalypt", label: "Eucalypt", hex: "#6C7867", code: "EUC", sheen: "standard" },
-  { id: "harbour", label: "Harbour", hex: "#566B78", code: "HBR", sheen: "standard" },
-  { id: "slate", label: "Slate", hex: "#5E6266", code: "SLT", sheen: "standard" },
-  { id: "rust", label: "Rust", hex: "#6B3A2D", code: "RST", sheen: "standard" },
-  { id: "charcoal", label: "Charcoal", hex: "#3C3F43", code: "CHR", sheen: "standard" },
-  { id: "charcoal-matt", label: "Charcoal Matt", hex: "#35373A", code: "CHM", sheen: "matt" },
-  { id: "night", label: "Night", hex: "#1F2022", code: "NGT", sheen: "standard" },
+  { id: "surfmist", label: "Surfmist®", hex: "#E4E0D4", code: "SRF", sheen: "standard" },
+  { id: "evening-haze", label: "Evening Haze®", hex: "#C8BBA8", code: "EVH", sheen: "standard" },
+  { id: "paperbark", label: "Paperbark®", hex: "#D5C4A1", code: "PBK", sheen: "standard" },
+  { id: "dune", label: "Dune®", hex: "#B7A99A", code: "DUN", sheen: "standard" },
+  { id: "pale-eucalypt", label: "Pale Eucalypt®", hex: "#7D8B70", code: "PEU", sheen: "standard" },
+  { id: "shale-grey", label: "Shale Grey®", hex: "#B5B5B0", code: "SHG", sheen: "standard" },
+  { id: "windspray", label: "Windspray®", hex: "#888C8D", code: "WSP", sheen: "standard" },
+  { id: "woodland-grey", label: "Woodland Grey®", hex: "#4F534F", code: "WDG", sheen: "standard" },
+  { id: "monument", label: "Monument®", hex: "#323232", code: "MON", sheen: "standard" },
+  { id: "ironstone", label: "Ironstone®", hex: "#3E3A38", code: "IRN", sheen: "standard" },
+  { id: "deep-ocean", label: "Deep Ocean®", hex: "#364654", code: "DPO", sheen: "standard" },
+  { id: "night-sky", label: "Night Sky®", hex: "#1C1E20", code: "NSK", sheen: "matt" },
 ]
 
 export const bareMetal = "#C3C7CB"

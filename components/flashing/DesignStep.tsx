@@ -65,6 +65,7 @@ export function DesignStep({
   const origin = originIndex(editor)
   const [hover, setHover] = useState<Point | null>(null)
   const [dragging, setDragging] = useState(false)
+  const [touched, setTouched] = useState(false)
   const [panelOpen, setPanelOpen] = useState(false)
   const [panelTab, setPanelTab] = useState<PanelTab>("options")
   const drag = useRef<{ index: number; id: number; x: number; y: number; started: boolean } | null>(null)
@@ -101,6 +102,7 @@ export function DesignStep({
     }
     const next = snapPoint(world, snap)
     if (origin !== null && distance(next, points[origin]) < 1) return
+    setTouched(true)
     dispatch({ type: "addPoint", point: next })
   }
 
@@ -110,7 +112,7 @@ export function DesignStep({
       : selection?.kind === "segment"
         ? "Edit the length or angle, or press Delete to remove this segment."
         : canExtend
-          ? "Click to extend from the highlighted end. Drag a point to move it."
+          ? "Drag points to adjust the profile · Click the highlighted end to extend"
           : "Press Delete to remove this point, or Esc to deselect."
 
   return (
@@ -142,14 +144,23 @@ export function DesignStep({
               </IconButton>
             </ToolbarGroup>
             <ToolbarGroup className="flex-col items-start gap-0 px-3 py-1.5">
-              <span className="text-[11px] leading-tight text-[var(--nb-secondary)]">
-                Total length of metal
-              </span>
+              <span className="text-[11px] leading-tight text-[var(--nb-secondary)]">Profile girth</span>
               <GirthReadout girthMm={girth(points)} className="text-sm leading-tight" />
             </ToolbarGroup>
           </>
         }
-        bottomLeft={hint}
+        bottomLeft={
+          hint ? (
+            <p
+              className={cn(
+                "max-w-[22rem] text-xs text-[var(--nb-secondary)] transition-opacity duration-500 motion-reduce:transition-none",
+                touched && canExtend && selection?.kind !== "segment" && "opacity-40 motion-reduce:opacity-70"
+              )}
+            >
+              {hint}
+            </p>
+          ) : null
+        }
       >
         {(api) => renderCanvas(api)}
       </Viewport>
@@ -233,7 +244,7 @@ export function DesignStep({
                   y={mid.y + n.y * 14}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="pointer-events-none fill-[var(--nb-secondary)] text-[11px] tabular-nums"
+                  className="pointer-events-none fill-[var(--nb-primary)] text-[12px] tabular-nums"
                   stroke="white"
                   strokeWidth={4}
                   paintOrder="stroke"
@@ -272,7 +283,7 @@ export function DesignStep({
                   y={vertex.y + by * 20}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="pointer-events-none fill-[#9CA3AF] text-[10px] tabular-nums"
+                  className="pointer-events-none fill-[#6B7280] text-[11px] tabular-nums"
                 >
                   {Math.round(angle)}°
                 </text>
@@ -315,15 +326,18 @@ export function DesignStep({
           return (
             <g key={`pt-${index}`}>
               {isOrigin ? (
-                <circle cx={point.x} cy={point.y} r={11} fill="rgba(17,17,17,0.06)" stroke="rgba(17,17,17,0.3)" strokeWidth={1} className="pointer-events-none" />
+                <circle cx={point.x} cy={point.y} r={12} fill="rgba(17,17,17,0.06)" stroke="rgba(17,17,17,0.35)" strokeWidth={1.25} className="pointer-events-none" />
+              ) : null}
+              {selected ? (
+                <circle cx={point.x} cy={point.y} r={10} fill="none" stroke="var(--nb-primary)" strokeWidth={1.5} className="pointer-events-none" />
               ) : null}
               <circle
                 cx={point.x}
                 cy={point.y}
-                r={selected ? 6 : 5}
+                r={selected ? 6.5 : 5}
                 fill={selected ? "var(--nb-primary)" : "white"}
                 stroke="var(--nb-primary)"
-                strokeWidth={1.5}
+                strokeWidth={1.75}
                 className="pointer-events-none"
               />
               <circle
@@ -345,6 +359,7 @@ export function DesignStep({
                     if (Math.hypot(event.clientX - active.x, event.clientY - active.y) < 3) return
                     active.started = true
                     setDragging(true)
+                    setTouched(true)
                     dispatch({ type: "beginDrag" })
                   }
                   dispatch({
@@ -579,7 +594,7 @@ function OptionsPanel({
         )}
       >
         <ToolbarGroup className="flex-col">
-          <IconButton label="Options" side="left" onClick={() => onOpen("options")}>
+          <IconButton label="Canvas settings" side="left" onClick={() => onOpen("options")}>
             <SlidersHorizontal />
           </IconButton>
           <IconButton label="Start from a template" side="left" onClick={() => onOpen("templates")}>

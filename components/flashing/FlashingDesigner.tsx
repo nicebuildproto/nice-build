@@ -3,6 +3,14 @@
 import { BrandLink } from "@/components/BrandLink"
 import { HeaderActions } from "@/components/site/HeaderActions"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { createEditor, editorReducer } from "@/lib/flashing/editor"
 import {
@@ -14,6 +22,13 @@ import {
   taperedPoints,
 } from "@/lib/flashing/geometry"
 import {
+  clearDraft,
+  defaultDraft,
+  loadDraft,
+  saveDraft,
+  type FlashingStage,
+} from "@/lib/flashing/persist"
+import {
   calculatePrice,
   colourById,
   defaultRateConfig,
@@ -23,20 +38,25 @@ import {
   type MaterialId,
 } from "@/lib/flashing/pricing"
 import { templateById } from "@/lib/flashing/templates"
-import { useMemo, useReducer, useState } from "react"
+import { useEffect, useMemo, useReducer, useState } from "react"
 import { AlignStep } from "./AlignStep"
 import { DesignStep } from "./DesignStep"
 import { useDebouncedValue } from "./hooks"
+import { IntroStep } from "./IntroStep"
 import { MaterialStep } from "./MaterialStep"
+import { ConfirmationStep, OrderStep } from "./OrderStep"
 import { editSteps, LengthStep, StepIndicator, TemplateStep } from "./Onboarding"
 import { PriceBar } from "./PriceBar"
+import { ReviewStep } from "./ReviewStep"
 import { TaperStep } from "./TaperStep"
-import { TechnicalDrawing } from "./TechnicalDrawing"
 
-type Stage = "length" | "template" | "edit"
+const reviewIndex = editSteps.findIndex((step) => step.id === "review")
+const materialIndex = editSteps.findIndex((step) => step.id === "material")
+const designIndex = editSteps.findIndex((step) => step.id === "design")
 
 export function FlashingDesigner() {
-  const [stage, setStage] = useState<Stage>("length")
+  const [hydrated, setHydrated] = useState(false)
+  const [stage, setStage] = useState<FlashingStage>("intro")
   const [step, setStep] = useState(0)
   const [reached, setReached] = useState(0)
 
@@ -55,9 +75,12 @@ export function FlashingDesigner() {
   const [anchorOverride, setAnchorOverride] = useState<number | null>(null)
 
   const [material, setMaterial] = useState<MaterialId>("colour")
-  const [colourId, setColourId] = useState("slate")
+  const [colourId, setColourId] = useState("monument")
   const [side, setSide] = useState<ColourSide>("out")
   const [toast, setToast] = useState<string | null>(null)
+  const [orderRef, setOrderRef] = useState<string | null>(null)
+  const [returnToReview, setReturnToReview] = useState(false)
+  const [confirmReset, setConfirmReset] = useState(false)
 
   const points = editor.present
   const segmentCount = Math.max(0, points.length - 1)
@@ -84,13 +107,92 @@ export function FlashingDesigner() {
   )
 
   const colour = material === "colour" ? colourById(colourId) : null
-  const materialSummary = colour
+  const materialLabel = materialById(material).label
+  const colourLabel = colour
     ? `${colour.label} · ${side === "out" ? "Colour facing out" : "Colour facing in"}`
-    : materialById(material).label
+    : "Uncoated"
+  const materialSummary = colour ? `${colour.label} · ${side === "out" ? "Colour facing out" : "Colour facing in"}` : materialLabel
+  const profileName = templateById(templateId)?.name ?? "Custom profile"
+
+  useEffect(() => {
+    let cancelled = false
+    const frame = requestAnimationFrame(() => {
+      if (cancelled) return
+      const draft = loadDraft()
+      if (draft) {
+        setStage(draft.stage)
+        setStep(draft.step)
+        setReached(draft.reached)
+        setPieceLengthMm(draft.pieceLengthMm)
+        setQuantity(draft.quantity)
+        setTemplateId(draft.templateId)
+        setTaperEnabled(draft.taperEnabled)
+        setStoredTaper(draft.storedTaper)
+        setAnchorOverride(draft.anchorOverride)
+        setMaterial(draft.material)
+        setColourId(draft.colourId)
+        setSide(draft.side)
+        setShowGrid(draft.showGrid)
+        setSnap(draft.snap)
+        setShowDims(draft.showDims)
+        setOrderRef(draft.orderRef)
+        dispatch({ type: "reset", points: draft.points })
+        setFitCount((count) => count + 1)
+      }
+      setHydrated(true)
+    })
+    return () => {
+      cancelled = true
+      cancelAnimationFrame(frame)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!hydrated) return
+    saveDraft({
+      version: 1,
+      stage,
+      step,
+      reached,
+      pieceLengthMm,
+      quantity,
+      templateId,
+      points,
+      taperEnabled,
+      storedTaper,
+      anchorOverride,
+      material,
+      colourId,
+      side,
+      showGrid,
+      snap,
+      showDims,
+      orderRef,
+    })
+  }, [
+    hydrated,
+    stage,
+    step,
+    reached,
+    pieceLengthMm,
+    quantity,
+    templateId,
+    points,
+    taperEnabled,
+    storedTaper,
+    anchorOverride,
+    material,
+    colourId,
+    side,
+    showGrid,
+    snap,
+    showDims,
+    orderRef,
+  ])
 
   const loadTemplate = (id: string | null, undoable: boolean) => {
-    const points = templateById(id)?.points ?? []
-    dispatch(undoable ? { type: "replace", points } : { type: "reset", points })
+    const nextPoints = templateById(id)?.points ?? []
+    dispatch(undoable ? { type: "replace", points: nextPoints } : { type: "reset", points: nextPoints })
     setTemplateId(id)
     setStoredTaper([])
     setAnchorOverride(null)
@@ -102,57 +204,118 @@ export function FlashingDesigner() {
     setReached((value) => Math.max(value, index))
   }
 
-  const currentStep = editSteps[step].id
+  const currentStep = editSteps[step]?.id ?? "design"
   const tooLong = liveGirth > MAX_GIRTH_MM
   const blocked =
     currentStep === "design" && (points.length < 2 || tooLong)
       ? points.length < 2
         ? "Draw at least one segment to continue."
-        : `Keep the total length of metal to ${MAX_GIRTH_MM} mm or less.`
+        : `Keep the profile girth to ${MAX_GIRTH_MM} mm or less.`
       : null
 
   const showToast = (message: string) => {
     setToast(message)
-    setTimeout(() => setToast((current) => (current === message ? null : current)), 2600)
+    window.setTimeout(() => setToast((current) => (current === message ? null : current)), 2600)
   }
 
-  const order = () => {
-    const tapered = taperEnabled ? taperedPoints(points, taperLengths, anchor) : null
-    return {
-      itemCode: itemCode({
-        templateCode: templateById(templateId)?.code ?? "CUS",
-        girthMm: price.girthMm,
-        folds: foldCount(points),
-        tapered: taperEnabled,
-        material,
-        colourId,
-        side,
-      }),
-      tapered,
-    }
+  const tapered = taperEnabled ? taperedPoints(points, taperLengths, anchor) : null
+  const drawingInfo = {
+    itemCode: itemCode({
+      templateCode: templateById(templateId)?.code ?? "CUS",
+      girthMm: price.girthMm,
+      folds: foldCount(points),
+      tapered: taperEnabled,
+      material,
+      colourId,
+      side,
+    }),
+    profile: profileName,
+    material: materialLabel,
+    colour: colour ? `${colour.label} · facing ${side === "out" ? "out" : "in"}` : "Uncoated",
+    pieceLength: `${pieceLengthMm ?? 0} mm`,
+    quantity: String(quantity),
+    girth: `${Math.round(price.girthMm)} mm`,
+    folds: `${foldCount(points)}${taperEnabled ? " · tapered" : ""}`,
+  }
+
+  const addToCart = () => {
+    console.log("Add to cart", { itemCode: drawingInfo.itemCode, quantity, pieceLengthMm, total: price.total })
+    showToast(`Added ${quantity} × ${drawingInfo.itemCode} to cart`)
+  }
+
+  const requestQuote = () => {
+    console.log("Request quote", { itemCode: drawingInfo.itemCode, quantity, pieceLengthMm, total: price.total })
+    showToast("Quote request noted")
+  }
+
+  const resetAll = () => {
+    const next = defaultDraft()
+    clearDraft()
+    setStage(next.stage)
+    setStep(next.step)
+    setReached(next.reached)
+    setPieceLengthMm(next.pieceLengthMm)
+    setQuantity(next.quantity)
+    setTemplateId(next.templateId)
+    setTaperEnabled(next.taperEnabled)
+    setStoredTaper(next.storedTaper)
+    setAnchorOverride(next.anchorOverride)
+    setMaterial(next.material)
+    setColourId(next.colourId)
+    setSide(next.side)
+    setShowGrid(next.showGrid)
+    setSnap(next.snap)
+    setShowDims(next.showDims)
+    setOrderRef(null)
+    setReturnToReview(false)
+    setConfirmReset(false)
+    setToast(null)
+    dispatch({ type: "reset", points: [] })
+    setFitCount((count) => count + 1)
+  }
+
+  const hasWork =
+    pieceLengthMm !== null || points.length > 0 || stage === "order" || stage === "done" || stage === "edit"
+
+  const continueLabel =
+    currentStep === "material"
+      ? "Continue to review"
+      : currentStep === "taper" && !taperEnabled
+        ? "Skip"
+        : "Continue"
+
+  const showConfigureChrome = stage === "edit" && currentStep !== "review"
+  const showStepper = stage === "edit"
+
+  if (!hydrated) {
+    return <main className="min-h-[100dvh] flex-1 bg-background" />
   }
 
   return (
     <TooltipProvider delay={300}>
       <main className="flex min-h-[100dvh] flex-1 flex-col lg:h-[100dvh]">
         <header className="shrink-0 border-b border-border text-sm">
-          <div className="flex h-14 items-center gap-2 px-5 sm:px-6">
+          <div className="flex h-14 items-center gap-2 px-4 sm:px-6">
             <BrandLink logoClassName="h-6" />
             <span className="text-[var(--nb-secondary)]/40">/</span>
             <span className="min-w-0 truncate font-medium">Flashing Designer</span>
-            {stage !== "edit" ? (
-              <span className="ml-3 hidden text-[var(--nb-secondary)] lg:inline">
-                Draw a profile, choose a material, see the price.
-              </span>
-            ) : null}
-            <div className="ml-auto shrink-0">
+            <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+              {stage !== "intro" ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-8 px-2 text-[var(--nb-secondary)]"
+                  onClick={() => (hasWork ? setConfirmReset(true) : resetAll())}
+                >
+                  Start over
+                </Button>
+              ) : null}
               <HeaderActions />
             </div>
           </div>
-          {stage === "edit" && pieceLengthMm !== null ? (
-            <div className="border-t border-black/[0.04] px-6 py-2">
+          {showConfigureChrome && pieceLengthMm !== null ? (
+            <div className="border-t border-black/[0.04] px-4 py-3 sm:px-6">
               <PriceBar
-                review={currentStep === "review"}
                 pieceLengthMm={pieceLengthMm}
                 onPieceLengthChange={setPieceLengthMm}
                 quantity={quantity}
@@ -162,28 +325,36 @@ export function FlashingDesigner() {
                 materialSummary={materialSummary}
                 price={price}
                 pending={pricePending}
-                onAddToCart={() => {
-                  const { itemCode } = order()
-                  console.log("Add to cart", { itemCode, quantity, pieceLengthMm, total: price.total })
-                  showToast(`Added ${quantity} × ${itemCode} to cart`)
-                }}
-                onRequestQuote={() => {
-                  const { itemCode } = order()
-                  console.log("Request quote", { itemCode, quantity, pieceLengthMm, total: price.total })
-                  showToast("Quote request noted")
-                }}
               />
             </div>
           ) : null}
         </header>
 
+        {stage === "intro" ? <IntroStep onStart={() => setStage("length")} /> : null}
+
         {stage === "length" ? (
           <LengthStep
             initial={pieceLengthMm}
             initialQuantity={quantity}
+            submitLabel={returnToReview ? "Save and review" : "Continue"}
+            onBack={() => {
+              if (returnToReview) {
+                setReturnToReview(false)
+                setStage("edit")
+                goTo(reviewIndex)
+                return
+              }
+              setStage("intro")
+            }}
             onSubmit={(value, nextQuantity) => {
               setPieceLengthMm(value)
               setQuantity(nextQuantity)
+              if (returnToReview) {
+                setReturnToReview(false)
+                setStage("edit")
+                goTo(reviewIndex)
+                return
+              }
               setStage("template")
             }}
           />
@@ -203,118 +374,186 @@ export function FlashingDesigner() {
 
         {stage === "edit" ? (
           <div className="flex min-h-0 flex-1 flex-col">
-            <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-3">
-              <StepIndicator current={step} reached={reached} onSelect={goTo} />
-              <div className="flex items-center gap-3">
-                {blocked ? (
-                  <span className={tooLong ? "text-xs text-red-600" : "text-xs text-[var(--nb-secondary)]"}>
-                    {blocked}
-                  </span>
-                ) : null}
-                <Button
-                  variant="ghost"
-                  onClick={() => (step === 0 ? setStage("template") : goTo(step - 1))}
-                >
-                  Back
-                </Button>
+            {showStepper ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+                <StepIndicator current={step} reached={reached} onSelect={goTo} />
                 {currentStep !== "review" ? (
-                  <Button disabled={blocked !== null} onClick={() => goTo(step + 1)}>
-                    {currentStep === "taper" && !taperEnabled ? "Skip" : "Continue"}
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    {blocked ? (
+                      <span className={tooLong ? "text-xs text-red-600" : "text-xs text-[var(--nb-secondary)]"}>
+                        {blocked}
+                      </span>
+                    ) : null}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="h-10"
+                      onClick={() => (step === 0 ? setStage("template") : goTo(step - 1))}
+                    >
+                      Back
+                    </Button>
+                    <Button type="button" className="h-10" disabled={blocked !== null} onClick={() => goTo(step + 1)}>
+                      {continueLabel}
+                    </Button>
+                  </div>
+                ) : (
+                  <Button type="button" variant="ghost" className="h-10" onClick={() => goTo(materialIndex)}>
+                    Back
                   </Button>
-                ) : null}
+                )}
               </div>
-            </div>
+            ) : null}
 
-            <div className="relative mx-6 min-h-[480px] flex-1 overflow-hidden rounded-2xl border border-black/[0.08] bg-white">
-              <div className="absolute inset-0">
-              {currentStep === "design" ? (
-                <DesignStep
-                  editor={editor}
-                  dispatch={dispatch}
-                  snap={snap}
-                  onSnapChange={setSnap}
-                  showDims={showDims}
-                  onShowDimsChange={setShowDims}
-                  showGrid={showGrid}
-                  onToggleGrid={() => setShowGrid((value) => !value)}
-                  onLoadTemplate={(id) => loadTemplate(id, true)}
-                  fitKey={`design-${fitCount}`}
-                />
-              ) : null}
+            {currentStep === "review" ? (
+              <ReviewStep
+                points={points}
+                taper={tapered}
+                taperLengths={taperLengths}
+                info={drawingInfo}
+                profileName={profileName}
+                pieceLengthMm={pieceLengthMm ?? 0}
+                quantity={quantity}
+                girthMm={price.girthMm}
+                materialLabel={materialLabel}
+                colourLabel={colourLabel}
+                price={price}
+                pending={pricePending}
+                onEdit={(target) => {
+                  if (target === "length") {
+                    setReturnToReview(true)
+                    setStage("length")
+                    return
+                  }
+                  goTo(target === "material" ? materialIndex : designIndex)
+                }}
+                onRequestQuote={requestQuote}
+                onAddToCart={addToCart}
+                onOrderNow={() => setStage("order")}
+              />
+            ) : (
+              <div className="relative mx-4 mb-4 min-h-[min(70dvh,560px)] flex-1 overflow-hidden rounded-2xl border border-black/[0.08] bg-white sm:mx-6">
+                <div className="absolute inset-0">
+                  {currentStep === "design" ? (
+                    <DesignStep
+                      editor={editor}
+                      dispatch={dispatch}
+                      snap={snap}
+                      onSnapChange={setSnap}
+                      showDims={showDims}
+                      onShowDimsChange={setShowDims}
+                      showGrid={showGrid}
+                      onToggleGrid={() => setShowGrid((value) => !value)}
+                      onLoadTemplate={(id) => loadTemplate(id, true)}
+                      fitKey={`design-${fitCount}`}
+                    />
+                  ) : null}
 
-              {currentStep === "taper" ? (
-                <TaperStep
-                  points={points}
-                  enabled={taperEnabled}
-                  onEnabledChange={setTaperEnabled}
-                  lengths={taperLengths}
-                  onLengthChange={(index, value) => {
-                    const next = [...taperLengths]
-                    next[index] = value
-                    setStoredTaper(next)
-                  }}
-                  anchor={anchor}
-                  showGrid={showGrid}
-                  onToggleGrid={() => setShowGrid((value) => !value)}
-                />
-              ) : null}
+                  {currentStep === "taper" ? (
+                    <TaperStep
+                      points={points}
+                      enabled={taperEnabled}
+                      onEnabledChange={setTaperEnabled}
+                      lengths={taperLengths}
+                      onLengthChange={(index, value) => {
+                        const next = [...taperLengths]
+                        next[index] = value
+                        setStoredTaper(next)
+                      }}
+                      anchor={anchor}
+                      showGrid={showGrid}
+                      onToggleGrid={() => setShowGrid((value) => !value)}
+                    />
+                  ) : null}
 
-              {currentStep === "align" ? (
-                <AlignStep
-                  points={points}
-                  taperEnabled={taperEnabled}
-                  lengths={taperLengths}
-                  anchor={anchor}
-                  isOverride={anchorOverride !== null}
-                  onAnchorChange={setAnchorOverride}
-                  showGrid={showGrid}
-                  onToggleGrid={() => setShowGrid((value) => !value)}
-                />
-              ) : null}
+                  {currentStep === "align" ? (
+                    <AlignStep
+                      points={points}
+                      taperEnabled={taperEnabled}
+                      lengths={taperLengths}
+                      anchor={anchor}
+                      isOverride={anchorOverride !== null}
+                      onAnchorChange={setAnchorOverride}
+                      showGrid={showGrid}
+                      onToggleGrid={() => setShowGrid((value) => !value)}
+                    />
+                  ) : null}
 
-              {currentStep === "material" ? (
-                <MaterialStep
-                  points={points}
-                  material={material}
-                  onMaterialChange={setMaterial}
-                  colourId={colourId}
-                  onColourChange={setColourId}
-                  side={side}
-                  onSideChange={setSide}
-                />
-              ) : null}
-
-              {currentStep === "review" ? (
-                <div className="flex h-full items-center justify-center p-4 lg:p-8">
-                  <TechnicalDrawing
-                    points={points}
-                    taper={order().tapered}
-                    taperLengths={taperLengths}
-                    info={{
-                      itemCode: order().itemCode,
-                      profile: templateById(templateId)?.name ?? "Custom profile",
-                      material: materialById(material).label,
-                      colour: colour
-                        ? `${colour.label} · facing ${side === "out" ? "out" : "in"}`
-                        : "Uncoated",
-                      pieceLength: `${pieceLengthMm ?? 0} mm`,
-                      quantity: String(quantity),
-                      girth: `${Math.round(price.girthMm)} mm`,
-                      folds: `${foldCount(points)}${taperEnabled ? " · tapered" : ""}`,
-                    }}
-                  />
+                  {currentStep === "material" ? (
+                    <MaterialStep
+                      points={points}
+                      material={material}
+                      onMaterialChange={setMaterial}
+                      colourId={colourId}
+                      onColourChange={setColourId}
+                      side={side}
+                      onSideChange={setSide}
+                    />
+                  ) : null}
                 </div>
-              ) : null}
               </div>
-            </div>
-
+            )}
           </div>
         ) : null}
+
+        {stage === "order" && pieceLengthMm !== null ? (
+          <OrderStep
+            points={points}
+            taper={tapered}
+            taperLengths={taperLengths}
+            info={drawingInfo}
+            profileName={profileName}
+            pieceLengthMm={pieceLengthMm}
+            quantity={quantity}
+            materialSummary={materialSummary}
+            price={price}
+            onBack={() => {
+              setStage("edit")
+              goTo(reviewIndex)
+            }}
+            onPlace={() => {
+              setOrderRef(`NB-${10482 + (Date.now() % 8000)}`)
+              setStage("done")
+            }}
+          />
+        ) : null}
+
+        {stage === "done" ? (
+          <ConfirmationStep
+            orderRef={orderRef ?? "NB-10482"}
+            points={points}
+            taper={tapered}
+            taperLengths={taperLengths}
+            info={drawingInfo}
+            onBack={() => {
+              setStage("edit")
+              goTo(reviewIndex)
+            }}
+          />
+        ) : null}
+
+        <Dialog open={confirmReset} onOpenChange={setConfirmReset}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Start over?</DialogTitle>
+              <DialogDescription>
+                This clears the current flashing design, including the profile, dimensions and finish.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="sm:flex-row sm:justify-end">
+              <Button type="button" variant="ghost" onClick={() => setConfirmReset(false)}>
+                Cancel
+              </Button>
+              <Button type="button" variant="destructive" onClick={resetAll}>
+                Start over
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <div
           role="status"
           className={
-            "pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-[var(--nb-primary)] px-4 py-2 text-sm text-white shadow-lg transition-all duration-200 " +
+            "pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-[var(--nb-primary)] px-4 py-2 text-sm text-white shadow-lg transition-all duration-200 motion-reduce:transition-none " +
             (toast ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0")
           }
         >

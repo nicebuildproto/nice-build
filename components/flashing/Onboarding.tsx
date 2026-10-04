@@ -12,10 +12,14 @@ import { ProfileIcon } from "./ProfileShape"
 export function LengthStep({
   initial,
   initialQuantity,
+  submitLabel = "Continue",
+  onBack,
   onSubmit,
 }: {
   initial: number | null
   initialQuantity: number
+  submitLabel?: string
+  onBack?: () => void
   onSubmit: (lengthMm: number, quantity: number) => void
 }) {
   const [text, setText] = useState(initial ? String(initial) : "")
@@ -46,17 +50,29 @@ export function LengthStep({
         }}
       >
         <div className="flex flex-col gap-2">
+          {onBack ? (
+            <button
+              type="button"
+              onClick={onBack}
+              className="flex w-fit items-center gap-1 text-sm text-[var(--nb-secondary)] transition-colors hover:text-[var(--nb-primary)]"
+            >
+              <ArrowLeft className="size-3.5" /> Back
+            </button>
+          ) : null}
           <h1 className="text-2xl font-semibold tracking-tight">How long is each piece?</h1>
           <p className="text-sm text-[var(--nb-secondary)]">You can change this later.</p>
         </div>
         <div className="flex flex-col gap-2">
+          <label htmlFor="flashing-piece-length" className="text-sm text-[var(--nb-secondary)]">
+            Piece length
+          </label>
           <span className="relative">
             <Input
+              id="flashing-piece-length"
               type="text"
               inputMode="numeric"
               autoFocus
               placeholder="2400"
-              aria-label="Piece length in millimetres"
               aria-invalid={error !== null}
               value={text}
               onChange={(event) => {
@@ -86,7 +102,7 @@ export function LengthStep({
           />
         </label>
         <Button type="submit" size="lg" className="h-11">
-          Continue
+          {submitLabel}
         </Button>
       </form>
     </div>
@@ -174,7 +190,7 @@ function TemplateCard({ template, onChoose }: { template: FlashingTemplate; onCh
 }
 
 export const editSteps = [
-  { id: "design", label: "Design" },
+  { id: "design", label: "Profile" },
   { id: "taper", label: "Taper" },
   { id: "align", label: "Align" },
   { id: "material", label: "Material" },
@@ -222,7 +238,7 @@ export function StepIndicator({
               >
                 {index + 1}
               </span>
-              {step.label}
+              <span className="hidden sm:inline">{step.label}</span>
             </button>
           </li>
         )

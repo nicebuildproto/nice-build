@@ -1,6 +1,5 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { formatPrice, type PriceResult } from "@/lib/flashing/pricing"
 import { cn } from "@/lib/utils"
@@ -12,7 +11,6 @@ export const PIECE_LENGTH_MIN = 100
 export const PIECE_LENGTH_MAX = 8000
 
 export function PriceBar({
-  review,
   pieceLengthMm,
   onPieceLengthChange,
   quantity,
@@ -22,10 +20,7 @@ export function PriceBar({
   materialSummary,
   price,
   pending,
-  onAddToCart,
-  onRequestQuote,
 }: {
-  review: boolean
   pieceLengthMm: number
   onPieceLengthChange: (value: number) => void
   quantity: number
@@ -35,60 +30,52 @@ export function PriceBar({
   materialSummary: string
   price: PriceResult
   pending: boolean
-  onAddToCart: () => void
-  onRequestQuote: () => void
 }) {
   const metres = pieceLengthMm / 1000
   const perMetre = metres > 0 ? price.perPiece / metres : null
-  const shown = useAnimatedNumber(perMetre ?? 0)
+  const shown = useAnimatedNumber(price.total)
 
   return (
-    <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-      <NumberField
-        label="Piece length"
-        suffix="mm"
-        value={pieceLengthMm}
-        min={PIECE_LENGTH_MIN}
-        max={PIECE_LENGTH_MAX}
-        onChange={onPieceLengthChange}
-      />
-      <NumberField label="Quantity" value={quantity} min={1} max={999} onChange={onQuantityChange} />
-      <Stat label="Total length of metal">
-        <GirthReadout girthMm={girthMm} className="text-[13px]" />
-      </Stat>
-      <Stat label="Folds">
-        <span className="text-[13px] tabular-nums">{folds}</span>
-      </Stat>
-      <Stat label="Material" className="min-w-0">
-        <span className="block max-w-40 truncate text-[13px]" title={materialSummary}>
-          {materialSummary}
-        </span>
-      </Stat>
-      <Stat label="Price per metre">
+    <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+      <div className="order-2 flex flex-wrap items-end gap-x-5 gap-y-2 lg:order-1">
+        <NumberField
+          label="Piece length"
+          suffix="mm"
+          value={pieceLengthMm}
+          min={PIECE_LENGTH_MIN}
+          max={PIECE_LENGTH_MAX}
+          onChange={onPieceLengthChange}
+        />
+        <NumberField label="Quantity" value={quantity} min={1} max={999} onChange={onQuantityChange} />
+        <Stat label="Profile girth">
+          <GirthReadout girthMm={girthMm} className="text-[13px]" />
+        </Stat>
+        <Stat label="Folds">
+          <span className="text-[13px] tabular-nums">{folds}</span>
+        </Stat>
+        <Stat label="Material" className="min-w-0">
+          <span className="block max-w-44 truncate text-[13px]" title={materialSummary}>
+            {materialSummary}
+          </span>
+        </Stat>
+      </div>
+      <div className="order-1 flex flex-col lg:order-2 lg:items-end">
+        <span className="text-xs text-[var(--nb-secondary)]">Estimated total</span>
         <span
           className={cn(
-            "text-[13px] font-medium tabular-nums transition-opacity duration-300",
+            "text-[1.75rem] leading-none font-semibold tracking-[-0.03em] tabular-nums text-[var(--nb-primary)] transition-opacity duration-300",
             pending && "opacity-40"
           )}
           aria-live="polite"
         >
-          {perMetre === null ? "—" : formatPrice(shown)}
+          {formatPrice(shown)}
         </span>
-      </Stat>
-      {review ? (
-        <div className="ml-auto flex items-center gap-3">
-          <span className="text-[13px] text-[var(--nb-secondary)] tabular-nums">
-            {quantity > 1 ? `${quantity} × ${formatPrice(price.perPiece)} · ` : ""}
-            {formatPrice(price.total)}
-          </span>
-          <Button variant="outline" size="sm" onClick={onRequestQuote}>
-            Request quote
-          </Button>
-          <Button size="sm" onClick={onAddToCart}>
-            Add to cart
-          </Button>
-        </div>
-      ) : null}
+        <span className="mt-1 text-xs text-[var(--nb-secondary)] tabular-nums">
+          {perMetre === null
+            ? "—"
+            : `${formatPrice(perMetre)} / m${quantity > 1 ? ` · ${formatPrice(price.perPiece)} each` : ""}`}
+        </span>
+      </div>
     </div>
   )
 }

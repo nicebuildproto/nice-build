@@ -45,7 +45,13 @@ export function TechnicalDrawing({
   const center = centroid(base)
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="h-full max-h-full w-full" role="img" aria-label="Technical drawing of the flashing profile">
+    <svg
+      data-flashing-drawing
+      viewBox={`0 0 ${W} ${H}`}
+      className="h-full max-h-full w-full"
+      role="img"
+      aria-label="Technical drawing of the flashing profile"
+    >
       <rect x={FRAME} y={FRAME} width={W - FRAME * 2} height={H - FRAME * 2} fill="white" stroke={INK} strokeWidth={1} />
       <text x={FRAME + 14} y={FRAME + 22} fontSize={11} fill={MUTED} letterSpacing={1.2}>
         FLASHING PROFILE
@@ -176,7 +182,7 @@ function TitleBlock({ info }: { info: DrawingInfo }) {
     ["Colour", info.colour],
     ["Piece length", info.pieceLength],
     ["Quantity", info.quantity],
-    ["Total length of metal", info.girth],
+    ["Profile girth", info.girth],
     ["Folds", info.folds],
   ]
   return (
@@ -209,4 +215,20 @@ function TitleBlock({ info }: { info: DrawingInfo }) {
       })}
     </g>
   )
+}
+
+export function downloadDrawing(filename = "flashing-drawing.svg") {
+  const svg = document.querySelector<SVGSVGElement>("svg[data-flashing-drawing]")
+  if (!svg) return
+  const clone = svg.cloneNode(true) as SVGSVGElement
+  clone.setAttribute("xmlns", "http://www.w3.org/2000/svg")
+  const blob = new Blob([new XMLSerializer().serializeToString(clone)], {
+    type: "image/svg+xml;charset=utf-8",
+  })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement("a")
+  link.href = url
+  link.download = filename
+  link.click()
+  URL.revokeObjectURL(url)
 }

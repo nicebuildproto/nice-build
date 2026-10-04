@@ -104,13 +104,10 @@ export function MaterialStep({
         {isColour ? (
           <>
             <section className="flex flex-col gap-3">
-              <div className="flex items-baseline justify-between">
-                <h3 className="text-xs font-medium tracking-wide text-[var(--nb-secondary)] uppercase">
-                  Colour
-                </h3>
-                <span className="text-xs text-[var(--nb-primary)]">{colour?.label}</span>
-              </div>
-              <div className="grid grid-cols-6 gap-2" role="radiogroup" aria-label="Colour">
+              <h3 className="text-xs font-medium tracking-wide text-[var(--nb-secondary)] uppercase">
+                COLORBOND® colour
+              </h3>
+              <div className="flex flex-col gap-1.5" role="radiogroup" aria-label="COLORBOND colour">
                 {colours.map((option) => {
                   const selected = option.id === colourId
                   return (
@@ -119,18 +116,33 @@ export function MaterialStep({
                       type="button"
                       role="radio"
                       aria-checked={selected}
-                      aria-label={option.label}
-                      title={option.label}
                       onClick={() => onColourChange(option.id)}
                       className={cn(
-                        "aspect-square rounded-full border border-black/10 ring-offset-2 transition-shadow",
-                        selected ? "ring-2 ring-[var(--nb-primary)]" : "hover:ring-1 hover:ring-black/20"
+                        "flex min-h-11 items-center gap-3 rounded-xl border px-3 py-2 text-left transition-colors",
+                        selected
+                          ? "border-[var(--nb-primary)] bg-white"
+                          : "border-black/[0.08] hover:border-black/20"
                       )}
-                      style={{ background: option.hex }}
-                    />
+                    >
+                      <span
+                        className="size-7 shrink-0 rounded-md border border-black/10"
+                        style={{ background: option.hex }}
+                        aria-hidden
+                      />
+                      <span className="flex-1">
+                        <span className="block text-sm text-[var(--nb-primary)]">{option.label}</span>
+                        {option.sheen === "matt" ? (
+                          <span className="block text-xs text-[var(--nb-secondary)]">Matt</span>
+                        ) : null}
+                      </span>
+                      {selected ? <Check className="size-4 text-[var(--nb-primary)]" /> : null}
+                    </button>
                   )
                 })}
               </div>
+              <p className="text-[11px] leading-relaxed text-[var(--nb-secondary)]">
+                COLORBOND® is a registered trademark of BlueScope Steel Limited.
+              </p>
             </section>
 
             <section className="flex flex-col gap-3">

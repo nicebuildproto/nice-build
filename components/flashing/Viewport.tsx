@@ -287,7 +287,7 @@ export function Viewport({
           <IconButton label="Zoom in" onClick={() => zoomBy(1.25)}>
             <Plus />
           </IconButton>
-          <IconButton label="Fit to view" onClick={() => size && setView(fitView(fitPoints, size))}>
+          <IconButton label="Fit to screen" onClick={() => size && setView(fitView(fitPoints, size))}>
             <Maximize />
           </IconButton>
         </ToolbarGroup>
