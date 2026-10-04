@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Moon, Sun } from "lucide-react"
+import Link from "next/link"
 import { useEffect, useId, useState } from "react"
 
 const storageKey = "nb-theme"
@@ -28,16 +29,11 @@ const menuItemClass =
 export function HeaderActions() {
   const [theme, setTheme] = useState<"light" | "dark">("light")
   const [open, setOpen] = useState(false)
-  const [contactOpen, setContactOpen] = useState(false)
   const [email, setEmail] = useState("")
   const [done, setDone] = useState(false)
-  const [contactDone, setContactDone] = useState(false)
   const [workspaceOpen, setWorkspaceOpen] = useState(false)
   const emailId = useId()
   const passwordId = useId()
-  const nameId = useId()
-  const contactEmailId = useId()
-  const messageId = useId()
 
   useEffect(() => {
     setTheme(document.documentElement.classList.contains("dark") ? "dark" : "light")
@@ -56,58 +52,9 @@ export function HeaderActions() {
       </button>
       {workspaceOpen ? <Workspace onClose={() => setWorkspaceOpen(false)} /> : null}
 
-      <Dialog
-        open={contactOpen}
-        onOpenChange={(next) => {
-          setContactOpen(next)
-          if (!next) setContactDone(false)
-        }}
-      >
-        <DialogTrigger className={menuItemClass}>Contact</DialogTrigger>
-        <DialogContent>
-          {contactDone ? (
-            <DialogHeader>
-              <DialogTitle>Message noted.</DialogTitle>
-              <DialogDescription>This form is a preview, so nothing was sent.</DialogDescription>
-            </DialogHeader>
-          ) : (
-            <form
-              className="flex flex-col"
-              onSubmit={(event) => {
-                event.preventDefault()
-                setContactDone(true)
-              }}
-            >
-              <DialogHeader>
-                <DialogTitle>Contact</DialogTitle>
-                <DialogDescription>Send a note. We read every one.</DialogDescription>
-              </DialogHeader>
-              <div className="mt-6 flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor={nameId}>Name</Label>
-                  <Input id={nameId} autoComplete="name" required className="h-10" />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor={contactEmailId}>Email</Label>
-                  <Input id={contactEmailId} type="email" autoComplete="email" required className="h-10" />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor={messageId}>Message</Label>
-                  <textarea
-                    id={messageId}
-                    required
-                    rows={4}
-                    className="w-full resize-y rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                  />
-                </div>
-              </div>
-              <Button type="submit" className="mt-6 h-10 w-full">
-                Send
-              </Button>
-            </form>
-          )}
-        </DialogContent>
-      </Dialog>
+      <Link href="/contact" className={menuItemClass}>
+        Contact
+      </Link>
 
       <Button
         type="button"

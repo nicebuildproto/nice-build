@@ -8,6 +8,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: new Date(),
   }
 
+  const infoPages = ["/about", "/contact", "/privacy", "/terms"].map((path) => ({
+    url: `${siteUrl}${path}`,
+    lastModified: new Date(),
+  }))
+
   const categoryPages = categories.map((category) => ({
     url: `${siteUrl}/category/${category.key}`,
     lastModified: new Date(),
@@ -18,5 +23,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: new Date(),
   }))
 
-  return [home, ...categoryPages, ...liveTools]
+  return [home, ...infoPages, ...categoryPages, ...liveTools]
 }

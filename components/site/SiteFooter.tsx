@@ -4,10 +4,10 @@ import Link from "next/link"
 
 const links = [
   { href: "/#browse", label: "Tools" },
-  { href: "#about", label: "About" },
-  { href: "#contact", label: "Contact" },
-  { href: "#privacy", label: "Privacy" },
-  { href: "#terms", label: "Terms" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
+  { href: "/privacy", label: "Privacy" },
+  { href: "/terms", label: "Terms" },
 ]
 
 export function SiteFooter() {
@@ -20,25 +20,15 @@ export function SiteFooter() {
         )}
       >
         <nav aria-label="Footer" className="flex flex-wrap justify-start gap-x-5 gap-y-2">
-          {links.map((link) =>
-            link.href.startsWith("/") ? (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="text-[13px] text-[var(--nb-secondary)] transition-colors hover:text-[var(--nb-primary)]"
-              >
-                {link.label}
-              </Link>
-            ) : (
-              <a
-                key={link.label}
-                href={link.href}
-                className="text-[13px] text-[var(--nb-secondary)] transition-colors hover:text-[var(--nb-primary)]"
-              >
-                {link.label}
-              </a>
-            )
-          )}
+          {links.map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              className="text-[13px] text-[var(--nb-secondary)] transition-colors hover:text-[var(--nb-primary)]"
+            >
+              {link.label}
+            </Link>
+          ))}
         </nav>
       </div>
     </footer>
