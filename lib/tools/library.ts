@@ -87,12 +87,12 @@ export const libraryTools: ToolEntry[] = [
   tool("design-creative", "box-shadow-generator", "Box Shadow Generator", "Dial in a CSS box-shadow and copy it."),
   tool("design-creative", "border-radius-generator", "Border Radius Generator", "Set a corner radius and copy the CSS."),
 
-  tool("data-viz", "flowchart-generator", "Flowchart Generator", "Turn a list of steps into a simple flowchart."),
-  tool("data-viz", "bar-chart-generator", "Bar Chart Generator", "Draw a bar chart from labels and values you type."),
-  tool("data-viz", "line-chart-generator", "Line Chart Generator", "Draw a line chart from a series of values."),
-  tool("data-viz", "pie-chart-generator", "Pie Chart Generator", "Draw a pie chart from labels and values — slices sized to the total."),
-  tool("data-viz", "timeline-generator", "Timeline Generator", "Lay dated notes out on a vertical timeline."),
-  tool("data-viz", "diagram-generator", "Diagram Generator", "Connect named nodes with arrows from a short list of links."),
+  tool("data-viz", "flowchart-generator", "Flowchart Generator", "Build a process flow with steps, decisions, and branches — no graph syntax."),
+  tool("data-viz", "bar-chart-generator", "Bar Chart Generator", "Paste labels and values, get a bar chart you can customise and export."),
+  tool("data-viz", "line-chart-generator", "Line Chart Generator", "Plot one or more series over time, with a sensible scale and a clean export."),
+  tool("data-viz", "pie-chart-generator", "Pie Chart Generator", "Turn a short list of parts into a pie or donut, with labels and a legend."),
+  tool("data-viz", "timeline-generator", "Timeline Generator", "Lay events on a timeline from ordinary dates — years, quarters, months, or days."),
+  tool("data-viz", "diagram-generator", "Diagram Generator", "Place named boxes, connect them, and export a simple diagram."),
 
   tool("business", "resume-builder", "Resume Builder", "Fill in a one-page resume and print it — or save it as a PDF."),
   tool("business", "cover-letter-generator", "Cover Letter Generator", "Shape a cover letter from the points you want to make. No AI, just your words."),

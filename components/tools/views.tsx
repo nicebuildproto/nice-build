@@ -81,7 +81,7 @@ function specView(slug: string): ComponentType {
   }
 }
 
-export const toolViews: Record<string, { View: ComponentType; width?: "narrow" | "tool" }> = {
+export const toolViews: Record<string, { View: ComponentType; width?: "narrow" | "tool" | "wide" }> = {
   "tip-calculator": { View: TipCalculator },
   "json-formatter": { View: JsonFormatter, width: "tool" },
   "uuid-generator": { View: UuidGenerator },
@@ -91,8 +91,8 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "colour-palette-generator": { View: ColourPalette, width: "tool" },
   "contrast-checker": { View: ContrastChecker, width: "tool" },
   "gradient-generator": { View: GradientGenerator, width: "tool" },
-  "funnel-chart": { View: FunnelChart, width: "tool" },
-  "gantt-chart": { View: GanttChart, width: "tool" },
+  "funnel-chart": { View: FunnelChart, width: "wide" },
+  "gantt-chart": { View: GanttChart, width: "wide" },
   "invoice-generator": { View: InvoiceGenerator, width: "tool" },
   "quote-builder": { View: QuoteBuilder, width: "tool" },
   "margin-calculator": { View: MarginCalculator },
@@ -116,12 +116,12 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "image-to-base64": { View: ImageToBase64, width: "tool" },
   "favicon-generator": { View: FaviconGenerator },
   "qr-code-generator": { View: QrCodeGenerator },
-  "flowchart-generator": { View: FlowchartGenerator, width: "tool" },
-  "bar-chart-generator": { View: BarChartGenerator, width: "tool" },
-  "line-chart-generator": { View: LineChartGenerator, width: "tool" },
-  "pie-chart-generator": { View: PieChartGenerator, width: "tool" },
-  "timeline-generator": { View: TimelineGenerator, width: "tool" },
-  "diagram-generator": { View: DiagramGenerator, width: "tool" },
+  "flowchart-generator": { View: FlowchartGenerator, width: "wide" },
+  "bar-chart-generator": { View: BarChartGenerator, width: "wide" },
+  "line-chart-generator": { View: LineChartGenerator, width: "wide" },
+  "pie-chart-generator": { View: PieChartGenerator, width: "wide" },
+  "timeline-generator": { View: TimelineGenerator, width: "wide" },
+  "diagram-generator": { View: DiagramGenerator, width: "wide" },
   "resume-builder": { View: ResumeBuilder, width: "tool" },
   "cover-letter-generator": { View: CoverLetterGenerator, width: "tool" },
   "receipt-generator": { View: ReceiptGenerator, width: "tool" },
