@@ -1,10 +1,10 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import type { ReactNode } from "react"
 import { foldCount } from "@/lib/flashing/geometry"
 import { formatPrice, type PriceResult } from "@/lib/flashing/pricing"
 import type { Point } from "@/lib/flashing/geometry"
+import type { ReactNode } from "react"
 import { downloadDrawing, TechnicalDrawing, type DrawingInfo } from "./TechnicalDrawing"
 
 export function ReviewStep({
@@ -47,35 +47,35 @@ export function ReviewStep({
   const foldsLabel = `${foldCount(points)}${taper ? " · tapered" : ""}`
 
   return (
-    <div className="h-full overflow-y-auto">
-      <div className="mx-auto grid w-full max-w-[76rem] items-start gap-8 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_22.5rem] lg:gap-x-10 lg:px-8 lg:py-8">
-        <header className="flex flex-col gap-2 lg:col-span-2">
-          <h2 className="text-2xl font-semibold tracking-tight text-[var(--nb-primary)]">Review your flashing</h2>
-          <p className="max-w-xl text-sm text-[var(--nb-secondary)]">
-            Check your design and order details before continuing.
-          </p>
-        </header>
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto grid w-full max-w-[76rem] items-start gap-8 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] lg:gap-x-12 lg:px-8 lg:py-8">
+          <header className="flex flex-col gap-2 lg:col-span-2">
+            <h2 className="text-2xl font-semibold tracking-tight text-[var(--nb-primary)]">Review your flashing</h2>
+            <p className="max-w-xl text-sm text-[var(--nb-secondary)]">
+              Check your design and order details before continuing.
+            </p>
+          </header>
 
-        <section className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-6">
-          <div className="flex items-center justify-between gap-3">
-            <h3 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
-              Technical drawing
-            </h3>
-            <Button type="button" variant="outline" className="h-9" onClick={() => downloadDrawing()}>
-              Download drawing
-            </Button>
-          </div>
-          <div className="overflow-hidden rounded-xl border border-black/[0.08] bg-white dark:border-white/10">
-            <TechnicalDrawing points={points} taper={taper} taperLengths={taperLengths} info={info} />
-          </div>
-        </section>
+          <section className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-0">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
+                Technical drawing
+              </h3>
+              <Button type="button" variant="outline" className="h-9" onClick={() => downloadDrawing()}>
+                Download drawing
+              </Button>
+            </div>
+            <div className="overflow-hidden rounded-xl border border-black/[0.08] bg-white dark:border-white/10">
+              <TechnicalDrawing points={points} taper={taper} taperLengths={taperLengths} info={info} />
+            </div>
+          </section>
 
-        <aside className="flex min-w-0 flex-col gap-8">
-          <section className="flex flex-col gap-5">
+          <section className="flex min-w-0 flex-col gap-5">
             <h3 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
               Your specification
             </h3>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
+            <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-1">
               <SpecGroup title="Profile">
                 <SpecRow label="Profile" value={profileName} onEdit={() => onEdit("design")} />
                 <SpecRow label="Profile girth" value={girthLabel} onEdit={() => onEdit("design")} />
@@ -92,41 +92,45 @@ export function ReviewStep({
               </SpecGroup>
             </div>
           </section>
-
-          <section className="flex flex-col gap-5 border-t border-black/[0.08] pt-6 dark:border-white/10">
-            <h3 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
-              Order summary
-            </h3>
-            <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between lg:flex-col lg:items-stretch">
-              <div className="flex flex-col gap-1">
-                <p className="text-sm text-[var(--nb-primary)]">{profileName}</p>
-                <p className="text-sm text-[var(--nb-secondary)]">
-                  {quantity} × {lengthLabel}
-                </p>
-                <p className="mt-3 text-xs text-[var(--nb-secondary)]">Estimated total</p>
-                <p
-                  className={`text-4xl font-semibold tracking-[-0.03em] tabular-nums text-[var(--nb-primary)] ${pending ? "opacity-40" : ""}`}
-                  aria-live="polite"
-                >
-                  {formatPrice(price.total)}
-                </p>
-                <p className="text-xs text-[var(--nb-secondary)] tabular-nums">{formatPrice(price.perPiece)} each</p>
-              </div>
-              <div className="flex flex-col gap-2 md:w-52 md:shrink-0 lg:w-auto">
-                <Button type="button" className="h-11" onClick={onOrderNow}>
-                  Order now
-                </Button>
-                <Button type="button" variant="outline" className="h-11" onClick={onAddToCart}>
-                  Add to cart
-                </Button>
-                <Button type="button" variant="ghost" className="h-11" onClick={onRequestQuote}>
-                  Request a quote
-                </Button>
-              </div>
-            </div>
-          </section>
-        </aside>
+        </div>
       </div>
+
+      <footer className="shrink-0 border-t border-black/[0.08] bg-background dark:border-white/10" aria-label="Order summary">
+        <div className="mx-auto flex w-full max-w-[76rem] flex-col gap-4 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-end sm:gap-8">
+            <div className="min-w-0">
+              <h3 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
+                Order summary
+              </h3>
+              <p className="mt-1 truncate text-sm text-[var(--nb-primary)]">{profileName}</p>
+              <p className="text-sm text-[var(--nb-secondary)]">
+                {quantity} × {lengthLabel}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-[var(--nb-secondary)]">Estimated total</p>
+              <p
+                className={`text-3xl font-semibold tracking-[-0.03em] tabular-nums text-[var(--nb-primary)] ${pending ? "opacity-40" : ""}`}
+                aria-live="polite"
+              >
+                {formatPrice(price.total)}
+              </p>
+              <p className="text-xs text-[var(--nb-secondary)] tabular-nums">{formatPrice(price.perPiece)} each</p>
+            </div>
+          </div>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
+            <Button type="button" variant="ghost" className="h-11" onClick={onRequestQuote}>
+              Request a quote
+            </Button>
+            <Button type="button" variant="outline" className="h-11" onClick={onAddToCart}>
+              Add to cart
+            </Button>
+            <Button type="button" className="h-11" onClick={onOrderNow}>
+              Order now
+            </Button>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
