@@ -181,4 +181,42 @@ export const libraryTools: ToolEntry[] = [
   tool("crypto", "crypto-converter", "Crypto Converter", "Convert an amount with a rate you supply."),
   tool("crypto", "impermanent-loss-calculator", "Impermanent Loss Calculator", "How a price change diverges from simply holding."),
   tool("crypto", "bitcoin-halving-countdown", "Bitcoin Halving Countdown", "A countdown to the estimated next Bitcoin halving."),
+  tool("crypto", "crypto-tax-calculator", "Crypto Tax Gain/Loss Calculator", "FIFO realised gains and losses from the buys and sells you enter."),
+  tool("crypto", "crypto-dca-backtest-calculator", "Crypto DCA Backtest Calculator", "Replay a regular buy, or one lump sum, against bundled daily closes."),
+
+  tool("gaming-hardware", "loot-box-calculator", "Loot Box Expected Value", "Expected value per pull, and the chance of a rarity within N pulls."),
+  tool("gaming-hardware", "pc-build-cost-estimator", "Gaming PC Build Cost Estimator", "Add the prices you enter for each part of a PC."),
+  tool("gaming-hardware", "library-value-calculator", "Steam Library Value Calculator", "Add what you paid for each game. No Steam account."),
+  tool("gaming-hardware", "bracket-generator", "Esports Bracket Generator", "A single-elimination bracket you fill in and click through."),
+
+  tool("creator", "rate-card-calculator", "Creator Rate Card Calculator", "A starting rate range from followers, engagement, and content type."),
+  tool("creator", "engagement-rate-calculator", "Engagement Rate Calculator", "Engagement from followers, likes, and comments."),
+  tool("creator", "best-time-to-post", "Best Time to Post", "A general posting window for a platform and an audience region."),
+  tool("creator", "thread-formatter", "Thread Formatter", "Split a long note into numbered posts you can copy."),
+  tool("creator", "thumbnail-preview", "Thumbnail A/B Preview", "Compare two thumbnails in a simple video-feed mock."),
+  tool("creator", "username-checker", "Username Availability Checker", "Ask Instagram, TikTok, and X whether a username looks taken."),
+  tool("creator", "bio-link-builder", "Bio-Link Page Builder", "Stack a few links, preview the page, and download the HTML."),
+
+  tool("ai-tools", "api-cost-calculator", "AI API Cost Calculator", "Estimate a token bill from published per-token prices."),
+  tool("ai-tools", "token-counter", "Prompt Token Counter", "Count tokens in pasted text with a real tokenizer."),
+  tool("ai-tools", "coding-tool-cost-calculator", "AI Coding Tool Cost Calculator", "A rough monthly comparison of Cursor, Claude Code, and Copilot."),
+  tool("ai-tools", "prompt-library", "Prompt Library", "Keep prompts in this browser. They are not synced."),
+
+  tool("calculators", "subscription-audit-calculator", "Subscription Audit", "Add monthly subscriptions and see the annual total."),
+  tool("calculators", "expense-splitter", "Expense Splitter", "See who owes whom after a shared spend."),
+  tool("calculators", "side-hustle-tracker", "Side Hustle Tracker", "Log income and expenses and watch the profit."),
+  tool("calculators", "bnpl-cost-calculator", "BNPL True-Cost Calculator", "What fees add to a plan that is advertised as interest-free."),
+  tool("calculators", "fire-calculator", "FIRE Calculator", "Years to financial independence on the 4% rule."),
+  tool("calculators", "gig-tax-estimator", "Gig Economy Tax Estimator", "A rough Australian tax estimate on freelance income beside a wage."),
+  tool("calculators", "round-up-investing-estimator", "Round-up Investing Estimator", "How spare change from round-ups adds up over a year."),
+
+  tool("business", "resale-profit-calculator", "Resale Profit Calculator", "Net profit after a marketplace fee, shipping, and what the item cost."),
+
+  tool("everyday-fun", "social-battery-checkin", "Social Battery Check-in", "A few short questions and a light read on whether you need downtime."),
+  tool("everyday-fun", "screen-time-audit", "Screen Time Audit", "Hours a day by category, then the week and the year."),
+  tool("everyday-fun", "carbon-footprint-estimator", "Carbon Footprint Estimator", "A rough streaming and AI estimate from published factors."),
+
+  tool("developer", "commit-message-generator", "Git Commit Message Generator", "Turn a short description into a conventional commit."),
+  tool("developer", "rate-limit-calculator", "API Rate-Limit Calculator", "Whether a request limit covers the users you expect."),
+  tool("developer", "ai-tool-fit-quiz", "Which AI Coding Tool Fits You", "A short quiz with Cursor, Claude Code, or Copilot as the read."),
 ]

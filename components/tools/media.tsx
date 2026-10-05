@@ -3,12 +3,19 @@
 import { buttonVariants } from "@/components/ui/button"
 import { CopyButton, FileDrop, NumberField } from "@/components/tools/ui"
 import { cn } from "@/lib/utils"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 type ImageMode = "resize" | "crop" | "png" | "jpg" | "webp" | "svg" | "base64"
 
+const socialPresets = [
+  { id: "reels", label: "Instagram Reels", width: 1080, height: 1920, safe: true },
+  { id: "shorts", label: "YouTube Shorts", width: 1080, height: 1920, safe: false },
+  { id: "tiktok", label: "TikTok", width: 1080, height: 1920, safe: false },
+  { id: "linkedin", label: "LinkedIn banner", width: 1584, height: 396, safe: false },
+] as const
+
 const copy: Record<ImageMode, string> = {
-  resize: "Set a width and the height follows, unless you unlock it. The image stays in this browser.",
+  resize: "Set a width and the height follows, unless you unlock it. Social presets cover-crop to a fixed frame. The image stays in this browser.",
   crop: "The crop is a percentage of the original. Nothing is uploaded.",
   png: "The JPEG is redrawn as a PNG in this browser.",
   jpg: "The image is redrawn as a JPEG. A transparent background becomes white.",
@@ -42,11 +49,14 @@ export function ImageToBase64() {
 function ImageStudio({ mode }: { mode: ImageMode }) {
   const [width, setWidth] = useState("800")
   const [lock, setLock] = useState(true)
+  const [presetId, setPresetId] = useState<string | null>(null)
   const [crop, setCrop] = useState({ x: "10", y: "10", w: "80", h: "80" })
   const [result, setResult] = useState<{ url: string; name: string; text?: string } | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const fileRef = useRef<File | null>(null)
+  const preset = socialPresets.find((item) => item.id === presetId) ?? null
 
-  async function onFile(file: File) {
+  async function draw(file: File, options: { preset: (typeof socialPresets)[number] | null; width: string; lock: boolean }) {
     setError(null)
     try {
       if (mode === "base64") {
@@ -67,11 +77,18 @@ function ImageStudio({ mode }: { mode: ImageMode }) {
         canvas.width = Math.max(1, Math.round(image.width * w))
         canvas.height = Math.max(1, Math.round(image.height * h))
         context.drawImage(image, image.width * x, image.height * y, image.width * w, image.height * h, 0, 0, canvas.width, canvas.height)
+      } else if (mode === "resize" && options.preset) {
+        canvas.width = options.preset.width
+        canvas.height = options.preset.height
+        const scale = Math.max(canvas.width / image.width, canvas.height / image.height)
+        const drawnWidth = image.width * scale
+        const drawnHeight = image.height * scale
+        context.drawImage(image, (canvas.width - drawnWidth) / 2, (canvas.height - drawnHeight) / 2, drawnWidth, drawnHeight)
       } else if (mode === "resize") {
-        const target = Math.max(1, Math.round(Number(width) || image.width))
+        const target = Math.max(1, Math.round(Number(options.width) || image.width))
         const ratio = image.height / image.width
         canvas.width = target
-        canvas.height = lock ? Math.max(1, Math.round(target * ratio)) : image.height
+        canvas.height = options.lock ? Math.max(1, Math.round(target * ratio)) : image.height
         context.drawImage(image, 0, 0, canvas.width, canvas.height)
       } else {
         canvas.width = image.width
@@ -93,18 +110,73 @@ function ImageStudio({ mode }: { mode: ImageMode }) {
     }
   }
 
+  function onFile(file: File) {
+    fileRef.current = file
+    void draw(file, { preset, width, lock })
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <p className="max-w-xl text-sm leading-relaxed text-[var(--nb-secondary)]">{copy[mode]}</p>
       {mode === "resize" ? (
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="w-40">
-            <NumberField label="Width" value={width} onChange={setWidth} suffix="px" min={1} />
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap gap-2">
+            {socialPresets.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  setPresetId(item.id)
+                  setWidth(String(item.width))
+                  const file = fileRef.current
+                  if (file) void draw(file, { preset: item, width: String(item.width), lock })
+                }}
+                className={cn(
+                  "h-10 rounded-lg border px-3 text-sm",
+                  presetId === item.id ? "border-[var(--nb-primary)] bg-[var(--nb-accent)] text-[var(--nb-primary)]" : "border-border text-[var(--nb-secondary)]",
+                )}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
-          <label className="flex items-center gap-2 pb-2 text-sm">
-            <input type="checkbox" checked={lock} onChange={(event) => setLock(event.target.checked)} className="size-4 accent-[var(--nb-primary)]" />
-            Keep proportion
-          </label>
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="w-40">
+              <NumberField
+                label="Width"
+                value={width}
+                onChange={(value) => {
+                  setWidth(value)
+                  setPresetId(null)
+                  const file = fileRef.current
+                  if (file) void draw(file, { preset: null, width: value, lock })
+                }}
+                suffix="px"
+                min={1}
+              />
+            </div>
+            <label className="flex items-center gap-2 pb-2 text-sm">
+              <input
+                type="checkbox"
+                checked={lock}
+                onChange={(event) => {
+                  const next = event.target.checked
+                  setLock(next)
+                  setPresetId(null)
+                  const file = fileRef.current
+                  if (file) void draw(file, { preset: null, width, lock: next })
+                }}
+                className="size-4 accent-[var(--nb-primary)]"
+              />
+              Keep proportion
+            </label>
+          </div>
+          {preset ? (
+            <p className="max-w-xl text-sm leading-relaxed text-[var(--nb-secondary)]">
+              {preset.label} is {preset.width}×{preset.height}. The photo is cover-cropped into that frame.
+              {preset.safe ? " The dashed box is a visual safe zone for a Reel. It is not drawn into the download, and it is not an official Instagram template." : ""}
+            </p>
+          ) : null}
         </div>
       ) : null}
       {mode === "crop" ? (
@@ -127,8 +199,16 @@ function ImageStudio({ mode }: { mode: ImageMode }) {
       ) : null}
       {result && !result.text ? (
         <div className="flex flex-col gap-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={result.url} alt={result.name} className="max-h-80 w-auto rounded-xl border border-border" />
+          <div className="relative w-fit max-w-full">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={result.url} alt={result.name} className="max-h-80 w-auto rounded-xl border border-border" />
+            {preset?.safe ? (
+              <div
+                className="pointer-events-none absolute rounded-md border border-dashed border-white"
+                style={{ top: "14%", right: "6%", bottom: "20%", left: "6%" }}
+              />
+            ) : null}
+          </div>
           <a href={result.url} download={result.name} className={cn(buttonVariants(), "w-fit")}>
             Download
           </a>

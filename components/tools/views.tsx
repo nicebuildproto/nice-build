@@ -48,6 +48,27 @@ import {
   WheelSpinner,
   WorldClock,
 } from "@/components/tools/play"
+import { CryptoDcaBacktest } from "@/components/tools/dca-backtest"
+import {
+  AiToolFitQuiz,
+  BioLinkBuilder,
+  BracketGenerator,
+  PromptLibrary,
+  SocialBatteryCheckin,
+  ThreadFormatter,
+  ThumbnailPreview,
+  TokenCounter,
+  UsernameChecker,
+} from "@/components/tools/interactive"
+import {
+  CryptoTaxCalculator,
+  ExpenseSplitter,
+  LootBoxCalculator,
+  ResaleProfitCalculator,
+  SideHustleTracker,
+  SteamLibraryCalculator,
+  SubscriptionAudit,
+} from "@/components/tools/ledgers"
 import { BoundSpec } from "@/components/tools/SpecTool"
 import { CaseConverter, DiffChecker, WordCounter } from "@/components/tools/text"
 import { FunnelChart, GanttChart } from "@/components/tools/viz"
@@ -118,6 +139,23 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "dead-zone-tester": { View: DeadZoneTester },
   "screen-ppi-calculator": { View: ScreenPpiCalculator },
   "bitcoin-halving-countdown": { View: BitcoinHalvingCountdown },
+  "crypto-tax-calculator": { View: CryptoTaxCalculator, width: "tool" },
+  "crypto-dca-backtest-calculator": { View: CryptoDcaBacktest, width: "tool" },
+  "loot-box-calculator": { View: LootBoxCalculator, width: "tool" },
+  "library-value-calculator": { View: SteamLibraryCalculator },
+  "bracket-generator": { View: BracketGenerator, width: "tool" },
+  "thread-formatter": { View: ThreadFormatter, width: "tool" },
+  "thumbnail-preview": { View: ThumbnailPreview, width: "tool" },
+  "username-checker": { View: UsernameChecker },
+  "bio-link-builder": { View: BioLinkBuilder },
+  "token-counter": { View: TokenCounter, width: "tool" },
+  "prompt-library": { View: PromptLibrary, width: "tool" },
+  "subscription-audit-calculator": { View: SubscriptionAudit },
+  "expense-splitter": { View: ExpenseSplitter },
+  "side-hustle-tracker": { View: SideHustleTracker, width: "tool" },
+  "resale-profit-calculator": { View: ResaleProfitCalculator },
+  "social-battery-checkin": { View: SocialBatteryCheckin },
+  "ai-tool-fit-quiz": { View: AiToolFitQuiz },
 }
 
 for (const [slug, spec] of Object.entries(toolSpecs)) {

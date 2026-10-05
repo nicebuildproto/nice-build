@@ -4,6 +4,7 @@ import {
   ArrowRight,
   BarChart3,
   Bitcoin,
+  Bot,
   Briefcase,
   Calculator,
   Code2,
@@ -14,6 +15,7 @@ import {
   Sparkles,
   Type,
   Users,
+  Video,
   type LucideIcon,
 } from "lucide-react"
 
@@ -32,6 +34,8 @@ const categoryIcons: Record<CategoryIcon, LucideIcon> = {
   Sparkles,
   Gamepad2,
   Bitcoin,
+  Video,
+  Bot,
 }
 
 export function CategoryTile({ category }: { category: CategoryItem }) {

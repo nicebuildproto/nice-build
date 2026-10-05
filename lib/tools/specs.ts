@@ -1,3 +1,4 @@
+import { addedSpecs } from "@/lib/tools/added-specs"
 import { money, num } from "@/lib/tools/format"
 import {
   activityFactor,
@@ -1520,6 +1521,7 @@ export const toolSpecs: Record<string, ToolSpec> = {
       return stats([["Versus holding", `${num(loss, 2)}%`]])
     },
   },
+  ...addedSpecs,
 }
 
 function rpmSpec(rpm: string): ToolSpec {

@@ -18,6 +18,7 @@ export const filesDesignVizGuides: Record<string, ToolGuideCopy> = {
     ["Where does the resize happen?", "In the browser, on a canvas. The file is not uploaded."],
     ["What does keep proportion do?", "Height is calculated from the original aspect ratio. Turn it off and the height stays at the original pixel height."],
     ["Which format is the download?", "JPEG. A transparent image is drawn on white."],
+    ["What do the social presets do?", "Instagram Reels, YouTube Shorts, and TikTok cover-crop to 1080×1920. LinkedIn banner cover-crops to 1584×396. Reels also shows a dashed safe-zone guide that is not saved into the file."],
   ),
   "image-cropper": guide(
     "X 10, Y 10, width 80, height 80 keeps the middle 80% of the photo and drops a 10% margin on each side. The values are percentages of the original.",

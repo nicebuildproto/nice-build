@@ -15,6 +15,8 @@ export type Category =
   | "everyday-fun"
   | "gaming-hardware"
   | "crypto"
+  | "creator"
+  | "ai-tools"
 
 export interface ToolEntry {
   slug: string
@@ -41,6 +43,8 @@ export type CategoryIcon =
   | "Sparkles"
   | "Gamepad2"
   | "Bitcoin"
+  | "Video"
+  | "Bot"
 
 export const categories: { key: Category; label: string; description: string; icon: CategoryIcon }[] = [
   { key: "calculators", label: "Calculators", description: "Quick, clean calculations for everyday numbers.", icon: "Calculator" },
@@ -55,6 +59,8 @@ export const categories: { key: Category; label: string; description: string; ic
   { key: "everyday-fun", label: "Everyday & Fun", description: "Small, useful tools for everyday moments.", icon: "Sparkles" },
   { key: "gaming-hardware", label: "Gaming & Hardware", description: "Test your gear and convert the numbers players actually use.", icon: "Gamepad2" },
   { key: "crypto", label: "Crypto", description: "Profit, size, and yield from figures you type in. No wallet and no live prices.", icon: "Bitcoin" },
+  { key: "creator", label: "Creator Tools", description: "Rates, posting windows, and small utilities for publishing.", icon: "Video" },
+  { key: "ai-tools", label: "AI Tools", description: "Token counts, prompt notes, and cost estimates from published prices.", icon: "Bot" },
 ]
 
 // Every tool lives at /[category]/[slug]. Add new tools on that path.
