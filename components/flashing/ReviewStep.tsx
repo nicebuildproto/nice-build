@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import type { ReactNode } from "react"
 import { foldCount } from "@/lib/flashing/geometry"
 import { formatPrice, type PriceResult } from "@/lib/flashing/pricing"
 import type { Point } from "@/lib/flashing/geometry"
@@ -41,95 +42,142 @@ export function ReviewStep({
   onAddToCart: () => void
   onOrderNow: () => void
 }) {
+  const lengthLabel = `${pieceLengthMm.toLocaleString("en-AU")} mm`
+  const girthLabel = `${Math.round(girthMm).toLocaleString("en-AU")} mm`
+  const foldsLabel = `${foldCount(points)}${taper ? " · tapered" : ""}`
+
   return (
     <div className="h-full overflow-y-auto">
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-10 px-5 py-8 sm:px-8 sm:py-10">
-        <header className="flex flex-col gap-2">
+      <div className="mx-auto grid w-full max-w-[76rem] items-start gap-8 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_22.5rem] lg:gap-x-10 lg:px-8 lg:py-8">
+        <header className="flex flex-col gap-2 lg:col-span-2">
           <h2 className="text-2xl font-semibold tracking-tight text-[var(--nb-primary)]">Review your flashing</h2>
-          <p className="text-sm text-[var(--nb-secondary)]">Check your design and order details before continuing.</p>
+          <p className="max-w-xl text-sm text-[var(--nb-secondary)]">
+            Check your design and order details before continuing.
+          </p>
         </header>
 
-        <section className="flex flex-col gap-3">
-          <h3 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
-            Technical drawing
-          </h3>
-          <div className="overflow-hidden rounded-xl border border-black/[0.08] bg-white">
+        <section className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-6">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
+              Technical drawing
+            </h3>
+            <Button type="button" variant="outline" className="h-9" onClick={() => downloadDrawing()}>
+              Download drawing
+            </Button>
+          </div>
+          <div className="overflow-hidden rounded-xl border border-black/[0.08] bg-white dark:border-white/10">
             <TechnicalDrawing points={points} taper={taper} taperLengths={taperLengths} info={info} />
           </div>
-          <Button type="button" variant="outline" className="h-10 w-fit" onClick={() => downloadDrawing()}>
-            Download drawing
-          </Button>
         </section>
 
-        <section className="flex flex-col gap-3">
-          <h3 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
-            Your specification
-          </h3>
-          <dl className="divide-y divide-black/[0.06] rounded-xl border border-black/[0.08]">
-            <SpecRow label="Profile" value={profileName} onEdit={() => onEdit("design")} />
-            <SpecRow label="Length" value={`${pieceLengthMm.toLocaleString("en-AU")} mm`} onEdit={() => onEdit("length")} />
-            <SpecRow label="Quantity" value={String(quantity)} onEdit={() => onEdit("length")} />
-            <SpecRow label="Profile girth" value={`${Math.round(girthMm).toLocaleString("en-AU")} mm`} onEdit={() => onEdit("design")} />
-            <SpecRow
-              label="Folds"
-              value={`${foldCount(points)}${taper ? " · tapered" : ""}`}
-              onEdit={() => onEdit("design")}
-            />
-            <SpecRow label="Colour" value={colourLabel} onEdit={() => onEdit("material")} />
-            <SpecRow label="Material" value={materialLabel} onEdit={() => onEdit("material")} />
-            <SpecRow label="Item code" value={info.itemCode} />
-          </dl>
-        </section>
+        <aside className="flex min-w-0 flex-col gap-8">
+          <section className="flex flex-col gap-5">
+            <h3 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
+              Your specification
+            </h3>
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
+              <SpecGroup title="Profile">
+                <SpecRow label="Profile" value={profileName} onEdit={() => onEdit("design")} />
+                <SpecRow label="Profile girth" value={girthLabel} onEdit={() => onEdit("design")} />
+                <SpecRow label="Folds" value={foldsLabel} onEdit={() => onEdit("design")} />
+              </SpecGroup>
+              <SpecGroup title="Pieces">
+                <SpecRow label="Length" value={lengthLabel} onEdit={() => onEdit("length")} />
+                <SpecRow label="Quantity" value={String(quantity)} onEdit={() => onEdit("length")} />
+              </SpecGroup>
+              <SpecGroup title="Finish" className="sm:col-span-2 lg:col-span-1">
+                <SpecRow label="Colour" value={colourLabel} onEdit={() => onEdit("material")} />
+                <SpecRow label="Material" value={materialLabel} onEdit={() => onEdit("material")} />
+                <SpecRow label="Item code" value={info.itemCode} mono />
+              </SpecGroup>
+            </div>
+          </section>
 
-        <section className="flex flex-col gap-4">
-          <h3 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
-            Order summary
-          </h3>
-          <div className="flex flex-col gap-3 rounded-xl border border-black/[0.08] px-5 py-4 sm:flex-row sm:items-end sm:justify-between">
-            <div className="flex flex-col gap-1">
-              <p className="text-sm text-[var(--nb-primary)]">{profileName}</p>
-              <p className="text-sm text-[var(--nb-secondary)]">
-                {quantity} × {pieceLengthMm.toLocaleString("en-AU")} mm
-              </p>
+          <section className="flex flex-col gap-5 border-t border-black/[0.08] pt-6 dark:border-white/10">
+            <h3 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
+              Order summary
+            </h3>
+            <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between lg:flex-col lg:items-stretch">
+              <div className="flex flex-col gap-1">
+                <p className="text-sm text-[var(--nb-primary)]">{profileName}</p>
+                <p className="text-sm text-[var(--nb-secondary)]">
+                  {quantity} × {lengthLabel}
+                </p>
+                <p className="mt-3 text-xs text-[var(--nb-secondary)]">Estimated total</p>
+                <p
+                  className={`text-4xl font-semibold tracking-[-0.03em] tabular-nums text-[var(--nb-primary)] ${pending ? "opacity-40" : ""}`}
+                  aria-live="polite"
+                >
+                  {formatPrice(price.total)}
+                </p>
+                <p className="text-xs text-[var(--nb-secondary)] tabular-nums">{formatPrice(price.perPiece)} each</p>
+              </div>
+              <div className="flex flex-col gap-2 md:w-52 md:shrink-0 lg:w-auto">
+                <Button type="button" className="h-11" onClick={onOrderNow}>
+                  Order now
+                </Button>
+                <Button type="button" variant="outline" className="h-11" onClick={onAddToCart}>
+                  Add to cart
+                </Button>
+                <Button type="button" variant="ghost" className="h-11" onClick={onRequestQuote}>
+                  Request a quote
+                </Button>
+              </div>
             </div>
-            <div className="flex flex-col items-start sm:items-end">
-              <span className="text-xs text-[var(--nb-secondary)]">Estimated total</span>
-              <span
-                className={`text-3xl font-semibold tracking-[-0.03em] tabular-nums text-[var(--nb-primary)] ${pending ? "opacity-40" : ""}`}
-              >
-                {formatPrice(price.total)}
-              </span>
-              <span className="text-xs text-[var(--nb-secondary)] tabular-nums">
-                {formatPrice(price.perPiece)} each
-              </span>
-            </div>
-          </div>
-          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
-            <Button type="button" variant="ghost" className="h-10" onClick={onRequestQuote}>
-              Request a quote
-            </Button>
-            <Button type="button" variant="outline" className="h-10" onClick={onAddToCart}>
-              Add to cart
-            </Button>
-            <Button type="button" className="h-10 sm:ml-auto" onClick={onOrderNow}>
-              Order now
-            </Button>
-          </div>
-        </section>
+          </section>
+        </aside>
       </div>
     </div>
   )
 }
 
-function SpecRow({ label, value, onEdit }: { label: string; value: string; onEdit?: () => void }) {
+function SpecGroup({
+  title,
+  className,
+  children,
+}: {
+  title: string
+  className?: string
+  children: ReactNode
+}) {
   return (
-    <div className="flex items-center justify-between gap-4 px-4 py-3">
+    <div className={className}>
+      <h4 className="mb-2 text-xs font-medium text-[var(--nb-primary)]">{title}</h4>
+      <dl className="divide-y divide-black/[0.06] border-t border-black/[0.08] dark:divide-white/10 dark:border-white/10">
+        {children}
+      </dl>
+    </div>
+  )
+}
+
+function SpecRow({
+  label,
+  value,
+  mono,
+  onEdit,
+}: {
+  label: string
+  value: string
+  mono?: boolean
+  onEdit?: () => void
+}) {
+  return (
+    <div className="flex items-start justify-between gap-3 py-2.5">
       <div className="min-w-0">
         <dt className="text-xs text-[var(--nb-secondary)]">{label}</dt>
-        <dd className="truncate text-sm text-[var(--nb-primary)]">{value}</dd>
+        <dd className={`text-sm break-words text-[var(--nb-primary)] ${mono ? "font-mono text-[13px] leading-5" : ""}`}>
+          {value}
+        </dd>
       </div>
       {onEdit ? (
-        <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={onEdit}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-8 shrink-0"
+          aria-label={`Edit ${label}`}
+          onClick={onEdit}
+        >
           Edit
         </Button>
       ) : null}
