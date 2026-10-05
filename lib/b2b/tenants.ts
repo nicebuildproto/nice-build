@@ -26,10 +26,10 @@ export const b2bTenants: B2BTenant[] = [
     productName: "Flashing Designer",
     hosts: ["fielders.nicetools.co", "fielders.localhost"],
     logo: {
-      src: "/b2b/fielders/logo.jpg",
+      src: "/b2b/fielders/logo.png",
       alt: "Fielders",
-      width: 1024,
-      height: 285,
+      width: 794,
+      height: 183,
     },
     help: { href: "/help", label: "Help" },
   },
