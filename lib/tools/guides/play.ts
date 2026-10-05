@@ -145,6 +145,15 @@ export const playGuides: Record<string, ToolGuideCopy> = {
     ["What units are these?", "Capacity is milliamp hours. Load is milliamps. The result is hours, minutes, and seconds."],
     ["Can I use watt hours?", "Only if you convert first. This page doesn't take voltage."],
   ),
+  "crypto-momentum-scanner": guide(
+    "On the 15-minute window, a coin printing 4.2× its 20-candle average volume, up 5.1% on the last closed candle, and closing above that window’s high, with a CoinGecko trending listing, lands near the top of the table with the reason “Volume 4.2x average, up 5.1% in 15m, breaking 20-candle high, trending on CoinGecko.”",
+    ["What is a crypto scanner?", "A screener that ranks coins on live market data instead of a single ticker. This one scores short-timeframe volume, the last candle’s move, a 20-candle breakout, and a free attention signal from CoinGecko trending."],
+    ["How often does the data update?", "The server caches Binance tickers and candles for about 60 seconds, and CoinGecko trending for about five minutes. Turn on auto-refresh to pull that cache about once a minute while the tab is visible."],
+    ["Can this predict pumps?", "No. Unusual volume and a breakout describe what already happened on the last closed candle. It cannot tell you whether the next candle continues, stalls, or reverses."],
+    ["Why Sydney, and what is the 451 fallback?", "Binance market-data endpoints refuse some regions, including many US IPs. The scan route prefers Vercel’s Sydney region. If Binance still errors, the page falls back to CoinGecko 24-hour movers and says short-timeframe volume is limited."],
+    ["Is a CoinGecko key required?", "No. A demo key in COINGECKO_DEMO_KEY raises the rate limit. Without it, trending and names still load when CoinGecko allows, and the Binance scan still ranks coins."],
+    ["Does this connect to a wallet or place orders?", "No. It only reads public market data and ranks it. Size and risk live on the Crypto calculators, using numbers you type."],
+  ),
   "crypto-profit-calculator": guide(
     "Buy 0.4 of a coin at $90,000 and sell at $104,000, with a 0.1% fee on each side, and it costs you $36,000 and returns $41,600 before fees. The fees are $77.60, so your profit is $5,522.40 — about 15.34%.",
     ["Which fees are included?", "The percent you enter, applied once to the cost and once to the proceeds. A withdrawal or a network fee is extra unless you fold it into that percent."],

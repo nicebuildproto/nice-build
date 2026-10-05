@@ -88,6 +88,7 @@ import { AiContextWindowCalculator, PromptCostCalculator } from "@/components/to
 import { FovCalculator } from "@/components/tools/fov"
 import { GamingSensitivityCalculator } from "@/components/tools/sensitivity"
 import { TimeZoneMeetingPlanner } from "@/components/tools/meeting-planner"
+import { CryptoMomentumScanner } from "@/components/tools/crypto-momentum"
 import { toolSpecs } from "@/lib/tools/specs"
 import type { ComponentType } from "react"
 
@@ -155,6 +156,7 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "dead-zone-tester": { View: DeadZoneTester },
   "screen-ppi-calculator": { View: ScreenPpiCalculator },
   "bitcoin-halving-countdown": { View: BitcoinHalvingCountdown },
+  "crypto-momentum-scanner": { View: CryptoMomentumScanner, width: "wide" },
   "crypto-tax-calculator": { View: CryptoTaxCalculator, width: "tool" },
   "crypto-dca-backtest-calculator": { View: CryptoDcaBacktest, width: "tool" },
   "loot-box-calculator": { View: LootBoxCalculator, width: "tool" },

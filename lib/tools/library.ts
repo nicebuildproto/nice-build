@@ -6,8 +6,9 @@ function tool(
   title: string,
   description: string,
   status: ToolStatus = "live",
+  extra?: Pick<ToolEntry, "featured" | "tags" | "cluster" | "seoTitle">,
 ): ToolEntry {
-  return { slug, category, title, description, route: `/${category}/${slug}`, status }
+  return { slug, category, title, description, route: `/${category}/${slug}`, status, ...extra }
 }
 
 const soon = "coming-soon" as const
@@ -190,6 +191,11 @@ export const libraryTools: ToolEntry[] = [
   tool("gaming-hardware", "screen-ppi-calculator", "Screen PPI Calculator", "PPI for this screen, using its device pixel ratio."),
   tool("gaming-hardware", "battery-runtime-calculator", "Battery Runtime Calculator", "How long a battery lasts at a load you type."),
 
+  tool("crypto", "crypto-momentum-scanner", "Crypto Momentum Scanner", "Spot crypto volume breakouts and rising momentum across timeframes, free.", "live", {
+    featured: true,
+    seoTitle: "Crypto Momentum Scanner: Free Crypto Screener for Breakouts",
+    tags: ["crypto screener", "crypto scanner", "crypto momentum scanner", "crypto breakout scanner", "crypto movers"],
+  }),
   tool("crypto", "crypto-profit-calculator", "Crypto Profit Calculator", "Work out exactly what you walked away with — enter your entry price, exit price, and fees, and we'll handle the rest."),
   tool("crypto", "crypto-dca-calculator", "Crypto DCA Calculator", "See what a regular buy is worth against a current price you type."),
   tool("crypto", "crypto-staking-calculator", "Crypto Staking Calculator", "Simple or monthly-compounded staking yield from the rate you enter."),

@@ -25,10 +25,17 @@ export async function generateMetadata({
   const { category, slug } = await params
   const tool = registry.find((item) => item.slug === slug && item.category === category)
   if (!tool) return {}
+  const title = `${tool.seoTitle ?? tool.title}${titleSuffix}`
   return {
-    title: `${tool.title}${titleSuffix}`,
+    title,
     description: tool.description,
+    keywords: tool.tags,
     alternates: { canonical: `${siteUrl}${tool.route}` },
+    openGraph: {
+      title,
+      description: tool.description,
+      url: `${siteUrl}${tool.route}`,
+    },
   }
 }
 
@@ -46,7 +53,12 @@ export default async function SimpleToolPage({
 
   return (
     <>
-      <SoftwareApplicationJsonLd name={tool.title} description={tool.description} path={tool.route} />
+      <SoftwareApplicationJsonLd
+        name={tool.title}
+        description={tool.description}
+        path={tool.route}
+        webApplication={tool.slug === "crypto-momentum-scanner"}
+      />
       <PageShell backHref={`/category/${tool.category}`} width={view.width ?? "narrow"}>
         <header className="mb-10 flex flex-col gap-3">
           <h1 className="text-3xl leading-[1.1] font-semibold tracking-[-0.03em] text-[var(--nb-primary)] sm:text-4xl">

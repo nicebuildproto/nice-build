@@ -28,6 +28,7 @@ export interface ToolEntry {
   featured?: boolean
   cluster?: string
   tags?: string[]
+  seoTitle?: string
 }
 
 export type CategoryIcon =
@@ -58,7 +59,7 @@ export const categories: { key: Category; label: string; description: string; ic
   { key: "text-tools", label: "Text Tools", description: "Count, clean, convert, and compare text without sending it anywhere.", icon: "Type" },
   { key: "everyday-fun", label: "Everyday & Fun", description: "Small helpers for everyday moments — timers, pickers, dice, and a bit of play.", icon: "Sparkles" },
   { key: "gaming-hardware", label: "Gaming & Hardware", description: "Test a controller, check a click, or convert the numbers players actually use.", icon: "Gamepad2" },
-  { key: "crypto", label: "Crypto", description: "Crypto calculators for profit, position size, staking yield, and more — just enter your own numbers. No wallet connection, no live prices, no tracking.", icon: "Bitcoin" },
+  { key: "crypto", label: "Crypto", description: "A free momentum scanner plus calculators for profit, position size, and staking. No wallet connection.", icon: "Bitcoin" },
   { key: "creator", label: "Creator Tools", description: "Rates, posting windows, and small utilities for publishing — starting points, not promises.", icon: "Video" },
   { key: "ai-tools", label: "AI Tools", description: "Token counts, prompt notes, and cost estimates from published prices you can check yourself.", icon: "Bot" },
 ]

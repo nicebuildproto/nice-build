@@ -4,14 +4,16 @@ export function SoftwareApplicationJsonLd({
   name,
   description,
   path,
+  webApplication = false,
 }: {
   name: string
   description: string
   path: string
+  webApplication?: boolean
 }) {
   const data = {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
+    "@type": webApplication ? ["SoftwareApplication", "WebApplication"] : "SoftwareApplication",
     name,
     description,
     url: `${siteUrl}${path}`,
