@@ -49,9 +49,9 @@ export type CategoryIcon =
 export const categories: { key: Category; label: string; description: string; icon: CategoryIcon }[] = [
   { key: "calculators", label: "Calculators", description: "Everyday maths — percentages, loans, pay, and more. Type the numbers and we'll do the rest.", icon: "Calculator" },
   { key: "developer", label: "Developer Tools", description: "Formatters, converters, and generators you can use while you build. Paste, tweak, copy.", icon: "Code2" },
-  { key: "files-media", label: "Files & Media", description: "Resize, convert, and clean up images in your browser. Your files stay on your device.", icon: "FileStack" },
+  { key: "files-media", label: "Files & Media", description: "Resize, convert, sign, and clean up files in your browser. Your files stay on your device.", icon: "FileStack" },
   { key: "design-creative", label: "Design & Creative", description: "Colour, contrast, gradients, and small visual tools for when you need a quick answer.", icon: "Palette" },
-  { key: "data-viz", label: "Data Visualization", description: "Paste a table, get a chart you can export. Funnels, Gantt, bars, lines, pies, timelines, and simple diagrams.", icon: "BarChart3" },
+  { key: "data-viz", label: "Data Visualization", description: "Paste a table, get a chart you can export. Funnels, Gantt, bars, lines, pies, scatter, waterfall, timelines, and simple diagrams.", icon: "BarChart3" },
   { key: "business", label: "Business Tools", description: "Invoices, quotes, fees, and margins — the everyday numbers behind running a job.", icon: "Briefcase" },
   { key: "home-trade", label: "Home & Trade", description: "Material estimates and a flashing designer for jobs around the house or on site.", icon: "Hammer" },
   { key: "people-teams", label: "People & Teams", description: "A few tools for how you work together — meetings, roles, and a light work-style quiz.", icon: "Users" },

@@ -485,3 +485,73 @@ export const timelineExamples: NamedExample<TimelineEvent[]>[] = [
     ],
   },
 ]
+
+export type ScatterPoint = { id: string; x: string; y: string; series: string; label: string }
+
+export function scatterPoint(x: string | number, y: string | number, series = "Series 1", label = ""): ScatterPoint {
+  return { id: vizId(), x: String(x), y: String(y), series, label }
+}
+
+export const scatterExamples: NamedExample<ScatterPoint[]>[] = [
+  {
+    id: "height-weight",
+    title: "Height and score",
+    description: "Two series of related measurements.",
+    data: [
+      scatterPoint(162, 58, "Team A", "Ada"),
+      scatterPoint(171, 64, "Team A", "Bo"),
+      scatterPoint(168, 61, "Team A", "Cam"),
+      scatterPoint(176, 72, "Team A", "Dee"),
+      scatterPoint(159, 54, "Team B", "Eve"),
+      scatterPoint(180, 78, "Team B", "Fay"),
+      scatterPoint(174, 70, "Team B", "Gus"),
+      scatterPoint(166, 60, "Team B", "Han"),
+    ],
+  },
+  {
+    id: "spend",
+    title: "Spend vs conversion",
+    description: "Campaigns on two channels.",
+    data: [
+      scatterPoint(120, 2.1, "Search", "Brand"),
+      scatterPoint(340, 4.8, "Search", "Generic"),
+      scatterPoint(90, 1.4, "Search", "Competitor"),
+      scatterPoint(210, 3.2, "Social", "Awareness"),
+      scatterPoint(160, 2.6, "Social", "Retarget"),
+      scatterPoint(280, 3.9, "Social", "Launch"),
+    ],
+  },
+]
+
+export type WaterfallRow = { id: string; label: string; value: string; kind: "relative" | "total" }
+
+export function waterfallRow(label: string, value: string | number, kind: "relative" | "total" = "relative"): WaterfallRow {
+  return { id: vizId(), label, value: String(value), kind }
+}
+
+export const waterfallExamples: NamedExample<WaterfallRow[]>[] = [
+  {
+    id: "pl",
+    title: "Monthly P&L",
+    description: "Opening cash through to closing.",
+    data: [
+      waterfallRow("Opening", 120, "total"),
+      waterfallRow("Sales", 64),
+      waterfallRow("Refunds", -12),
+      waterfallRow("Costs", -28),
+      waterfallRow("Closing", 144, "total"),
+    ],
+  },
+  {
+    id: "headcount",
+    title: "Headcount bridge",
+    description: "Starts, leavers, and the ending total.",
+    data: [
+      waterfallRow("Start of year", 42, "total"),
+      waterfallRow("Hires", 11),
+      waterfallRow("Leavers", -6),
+      waterfallRow("Transfers in", 2),
+      waterfallRow("End of year", 49, "total"),
+    ],
+  },
+]

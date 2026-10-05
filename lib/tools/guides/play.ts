@@ -104,13 +104,13 @@ export const playGuides: Record<string, ToolGuideCopy> = {
     ["Can I use a keyboard?", "The button is a click target. A mouse or trackpad click is what it counts."],
   ),
   "sensitivity-converter": guide(
-    "800 DPI, a sensitivity of 1.2, and a yaw of 0.022 works out to about 43.30 cm for a full 360° turn.",
-    ["What is yaw?", "The degrees the game turns for one count of mouse movement. 0.022 is common in Source-style games. Change it if your game uses another value."],
-    ["What is cm/360?", "How far the mouse travels, in centimetres, to turn the view all the way around."],
+    "800 DPI and CS2 sensitivity 1.2 is about 43.30 cm per 360° and an eDPI of 960. Matching that feel in Valorant (yaw 0.07) is about 0.377 sensitivity.",
+    ["What is yaw?", "The degrees the game turns for one count of mouse movement. Only games with a documented yaw are listed."],
+    ["What is eDPI?", "DPI multiplied by in-game sensitivity. It only compares across games that share a yaw."],
     ["Does this change my game settings?", "No. It only converts the numbers you type."],
   ),
   "edpi-calculator": guide(
-    "800 DPI times a sensitivity of 0.4 gives you an eDPI of 320.",
+    "800 DPI times a sensitivity of 0.4 gives you an eDPI of 320. The same page can convert that feel into another game with a known yaw.",
     ["What is eDPI?", "DPI multiplied by in-game sensitivity. It lets you compare settings when the DPI and the sensitivity differ."],
     ["Is eDPI the same across games?", "Only when those games treat sensitivity the same way. A different yaw means the same eDPI is a different turn."],
     ["Should I use this or cm/360?", "eDPI is the product of two settings. cm/360 is the distance on the mousepad. Use cm/360 when you're matching a feel between games."],

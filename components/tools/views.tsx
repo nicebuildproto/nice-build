@@ -4,7 +4,9 @@ import {
   FlowchartGenerator,
   LineChartGenerator,
   PieChartGenerator,
+  ScatterPlotGenerator,
   TimelineGenerator,
+  WaterfallChartGenerator,
 } from "@/components/tools/charts"
 import { ColourPalette, ContrastChecker, GradientGenerator } from "@/components/tools/colour"
 import { JsonFormatter, RegexTester, UuidGenerator } from "@/components/tools/developer"
@@ -72,6 +74,20 @@ import {
 import { BoundSpec } from "@/components/tools/SpecTool"
 import { CaseConverter, DiffChecker, WordCounter } from "@/components/tools/text"
 import { FunnelChart, GanttChart } from "@/components/tools/viz"
+import { PdfOcr, PdfSigner, PdfToText } from "@/components/tools/pdf-tools"
+import { AudioTrimmer, GifMaker, VideoTrimmer } from "@/components/tools/motion-tools"
+import { ScreenshotAnnotator, ScreenshotBeautifier } from "@/components/tools/screenshot-tools"
+import { JsonSchemaGenerator } from "@/components/tools/json-schema"
+import { PasswordStrengthChecker } from "@/components/tools/password-strength"
+import { EmailHeaderAnalyzer } from "@/components/tools/email-headers"
+import { CssGridGenerator } from "@/components/tools/css-grid"
+import { OpenGraphImageGenerator } from "@/components/tools/og-image"
+import { NetWorthCalculator } from "@/components/tools/net-worth"
+import { DebtPayoffCalculator } from "@/components/tools/debt-payoff"
+import { AiContextWindowCalculator, PromptCostCalculator } from "@/components/tools/ai-cost"
+import { FovCalculator } from "@/components/tools/fov"
+import { GamingSensitivityCalculator } from "@/components/tools/sensitivity"
+import { TimeZoneMeetingPlanner } from "@/components/tools/meeting-planner"
 import { toolSpecs } from "@/lib/tools/specs"
 import type { ComponentType } from "react"
 
@@ -156,6 +172,29 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "resale-profit-calculator": { View: ResaleProfitCalculator },
   "social-battery-checkin": { View: SocialBatteryCheckin },
   "ai-tool-fit-quiz": { View: AiToolFitQuiz },
+  "pdf-signer": { View: PdfSigner, width: "tool" },
+  "pdf-ocr": { View: PdfOcr, width: "tool" },
+  "pdf-to-text": { View: PdfToText, width: "tool" },
+  "gif-maker": { View: GifMaker, width: "tool" },
+  "video-trimmer": { View: VideoTrimmer, width: "tool" },
+  "audio-trimmer": { View: AudioTrimmer, width: "tool" },
+  "screenshot-annotator": { View: ScreenshotAnnotator, width: "wide" },
+  "screenshot-beautifier": { View: ScreenshotBeautifier, width: "wide" },
+  "json-schema-generator": { View: JsonSchemaGenerator, width: "tool" },
+  "password-strength-checker": { View: PasswordStrengthChecker },
+  "email-header-analyzer": { View: EmailHeaderAnalyzer, width: "tool" },
+  "css-grid-generator": { View: CssGridGenerator, width: "tool" },
+  "open-graph-image-generator": { View: OpenGraphImageGenerator, width: "tool" },
+  "scatter-plot": { View: ScatterPlotGenerator, width: "wide" },
+  "waterfall-chart": { View: WaterfallChartGenerator, width: "wide" },
+  "net-worth-calculator": { View: NetWorthCalculator, width: "tool" },
+  "debt-payoff-calculator": { View: DebtPayoffCalculator },
+  "ai-context-window-calculator": { View: AiContextWindowCalculator, width: "tool" },
+  "prompt-cost-calculator": { View: PromptCostCalculator, width: "tool" },
+  "fov-calculator": { View: FovCalculator, width: "tool" },
+  "sensitivity-converter": { View: GamingSensitivityCalculator, width: "tool" },
+  "edpi-calculator": { View: GamingSensitivityCalculator, width: "tool" },
+  "time-zone-meeting-planner": { View: TimeZoneMeetingPlanner, width: "wide" },
 }
 
 for (const [slug, spec] of Object.entries(toolSpecs)) {

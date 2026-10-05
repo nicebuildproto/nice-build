@@ -2,6 +2,7 @@ import type { NextConfig } from "next"
 import { registry } from "./lib/registry"
 
 const nextConfig: NextConfig = {
+  transpilePackages: ["pdfjs-dist", "tesseract.js", "gifenc"],
   async redirects() {
     return [
       ...registry.map((tool) => ({

@@ -1,0 +1,130 @@
+import { guide, type ToolGuideCopy } from "@/lib/tools/guides/types"
+
+export const batchGuides: Record<string, ToolGuideCopy> = {
+  "pdf-signer": guide(
+    "Open a two-page contract, go to page 2, type Ada Lovelace as the signature, drag it onto the signature line, then download a signed PDF. The original file is unchanged.",
+    ["Is the PDF uploaded?", "No. Rendering and signing happen in this browser."],
+    ["Can I draw a signature?", "Yes — draw, type a name, or upload an image, then move and resize it on the page."],
+    ["Does this legally bind a contract?", "It places an image on the page. Whether that counts as a signature depends on the document and the law, not this tool."],
+  ),
+  "pdf-ocr": guide(
+    "A scanned one-page letter with almost no selectable text is rendered and read with Tesseract in the browser. You can copy the result or download a .txt file.",
+    ["When is OCR used?", "If the PDF already has a solid text layer, that text is used and OCR is skipped. Sparse scans run OCR page by page."],
+    ["How accurate is OCR?", "It depends on the scan. Faint, skewed, or handwritten pages will misread. Check the output."],
+    ["Does the file leave the device?", "The PDF stays local. Tesseract may fetch language data from a CDN the first time."],
+  ),
+  "pdf-to-text": guide(
+    "A digital invoice with selectable text extracts as ordinary lines you can copy. A scan with almost no text is flagged so you can open PDF OCR instead.",
+    ["Is this OCR?", "No. It reads the text layer. Use PDF OCR for photographs of pages."],
+    ["Are layouts preserved?", "Line breaks follow the PDF’s text items. Columns can interleave."],
+    ["Is the file uploaded?", "No. Extraction stays in the browser."],
+  ),
+  "gif-maker": guide(
+    "Drop four PNG frames, set the delay to 120 ms, generate, and download an animated GIF. A short video can be sampled into frames first.",
+    ["How many frames?", "Up to 80. Long videos are sampled so the GIF stays small."],
+    ["Is the original video kept?", "No audio, and colours are quantized. GIFs are a preview format, not a master."],
+    ["Where does encoding happen?", "In this browser. Nothing is uploaded."],
+  ),
+  "video-trimmer": guide(
+    "Load a clip, set start 2.0s and end 8.5s, preview that range, then export a WebM. The download is a re-encode from this browser’s recorder.",
+    ["Why WebM?", "Browsers can record WebM locally. The original codec is not copied bit-for-bit."],
+    ["Which browsers work?", "Chrome and Edge expose captureStream. Safari may refuse to export."],
+    ["Is the file uploaded?", "No. Trimming stays on the device."],
+  ),
+  "audio-trimmer": guide(
+    "Load a song, set start 12s and end 28s, preview, then export a WAV of that slice.",
+    ["Why WAV?", "Decoded audio is written as uncompressed PCM so the cut is exact. The file is larger than MP3."],
+    ["Will every codec open?", "The browser has to decode it. Unusual formats can fail even when a desktop app plays them."],
+    ["Is the audio uploaded?", "No."],
+  ),
+  "screenshot-annotator": guide(
+    "Paste a screenshot, crop the extra chrome, draw an arrow at the button, blur an email address, and download a PNG.",
+    ["Can I paste?", "Yes. Focus the page and paste from the clipboard."],
+    ["What does blur do?", "It pixel-averages a rectangle. It is a redaction aid, not a cryptographic wipe."],
+    ["Is the image uploaded?", "No."],
+  ),
+  "screenshot-beautifier": guide(
+    "Drop a 1280×800 capture, add 64px padding, 18px corners, a soft shadow, and window chrome, then download a presentation PNG.",
+    ["What size is the export?", "The screenshot size plus padding and optional chrome. It is not forced to a social preset."],
+    ["Can I change the background?", "Yes — pick a colour or one of the swatches."],
+    ["Is the file uploaded?", "No."],
+  ),
+  "json-schema-generator": guide(
+    "Paste {\"name\":\"Ada\",\"age\":36,\"tags\":[\"maths\"]} and the schema describes an object with a string, an integer, and an array of strings. Keys are required unless you turn that off.",
+    ["Is the schema a standard?", "It uses JSON Schema 2020-12 keywords. It is inferred from one example, not from a spec you wrote."],
+    ["Why integer instead of number?", "Whole numbers are tagged integer when that option is on. Mixed integers and fractions become number."],
+    ["Is the JSON uploaded?", "No."],
+  ),
+  "password-strength-checker": guide(
+    "password scores as very weak. A 24-character passphrase with mixed classes sits much higher. The estimate is local entropy and a few pattern checks, not a breach lookup.",
+    ["Is the password sent anywhere?", "No. Analysis stays in this browser."],
+    ["Does a high score mean it is safe?", "No. Reused or leaked passwords can still be guessed. Use a password manager."],
+    ["What are the bits?", "A rough entropy figure from length and character set, with penalties for runs and common words."],
+  ),
+  "email-header-analyzer": guide(
+    "Paste headers with From Ada, a Received hop, and Authentication-Results spf=pass; dkim=pass; dmarc=pass. The page lists sender, date, hops, and those tokens.",
+    ["Does pass mean the mail is genuine?", "It means the receiving server wrote that result. This page does not re-check DNS or signatures."],
+    ["What is the Received path?", "Each hop the message claims to have taken, newest first as written in the headers."],
+    ["Are the headers uploaded?", "No."],
+  ),
+  "css-grid-generator": guide(
+    "A 3×2 card grid with 16px gaps copies as display: grid and repeat(3, minmax(0, 1fr)). The preview uses the same rules.",
+    ["What are named areas?", "Optional grid-template-areas. Use them for a holy-grail layout; leave them off for a simple card grid."],
+    ["Will the CSS work today?", "Yes. It is standard CSS Grid."],
+    ["How do I reset?", "Reset restores the default 3×2 grid."],
+  ),
+  "open-graph-image-generator": guide(
+    "Title “A quieter way to share a tool”, subtitle “Nice Tools”, dark background, then download a 1200 × 630 PNG.",
+    ["What size is the file?", "Always 1200 × 630, the usual Open Graph size."],
+    ["Can I add a logo?", "Yes. It sits in the top-left of the canvas."],
+    ["Is anything uploaded?", "No. Drawing stays in the browser."],
+  ),
+  "scatter-plot": guide(
+    "Paste height and score for two teams and you get points coloured by series. Hover a point for its label. Export PNG or SVG when it reads clearly.",
+    ["What columns does it need?", "X and Y. An optional series column splits colours. An optional label shows on hover."],
+    ["Can I paste from Sheets?", "Yes. The first two numeric columns become X and Y."],
+    ["How do I export?", "Use Export for PNG, SVG, or CSV, the same as the other charts."],
+  ),
+  "waterfall-chart": guide(
+    "Opening 120, Sales 64, Refunds −12, Costs −28, Closing 144 draws a bridge with connector lines between the changes.",
+    ["What is a total row?", "Opening and closing amounts that start from zero. Changes sit on top of the running total."],
+    ["Can values be negative?", "Yes. Negative changes drop the running total."],
+    ["How do I export?", "PNG, SVG, or CSV from Export."],
+  ),
+  "net-worth-calculator": guide(
+    "Cash 12,000, investments 48,000, property 620,000, vehicles 18,000, other 4,000, minus a 410,000 mortgage, 12,000 loans, and 3,200 on cards. Assets 702,000, liabilities 425,200, net 276,800.",
+    ["Which currency?", "Amounts are labelled AUD. Type the numbers you use; the symbol does not convert."],
+    ["Is this financial advice?", "No. It adds and subtracts the figures you type."],
+    ["Are future values included?", "No. It is a snapshot of the amounts on the page."],
+  ),
+  "debt-payoff-calculator": guide(
+    "An $8,000 balance at 18% with a $240 minimum takes much longer than the same debt with an extra $100 a month. The extra payment cuts months and interest.",
+    ["How is interest applied?", "Monthly, as annual rate ÷ 12, on the remaining balance. Fees and changing rates are ignored."],
+    ["What if the payment is too small?", "If it never covers the interest, the page says the balance would not fall."],
+    ["Is this advice?", "No. Lenders round differently. Treat it as an estimate."],
+  ),
+  "ai-context-window-calculator": guide(
+    "Paste a prompt, optionally paste expected output, pick a 128k window, and see used tokens, remaining tokens, and the share of the window.",
+    ["Are token counts exact?", "Pasted text is counted with gpt-tokenizer (o200k_base) when it loads. Typed numbers are used as you entered them. Other models split text differently."],
+    ["What is character ÷ 4?", "A rough stand-in used only if there is text and the tokenizer has not returned yet."],
+    ["Does this send the prompt?", "No. Counting stays in the browser."],
+  ),
+  "prompt-cost-calculator": guide(
+    "Claude Sonnet 5, 800 input and 300 output tokens, 40 requests a day. At $2 and $10 per million tokens, that is about $0.0046 a request, $0.18 a day, $5.52 over 30 days.",
+    ["Where do prices live?", "In one pricing table, copied from provider pages on 5 October 2026. They can lag."],
+    ["Can I type my own rates?", "Yes — choose Custom USD / 1M tokens."],
+    ["Does this include cache or batch?", "No. Standard input and output rates only."],
+  ),
+  "fov-calculator": guide(
+    "Valorant’s 103° horizontal on 16:9 is about 70.5° vertical. Switching the input to vertical and typing that number returns 103° horizontal.",
+    ["What does the wedge show?", "A simple top-down view of the horizontal FOV against a screen rectangle."],
+    ["Are game presets measured?", "They use advertised FOV values, not a photographed camera."],
+    ["What is the optional screen width?", "If you type viewing distance and screen width, you get the angle that screen subtends."],
+  ),
+  "time-zone-meeting-planner": guide(
+    "Sydney, London, and New York on 5 October 2026. Green cells are hours that sit inside 9:00–17:00 for every city. A +1 under a cell means that city is already on the next calendar day.",
+    ["Whose clock is the header?", "The first city in the list is the grid. Other rows show the matching local hour."],
+    ["What counts as a working hour?", "9:00 inclusive to 17:00 exclusive, in that city’s local time, including daylight saving from the browser’s timezone data."],
+    ["Can I add any timezone?", "The list is a set of common cities. There is no free-text IANA field in this version."],
+  ),
+}

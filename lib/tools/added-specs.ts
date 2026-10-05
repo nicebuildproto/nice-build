@@ -1,4 +1,5 @@
 import { money, num } from "@/lib/tools/format"
+import { modelPriceMap as apiModels, PRICES_CHECKED } from "@/lib/ai/pricing"
 import type { SpecField, SpecResult, ToolSpec } from "@/lib/tools/specs"
 
 const options = (pairs: [string, string][]) => pairs.map(([value, label]) => ({ value, label }))
@@ -34,53 +35,6 @@ function stats(pairs: [string, string][], extra: Partial<SpecResult> = {}): Spec
 
 function usd(value: number) {
   return new Intl.NumberFormat("en-AU", { style: "currency", currency: "USD" }).format(value)
-}
-
-const PRICES_CHECKED = "5 October 2026"
-
-const apiModels: Record<string, { input: number; output: number; label: string; href: string }> = {
-  "claude-haiku-4.5": {
-    label: "Claude Haiku 4.5",
-    input: 1,
-    output: 5,
-    href: "https://platform.claude.com/docs/en/about-claude/pricing",
-  },
-  "claude-sonnet-5": {
-    label: "Claude Sonnet 5",
-    input: 2,
-    output: 10,
-    href: "https://platform.claude.com/docs/en/about-claude/pricing",
-  },
-  "claude-opus-4.5": {
-    label: "Claude Opus 4.5",
-    input: 5,
-    output: 25,
-    href: "https://platform.claude.com/docs/en/about-claude/pricing",
-  },
-  "gpt-4.1": {
-    label: "GPT-4.1",
-    input: 2,
-    output: 8,
-    href: "https://developers.openai.com/api/docs/pricing",
-  },
-  "gpt-5": {
-    label: "GPT-5",
-    input: 1.25,
-    output: 10,
-    href: "https://developers.openai.com/api/docs/pricing",
-  },
-  "gemini-2.5-flash": {
-    label: "Gemini 2.5 Flash",
-    input: 0.3,
-    output: 2.5,
-    href: "https://ai.google.dev/gemini-api/docs/pricing",
-  },
-  "gemini-2.5-pro": {
-    label: "Gemini 2.5 Pro (prompts up to 200k)",
-    input: 1.25,
-    output: 10,
-    href: "https://ai.google.dev/gemini-api/docs/pricing",
-  },
 }
 
 const rateBases: Record<string, number> = {

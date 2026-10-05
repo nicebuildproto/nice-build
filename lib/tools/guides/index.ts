@@ -1,3 +1,4 @@
+import { batchGuides } from "@/lib/tools/guides/batch"
 import { addedGuides } from "@/lib/tools/guides/added"
 import { businessGuides } from "@/lib/tools/guides/business"
 import { calculatorGuides } from "@/lib/tools/guides/calculators"
@@ -15,4 +16,5 @@ export const toolGuides: Record<string, ToolGuideCopy> = {
   ...businessGuides,
   ...homePeopleTextGuides,
   ...playGuides,
+  ...batchGuides,
 }

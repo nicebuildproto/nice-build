@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { Check, Copy } from "lucide-react"
-import { useState, type ReactNode } from "react"
+import { useCallback, useEffect, useState, type ReactNode } from "react"
 
 export function Field({
   label,
@@ -120,53 +120,119 @@ export function CopyButton({ text, label = "Copy" }: { text: string; label?: str
   )
 }
 
+export const selectClass =
+  "h-10 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+
 export function FileDrop({
   accept,
   onFile,
   idle = "Drop a file here, or browse",
+  multiple = false,
+  onFiles,
+  paste = false,
+  maxBytes,
 }: {
   accept: string
   onFile: (file: File) => void
   idle?: string
+  multiple?: boolean
+  onFiles?: (files: File[]) => void
+  paste?: boolean
+  maxBytes?: number
 }) {
   const [name, setName] = useState<string | null>(null)
   const [over, setOver] = useState(false)
+  const [note, setNote] = useState<string | null>(null)
 
-  function take(file: File | undefined) {
-    if (!file) return
-    setName(file.name)
-    onFile(file)
-  }
+  const takeList = useCallback(
+    (list: File[]) => {
+      const files = list.filter(Boolean)
+      if (!files.length) return
+      if (maxBytes) {
+        const tooBig = files.find((file) => file.size > maxBytes)
+        if (tooBig) {
+          setNote(`${tooBig.name} is larger than ${Math.round(maxBytes / 1_000_000)} MB.`)
+          return
+        }
+      }
+      setNote(null)
+      setName(files.length === 1 ? files[0].name : `${files.length} files`)
+      if (onFiles) onFiles(files)
+      else onFile(files[0])
+    },
+    [maxBytes, onFile, onFiles],
+  )
+
+  useEffect(() => {
+    if (!paste) return
+    function onPaste(event: ClipboardEvent) {
+      const files = Array.from(event.clipboardData?.files ?? [])
+      const items = Array.from(event.clipboardData?.items ?? [])
+      const fromItems = items
+        .filter((item) => item.kind === "file")
+        .map((item) => item.getAsFile())
+        .filter((file): file is File => Boolean(file))
+      const next = files.length ? files : fromItems
+      if (next.length) {
+        event.preventDefault()
+        takeList(next)
+      }
+    }
+    window.addEventListener("paste", onPaste)
+    return () => window.removeEventListener("paste", onPaste)
+  }, [paste, takeList])
 
   return (
-    <label
-      onDragOver={(event) => {
-        event.preventDefault()
-        setOver(true)
-      }}
-      onDragLeave={() => setOver(false)}
-      onDrop={(event) => {
-        event.preventDefault()
-        setOver(false)
-        take(event.dataTransfer.files?.[0])
-      }}
-      className={cn(
-        "flex min-h-28 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed px-4 py-8 text-center transition-colors has-[:focus-visible]:border-ring has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50",
-        over ? "border-[var(--nb-primary)] bg-[var(--nb-accent)]" : "border-border"
-      )}
-    >
-      <span className="text-sm text-[var(--nb-primary)]">{name ?? idle}</span>
-      <span className="text-xs text-[var(--nb-secondary)]">{name ? "Drop another file to replace it" : "Click to browse"}</span>
-      <input
-        type="file"
-        accept={accept}
-        className="sr-only"
-        onChange={(event) => {
-          take(event.target.files?.[0])
-          event.target.value = ""
+    <div className="flex flex-col gap-2">
+      <label
+        onDragOver={(event) => {
+          event.preventDefault()
+          setOver(true)
         }}
-      />
-    </label>
+        onDragLeave={() => setOver(false)}
+        onDrop={(event) => {
+          event.preventDefault()
+          setOver(false)
+          takeList(Array.from(event.dataTransfer.files ?? []))
+        }}
+        className={cn(
+          "flex min-h-28 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed px-4 py-8 text-center transition-colors has-[:focus-visible]:border-ring has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50",
+          over ? "border-[var(--nb-primary)] bg-[var(--nb-accent)]" : "border-border"
+        )}
+      >
+        <span className="text-sm text-[var(--nb-primary)]">{name ?? idle}</span>
+        <span className="text-xs text-[var(--nb-secondary)]">
+          {name ? (multiple ? "Drop more files to add them" : "Drop another file to replace it") : paste ? "Click to browse, or paste" : "Click to browse"}
+        </span>
+        <input
+          type="file"
+          accept={accept}
+          multiple={multiple}
+          className="sr-only"
+          onChange={(event) => {
+            takeList(Array.from(event.target.files ?? []))
+            event.target.value = ""
+          }}
+        />
+      </label>
+      {note ? <p className="text-sm text-destructive">{note}</p> : null}
+    </div>
+  )
+}
+
+export function ToolNote({ children }: { children: ReactNode }) {
+  return <p className="max-w-xl text-sm leading-relaxed text-[var(--nb-secondary)]">{children}</p>
+}
+
+export function ErrorNote({ children }: { children: ReactNode }) {
+  return <p className="text-sm text-destructive">{children}</p>
+}
+
+export function ResetButton({ onClick, label = "Reset" }: { onClick: () => void; label?: string }) {
+  return (
+    <Button type="button" variant="ghost" className="h-10 px-3" onClick={onClick}>
+      {label}
+    </Button>
   )
 }
 
