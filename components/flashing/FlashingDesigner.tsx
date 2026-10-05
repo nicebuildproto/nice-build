@@ -38,7 +38,7 @@ import {
   type MaterialId,
 } from "@/lib/flashing/pricing"
 import { templateById } from "@/lib/flashing/templates"
-import { useEffect, useMemo, useReducer, useState } from "react"
+import { useEffect, useMemo, useReducer, useState, type ReactNode } from "react"
 import { AlignStep } from "./AlignStep"
 import { DesignStep } from "./DesignStep"
 import { useDebouncedValue } from "./hooks"
@@ -54,7 +54,11 @@ const reviewIndex = editSteps.findIndex((step) => step.id === "review")
 const materialIndex = editSteps.findIndex((step) => step.id === "material")
 const designIndex = editSteps.findIndex((step) => step.id === "design")
 
-export function FlashingDesigner() {
+export function FlashingDesigner({
+  chrome,
+}: {
+  chrome?: (slots: { startOver: ReactNode }) => ReactNode
+} = {}) {
   const [hydrated, setHydrated] = useState(false)
   const [stage, setStage] = useState<FlashingStage>("intro")
   const [step, setStep] = useState(0)
@@ -295,24 +299,40 @@ export function FlashingDesigner() {
     <TooltipProvider delay={300}>
       <main className="flex min-h-[100dvh] flex-1 flex-col lg:h-[100dvh]">
         <header className="shrink-0 border-b border-border text-sm">
-          <div className="flex h-14 items-center gap-2 px-4 sm:px-6">
-            <BrandLink logoClassName="h-6" />
-            <span className="text-[var(--nb-secondary)]/40">/</span>
-            <span className="min-w-0 truncate font-medium">Flashing Designer</span>
-            <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
-              {stage !== "intro" ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="h-8 px-2 text-[var(--nb-secondary)]"
-                  onClick={() => (hasWork ? setConfirmReset(true) : resetAll())}
-                >
-                  Start over
-                </Button>
-              ) : null}
-              <HeaderActions />
+          {chrome ? (
+            chrome({
+              startOver:
+                stage !== "intro" ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-8 px-2 text-[var(--nb-secondary)]"
+                    onClick={() => (hasWork ? setConfirmReset(true) : resetAll())}
+                  >
+                    Start over
+                  </Button>
+                ) : null,
+            })
+          ) : (
+            <div className="flex h-14 items-center gap-2 px-4 sm:px-6">
+              <BrandLink logoClassName="h-6" />
+              <span className="text-[var(--nb-secondary)]/40">/</span>
+              <span className="min-w-0 truncate font-medium">Flashing Designer</span>
+              <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+                {stage !== "intro" ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-8 px-2 text-[var(--nb-secondary)]"
+                    onClick={() => (hasWork ? setConfirmReset(true) : resetAll())}
+                  >
+                    Start over
+                  </Button>
+                ) : null}
+                <HeaderActions />
+              </div>
             </div>
-          </div>
+          )}
           {showConfigureChrome && pieceLengthMm !== null ? (
             <div className="border-t border-black/[0.04] px-4 py-3 sm:px-6">
               <PriceBar
