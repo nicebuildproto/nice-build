@@ -1,11 +1,19 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import type { ReactNode } from "react"
 
-export function IntroStep({ onStart }: { onStart: () => void }) {
+export function IntroStep({
+  onStart,
+  notice,
+}: {
+  onStart: () => void
+  notice?: ReactNode
+}) {
   return (
     <div className="flex flex-1 items-center justify-center px-6 py-16">
       <div className="flex w-full max-w-lg flex-col gap-6">
+        {notice}
         <div className="flex flex-col gap-3">
           <h1 className="text-3xl font-semibold tracking-tight text-[var(--nb-primary)] sm:text-4xl">
             Design your flashing

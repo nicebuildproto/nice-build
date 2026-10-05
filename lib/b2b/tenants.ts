@@ -1,8 +1,3 @@
-export type B2BHelpLink = {
-  href: string
-  label: string
-}
-
 export type B2BLogo = {
   src: string
   alt: string
@@ -16,7 +11,6 @@ export type B2BTenant = {
   productName: string
   hosts: string[]
   logo: B2BLogo
-  help?: B2BHelpLink
 }
 
 export const b2bTenants: B2BTenant[] = [
@@ -31,7 +25,6 @@ export const b2bTenants: B2BTenant[] = [
       width: 1023,
       height: 283,
     },
-    help: { href: "/help", label: "Help" },
   },
 ]
 
