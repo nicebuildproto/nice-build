@@ -37,8 +37,8 @@ export function layoutGraph(model: GraphModel, orientation: "tb" | "lr"): {
     frontier = next
   }
 
-  const gapX = orientation === "tb" ? 36 : 88
-  const gapY = orientation === "tb" ? 72 : 28
+  const gapX = orientation === "tb" ? 48 : 96
+  const gapY = orientation === "tb" ? 96 : 36
   const byId = new Map(model.nodes.map((node) => [node.id, node]))
   const placed: LaidNode[] = []
 

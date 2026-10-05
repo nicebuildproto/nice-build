@@ -44,5 +44,8 @@ function trimNum(value: number, digits: number): string {
 
 export function formatPercent(value: number): string {
   if (!Number.isFinite(value)) return "—"
+  if (Math.abs(value) > 0 && Math.abs(value) < 10) {
+    return `${value.toLocaleString("en-AU", { maximumFractionDigits: 1, minimumFractionDigits: 0 })}%`
+  }
   return `${Math.round(value)}%`
 }

@@ -12,12 +12,14 @@ export function VizCustomize({
   onStyle,
   onMeta,
   extra,
+  omit = [],
 }: {
   style: VizStyle
   meta: VizMeta
   onStyle: (next: Partial<VizStyle>) => void
   onMeta: (next: Partial<VizMeta>) => void
   extra?: ReactNode
+  omit?: Array<"values" | "labels" | "percent" | "grid" | "legend">
 }) {
   return (
     <div className="flex flex-col gap-6">
@@ -30,24 +32,34 @@ export function VizCustomize({
         }
       />
       <ColorField label="Background" value={style.background} onChange={(background) => onStyle({ background })} />
-      <ToggleField label="Show values" checked={style.showValues} onChange={(showValues) => onStyle({ showValues })} />
-      <ToggleField label="Show labels" checked={style.showLabels} onChange={(showLabels) => onStyle({ showLabels })} />
-      <ToggleField
-        label="Show percentages"
-        checked={style.showPercent}
-        onChange={(showPercent) => onStyle({ showPercent })}
-      />
-      <ToggleField label="Gridlines" checked={style.showGrid} onChange={(showGrid) => onStyle({ showGrid })} />
-      <Segmented
-        label="Legend"
-        value={style.legend}
-        options={[
-          { id: "bottom", label: "Bottom" },
-          { id: "right", label: "Right" },
-          { id: "none", label: "Hidden" },
-        ]}
-        onChange={(legend) => onStyle({ legend, showLegend: legend !== "none" })}
-      />
+      {omit.includes("values") ? null : (
+        <ToggleField label="Show values" checked={style.showValues} onChange={(showValues) => onStyle({ showValues })} />
+      )}
+      {omit.includes("labels") ? null : (
+        <ToggleField label="Show labels" checked={style.showLabels} onChange={(showLabels) => onStyle({ showLabels })} />
+      )}
+      {omit.includes("percent") ? null : (
+        <ToggleField
+          label="Show percentages"
+          checked={style.showPercent}
+          onChange={(showPercent) => onStyle({ showPercent })}
+        />
+      )}
+      {omit.includes("grid") ? null : (
+        <ToggleField label="Gridlines" checked={style.showGrid} onChange={(showGrid) => onStyle({ showGrid })} />
+      )}
+      {omit.includes("legend") ? null : (
+        <Segmented
+          label="Legend"
+          value={style.legend}
+          options={[
+            { id: "bottom", label: "Bottom" },
+            { id: "right", label: "Right" },
+            { id: "none", label: "Hidden" },
+          ]}
+          onChange={(legend) => onStyle({ legend, showLegend: legend !== "none" })}
+        />
+      )}
       <SliderField
         label="Label size"
         value={style.labelSize}

@@ -410,8 +410,8 @@ function CartesianChart({ kind }: { kind: Kind }) {
           const ix2 = cx + Math.cos(start) * inner
           const iy2 = cy + Math.sin(start) * inner
           const mid = start + (end - start) / 2
-          const lx = cx + Math.cos(mid) * (r + 16)
-          const ly = cy + Math.sin(mid) * (r + 16)
+          const lx = cx + Math.cos(mid) * (r + 28)
+          const ly = cy + Math.sin(mid) * (r + 28)
           const d = inner
             ? `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} L ${ix1} ${iy1} A ${inner} ${inner} 0 ${large} 0 ${ix2} ${iy2} Z`
             : `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`
@@ -428,7 +428,7 @@ function CartesianChart({ kind }: { kind: Kind }) {
               >
                 <title>{`${slice.row.label}: ${formatValue(slice.row.nums[0])} (${formatPercent((slice.value / total) * 100)})`}</title>
               </path>
-              {style.showLabels && end - start > 0.25 ? (
+              {style.showLabels && end - start > 0.45 ? (
                 <text x={lx} y={ly} textAnchor={Math.cos(mid) > 0 ? "start" : "end"} fill={theme.ink} fontSize={style.labelSize}>
                   {slice.row.label}
                   {style.showPercent ? ` ${formatPercent((slice.value / total) * 100)}` : ""}
@@ -442,7 +442,7 @@ function CartesianChart({ kind }: { kind: Kind }) {
   }
 
   const legend =
-    style.legend === "none" || empty
+    style.legend === "none" || empty || (kind !== "pie" && series.length < 2)
       ? null
       : (kind === "pie" ? sorted.map((row, index) => ({ name: row.label, color: seriesColor(theme, index) })) : series.map((name, index) => ({ name, color: seriesColor(theme, index) }))).map(
           (item, index) => (

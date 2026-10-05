@@ -175,6 +175,7 @@ export function FunnelChart() {
           meta={meta}
           onStyle={(next) => setStyle((current) => ({ ...current, ...next }))}
           onMeta={(next) => setMeta((current) => ({ ...current, ...next }))}
+          omit={["grid", "legend"]}
         />
       }
       notice={

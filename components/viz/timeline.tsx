@@ -169,6 +169,7 @@ export function TimelineGenerator() {
           meta={meta}
           onStyle={(next) => setStyle((current) => ({ ...current, ...next }))}
           onMeta={(next) => setMeta((current) => ({ ...current, ...next }))}
+          omit={["percent", "grid", "legend"]}
           extra={
             <>
               <Segmented

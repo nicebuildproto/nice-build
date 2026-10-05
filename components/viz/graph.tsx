@@ -337,6 +337,7 @@ function GraphTool({ kind }: { kind: "flow" | "diagram" }) {
           meta={meta}
           onStyle={(next) => setStyle((current) => ({ ...current, ...next }))}
           onMeta={(next) => setMeta((current) => ({ ...current, ...next }))}
+          omit={["values", "percent", "grid", "legend"]}
           extra={
             <Segmented
               label="Orientation"

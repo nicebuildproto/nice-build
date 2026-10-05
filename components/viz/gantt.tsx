@@ -241,6 +241,7 @@ export function GanttChart() {
           meta={meta}
           onStyle={(next) => setStyle((current) => ({ ...current, ...next }))}
           onMeta={(next) => setMeta((current) => ({ ...current, ...next }))}
+          omit={["percent", "legend"]}
           extra={
             <Segmented
               label="Scale"
