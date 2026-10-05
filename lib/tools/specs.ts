@@ -111,7 +111,7 @@ function stats(pairs: [string, string][], extra: Partial<SpecResult> = {}): Spec
   return { stats: pairs.map(([label, value]) => ({ label, value })), ...extra }
 }
 
-const feeIntro = "Rates change. These defaults are a starting point, so edit them to match your account."
+const feeIntro = "Rates change. These defaults are a starting point — edit them to match your account."
 const bodyIntro = "An estimate for planning, not a diagnosis. Mifflin–St Jeor, in kilograms and centimetres."
 
 function platformFee(percent: string, fixed: string): ToolSpec {
@@ -520,7 +520,7 @@ export const toolSpecs: Record<string, ToolSpec> = {
   },
   "jwt-decoder": {
     wide: true,
-    intro: "This only reads the header and payload. It does not check the signature.",
+    intro: "This only reads the header and payload. It doesn't check the signature.",
     fields: [area("token", "Token", "eyJhbGciOiJub25lIn0.eyJzdWIiOiJkZW1vIn0.")],
     run: (values) => {
       const parts = values.token.trim().split(".")
@@ -1447,7 +1447,7 @@ export const toolSpecs: Record<string, ToolSpec> = {
     },
   },
   "crypto-liquidation-calculator": {
-    intro: "A simplified isolated-margin estimate. Exchanges add fees and their own maintenance schedule.",
+    intro: "A simplified isolated-margin estimate. Exchanges add fees and their own maintenance schedule, so treat this as a range.",
     columns: 2,
     fields: [
       number("entry", "Entry", "100", "AUD"),
@@ -1496,7 +1496,7 @@ export const toolSpecs: Record<string, ToolSpec> = {
     },
   },
   "crypto-converter": {
-    intro: "Uses the rate you type. There is no live market feed.",
+    intro: "Uses the rate you type — there's no live market feed.",
     columns: 2,
     fields: [
       number("amount", "Amount", "1.5"),

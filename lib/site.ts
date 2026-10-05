@@ -1,3 +1,7 @@
+export const siteName = "Nice Tools"
+
+export const titleSuffix = ` — ${siteName}`
+
 export const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.VERCEL_PROJECT_PRODUCTION_URL

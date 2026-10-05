@@ -3,6 +3,7 @@ import { PageShell } from "@/components/site/PageShell"
 import { ToolGuide } from "@/components/tools/ToolGuide"
 import { toolViews } from "@/components/tools/views"
 import { registry } from "@/lib/registry"
+import { titleSuffix } from "@/lib/site"
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
@@ -25,7 +26,7 @@ export async function generateMetadata({
   const tool = registry.find((item) => item.slug === slug && item.category === category)
   if (!tool) return {}
   return {
-    title: `${tool.title} — Nice Build`,
+    title: `${tool.title}${titleSuffix}`,
     description: tool.description,
   }
 }

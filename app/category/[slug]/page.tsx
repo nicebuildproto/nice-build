@@ -2,6 +2,7 @@ import { PageShell } from "@/components/site/PageShell"
 import { catalogGrid } from "@/components/site/frame"
 import { ToolCard } from "@/components/ToolCard"
 import { categories, getCategory, getToolsByCategory, isCategory } from "@/lib/registry"
+import { titleSuffix } from "@/lib/site"
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
@@ -19,7 +20,7 @@ export async function generateMetadata({
   if (!category) return {}
 
   return {
-    title: `${category.label} — Nice Build`,
+    title: `${category.label}${titleSuffix}`,
     description: category.description,
   }
 }

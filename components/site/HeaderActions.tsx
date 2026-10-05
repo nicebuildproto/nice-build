@@ -87,7 +87,7 @@ export function HeaderActions() {
             <DialogHeader>
               <DialogTitle>Accounts are on the way.</DialogTitle>
               <DialogDescription>
-                Nothing was saved. This screen is a preview of signing in to Nice Build.
+                Nothing was saved. This screen is a preview of signing in to Nice Tools.
               </DialogDescription>
             </DialogHeader>
           ) : (

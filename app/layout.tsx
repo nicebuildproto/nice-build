@@ -1,3 +1,4 @@
+import { siteName } from "@/lib/site"
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import type { Metadata } from "next"
@@ -16,8 +17,9 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Nice Build",
-  description: "A small collection of useful tools.",
+  title: siteName,
+  description:
+    "Free, fast tools for everyday tasks — calculators, converters, generators, and more. No sign-up, no clutter, just the tool you need.",
 }
 
 const themeBoot = `(function(){try{if(localStorage.getItem("nb-theme")==="dark")document.documentElement.classList.add("dark")}catch(e){}})()`

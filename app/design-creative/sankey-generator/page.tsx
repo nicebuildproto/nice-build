@@ -2,14 +2,15 @@ import { SankeyGenerator } from "@/components/sankey/SankeyGenerator"
 import { SoftwareApplicationJsonLd } from "@/components/seo/SoftwareApplicationJsonLd"
 import { siteContainer } from "@/components/site/frame"
 import { ToolGuide } from "@/components/tools/ToolGuide"
+import { titleSuffix } from "@/lib/site"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Sankey Diagram Generator — Nice Build",
-  description: "Create clear, beautiful Sankey diagrams from your data.",
+  title: `Sankey Diagram Generator${titleSuffix}`,
+  description: "Turn a short table of flows into a Sankey diagram you can export — no design software required.",
   openGraph: {
-    title: "Sankey Diagram Generator — Nice Build",
-    description: "Create clear, beautiful Sankey diagrams from your data.",
+    title: `Sankey Diagram Generator${titleSuffix}`,
+    description: "Turn a short table of flows into a Sankey diagram you can export — no design software required.",
   },
 }
 

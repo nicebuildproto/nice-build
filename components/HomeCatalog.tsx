@@ -87,6 +87,9 @@ export function HomeCatalog() {
           <br />
           digital toolkit.
         </h1>
+        <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-[var(--nb-secondary)]">
+          Grab a calculator, converter, or generator and get the answer in a few taps. No sign-up, no clutter — just the tool you need.
+        </p>
 
         <div className="relative mt-8 max-w-2xl sm:mt-10">
           <label htmlFor="tool-search" className="sr-only">

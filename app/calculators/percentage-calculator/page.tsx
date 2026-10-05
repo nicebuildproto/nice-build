@@ -1,12 +1,13 @@
 import { PercentageClusterView } from "@/components/calculators/PercentageClusterView"
 import { SoftwareApplicationJsonLd } from "@/components/seo/SoftwareApplicationJsonLd"
 import { percentagePages } from "@/lib/calculators/content"
+import { titleSuffix } from "@/lib/site"
 import type { Metadata } from "next"
 
 const page = percentagePages.basic
 
 export const metadata: Metadata = {
-  title: `${page.title} — Nice Build`,
+  title: `${page.title}${titleSuffix}`,
   description: page.description,
 }
 

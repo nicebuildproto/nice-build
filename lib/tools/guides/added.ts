@@ -3,12 +3,12 @@ import { guide, type ToolGuideCopy } from "@/lib/tools/guides/types"
 export const addedGuides: Record<string, ToolGuideCopy> = {
   "crypto-tax-calculator": guide(
     "Buy 0.1 BTC on 15 January 2024 at $60,000, then sell 0.04 BTC on 1 November 2024 at $70,000. FIFO assigns the oldest coins, so the cost of that sale is $2,400 and the proceeds are $2,800. The realised gain is $400.",
-    ["Why only FIFO?", "The page always matches a sale to the oldest remaining buy of that coin. It does not offer last-in or a hand-picked parcel."],
+    ["Why only FIFO?", "The page always matches a sale to the oldest remaining buy of that coin. It doesn’t offer last-in or a hand-picked parcel."],
     ["What if I sell more than I bought?", "The matched portion is shown, and the row notes that some of the sale had no buy to cover it. That remainder is not given a cost."],
-    ["Can I lodge this with the ATO?", "No. It is an estimate from the rows you type. Fees, transfers, and your actual tax rules are not applied."],
+    ["Can I lodge this with the ATO?", "No — this is an estimate from the rows you type. Fees, transfers, and your actual tax rules aren't applied, so don't lodge it as-is."],
   ),
   "crypto-dca-backtest-calculator": guide(
-    "$50 of BTC on the first of each month from January 2022 is invested at that day’s close, then valued at the last close in the bundled series. A lump sum puts the whole amount in on the start date instead.",
+    "$50 of BTC on the first of each month from January 2022 is invested at that day’s close, then valued at the last close in the bundled series. A lump sum puts the whole amount in on the start date instead — same dollars, one buy rather than many.",
     ["Where do the prices come from?", "Daily closes for BTC-USD and ETH-USD from Yahoo Finance, saved with the site. The page names the as-of date of that file. There is no live quote."],
     ["How is this different from the Crypto DCA Calculator?", "That calculator uses an average price and a current price you type. This one walks a historical close series and draws the value over time."],
     ["Are the dollars Australian?", "No. The series is quoted in US dollars, so the amount you enter is treated as USD."],
@@ -20,7 +20,7 @@ export const addedGuides: Record<string, ToolGuideCopy> = {
     ["Is this an encouragement to buy?", "No. It is a way to see that a rare prize can still leave the average pull below its price."],
   ),
   "pc-build-cost-estimator": guide(
-    "A GPU at $700, a CPU at $400, RAM at $150, storage at $120, a case at $110, a PSU at $130, and a monitor at $280 add up to $1,890. A part you already own stays at $0.",
+    "A GPU at $700, a CPU at $400, RAM at $150, storage at $120, a case at $110, a PSU at $130, and a monitor at $280 add up to $1,890. A part you already own stays at $0, so you can leave it off the spend.",
     ["Does this look up current street prices?", "No. Every figure is one you type. Shops, sales, and shipping are outside the total unless you include them in a line."],
     ["Can I add a second monitor or a cooler?", "There is one line per part. Put a combined price in that line, or fold the extra into the closest part."],
     ["Is the total in Australian dollars?", "The labels say AUD. The maths is a plain sum, so the currency is whatever you typed."],
@@ -56,7 +56,7 @@ export const addedGuides: Record<string, ToolGuideCopy> = {
     ["Why do weekdays show up so often?", "Many published benchmarks cluster on weekday mid-morning or early evening. A niche that is online at night will not match that."],
   ),
   "thread-formatter": guide(
-    "A note longer than 280 characters, set to X, becomes 1/2, 2/2, and so on. The “1/2 ” prefix is inside the 280, so the words stop earlier than a raw character cut.",
+    "A note longer than 280 characters, set to X, becomes 1/2, 2/2, and so on. The “1/2 ” prefix is inside the 280, so the words stop earlier than a raw character cut — you won’t blow the limit by accident.",
     ["Why are Threads posts longer?", "The Threads option uses 500 characters. X stays at 280. Neither limit is read from the live platform."],
     ["Does it split mid-word?", "It breaks on spaces. A single word longer than the limit is still placed in its own post."],
     ["Can I post from here?", "No. Each card has a copy button. You paste the text into the platform yourself."],
@@ -104,13 +104,13 @@ export const addedGuides: Record<string, ToolGuideCopy> = {
     ["Can I export them?", "Copy a prompt from its card. There is no file export in this version."],
   ),
   "subscription-audit-calculator": guide(
-    "Streaming at $16 a month and music at $12 a month is $28 a month, which is $336 a year. The year is shown first because that is the number people under-count.",
+    "Streaming at $16 a month and music at $12 a month is $28 a month, which is $336 a year. The year is shown first because that’s the number people under-count.",
     ["Does a yearly plan belong here?", "Turn it into a month first, or type the monthly equivalent. The page multiplies every line by 12."],
     ["What about a free trial?", "Leave it off, or put 0, until it starts billing. A trial is not a monthly cost yet."],
     ["Are price rises included?", "Only if you type the new amount. The page does not know what a service will charge next month."],
   ),
   "expense-splitter": guide(
-    "Alex paid $80, Sam paid $20, and Jordan paid $0. The bill is $100, so each share is $33.33. Sam pays Alex $13.33 and Jordan pays Alex $33.33.",
+    "Alex paid $80, Sam paid $20, and Jordan paid $0. The bill is $100, so each share is $33.33. Sam pays Alex $13.33 and Jordan pays Alex $33.33 — Alex is made whole.",
     ["Is the split always equal?", "Yes. Everyone owes the same share of the total, regardless of who ordered what."],
     ["What if someone should pay more?", "This version does not weight shares. Adjust what you type, or settle the difference outside the page."],
     ["Does it remember last week’s dinner?", "No. It settles the people and amounts on the page, then forgets them."],
@@ -140,7 +140,7 @@ export const addedGuides: Record<string, ToolGuideCopy> = {
     ["Is this a lodgement figure?", "No. It is an estimate, not tax advice. Offsets, HELP, and GST on the freelance work are not in the number."],
   ),
   "round-up-investing-estimator": guide(
-    "$280 spent across 14 transactions, with an average round-up of $0.45, sets aside $6.30 a week. That is about $27 a month and about $328 a year.",
+    "$280 spent across 14 transactions, with an average round-up of $0.45, sets aside $6.30 a week. That’s about $27 a month and about $328 a year — spare change that adds up if you keep it going.",
     ["What is an average round-up?", "The typical spare change on one transaction, such as $0.40 when a $4.60 coffee rounds to $5. You supply the average."],
     ["Does the weekly spend change the total?", "The dollars set aside come from the transaction count times the average round-up. Spend is only used to show what share of the week that is."],
     ["Is the money invested?", "No. The page estimates the micro-investment total. It does not buy anything."],
@@ -158,7 +158,7 @@ export const addedGuides: Record<string, ToolGuideCopy> = {
     ["Should I cancel plans because of it?", "Not on this alone. It is a light prompt, not advice."],
   ),
   "screen-time-audit": guide(
-    "1.5 hours of social, 1 hour of video, 0.5 of games, 6 of work, and 0.5 of other is 9.5 hours a day. That is 66.5 hours a week and 3,468 hours a year.",
+    "1.5 hours of social, 1 hour of video, 0.5 of games, 6 of work, and 0.5 of other is 9.5 hours a day. That’s 66.5 hours a week and 3,468 hours a year — the yearly number is the one that usually lands.",
     ["Where does the year come from?", "The daily total times 365. The week is the day times 7. There is no screen-time permission and no device reading."],
     ["Should work hours be included?", "Only if you want them in the total. Set work to 0 if you are auditing leisure screens."],
     ["What if the day is not typical?", "The page treats the hours as every day. Use a typical day, or average a heavy day and a light one before you type."],

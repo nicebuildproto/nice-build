@@ -28,8 +28,8 @@ export const b2bTenants: B2BTenant[] = [
     logo: {
       src: "/b2b/fielders/logo.png",
       alt: "Fielders",
-      width: 794,
-      height: 183,
+      width: 1023,
+      height: 283,
     },
     help: { href: "/help", label: "Help" },
   },

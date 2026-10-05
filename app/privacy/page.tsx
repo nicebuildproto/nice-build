@@ -1,9 +1,10 @@
 import { InfoPage, InfoSection } from "@/components/site/InfoPage"
+import { titleSuffix } from "@/lib/site"
 import type { Metadata } from "next"
 import Link from "next/link"
 
 export const metadata: Metadata = {
-  title: "Privacy — Nice Build",
+  title: `Privacy${titleSuffix}`,
   description: "What Nice Tools stores, and what stays in your browser.",
 }
 
