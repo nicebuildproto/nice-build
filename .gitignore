@@ -23,6 +23,7 @@
 # misc
 .DS_Store
 *.pem
+.nb-verify*.png
 
 # debug
 npm-debug.log*

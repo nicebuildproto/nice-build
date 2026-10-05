@@ -22,6 +22,7 @@ import { LayoutTemplate, Redo2, SlidersHorizontal, Trash2, Undo2, X } from "luci
 import { useEffect, useRef, useState, type Dispatch } from "react"
 import { GirthReadout } from "./GirthReadout"
 import { IconButton, ToolbarGroup } from "./IconButton"
+import { DirectionMarks } from "./DirectionMarks"
 import { ProfileIcon } from "./ProfileShape"
 import { isTypingTarget } from "./hooks"
 import { Viewport, type ViewportApi } from "./Viewport"
@@ -290,6 +291,8 @@ export function DesignStep({
               )
             })
           : null}
+
+        <DirectionMarks points={screen} length={24} inset={8} />
 
         {ghost ? (
           <g className="pointer-events-none">

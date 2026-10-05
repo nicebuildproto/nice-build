@@ -173,6 +173,42 @@ export function outwardSign(points: Point[]): 1 | -1 {
   return sideways >= 0 ? 1 : -1
 }
 
+export type Stroke = { a: Point; b: Point }
+
+// Short ticks on the weather face at folds and cut ends, so the facing of the
+// piece is readable without extra labels.
+export function directionStrokes(points: Point[], length: number, inset = 0): Stroke[] {
+  const strokes: Stroke[] = []
+  if (points.length < 2 || length <= 0) return strokes
+
+  const out = outwardSign(points)
+  const add = (vertex: Point, nx: number, ny: number) => {
+    const x = nx * out
+    const y = ny * out
+    const mag = Math.hypot(x, y)
+    if (mag < 1e-6) return
+    const ux = x / mag
+    const uy = y / mag
+    strokes.push({
+      a: { x: vertex.x + ux * inset, y: vertex.y + uy * inset },
+      b: { x: vertex.x + ux * length, y: vertex.y + uy * length },
+    })
+  }
+
+  const start = normalOf(points[0], points[1])
+  add(points[0], start.x, start.y)
+  const end = normalOf(points[points.length - 2], points[points.length - 1])
+  add(points[points.length - 1], end.x, end.y)
+
+  for (let i = 1; i < points.length - 1; i++) {
+    if (foldAngleAt(points, i) > 175) continue
+    const prev = normalOf(points[i - 1], points[i])
+    const next = normalOf(points[i], points[i + 1])
+    add(points[i], prev.x + next.x, prev.y + next.y)
+  }
+  return strokes
+}
+
 export function taperedPoints(
   points: Point[],
   taperLengths: (number | null)[],

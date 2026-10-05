@@ -38,7 +38,8 @@ import {
   type MaterialId,
 } from "@/lib/flashing/pricing"
 import { templateById } from "@/lib/flashing/templates"
-import { useEffect, useMemo, useReducer, useState, type ReactNode } from "react"
+import { cn } from "@/lib/utils"
+import { useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react"
 import { AlignStep } from "./AlignStep"
 import { DesignStep } from "./DesignStep"
 import { useDebouncedValue } from "./hooks"
@@ -56,8 +57,10 @@ const designIndex = editSteps.findIndex((step) => step.id === "design")
 
 export function FlashingDesigner({
   chrome,
+  introNotice,
 }: {
   chrome?: (slots: { startOver: ReactNode }) => ReactNode
+  introNotice?: ReactNode
 } = {}) {
   const [hydrated, setHydrated] = useState(false)
   const [stage, setStage] = useState<FlashingStage>("intro")
@@ -85,6 +88,7 @@ export function FlashingDesigner({
   const [orderRef, setOrderRef] = useState<string | null>(null)
   const [returnToReview, setReturnToReview] = useState(false)
   const [confirmReset, setConfirmReset] = useState(false)
+  const mainRef = useRef<HTMLElement>(null)
 
   const points = editor.present
   const segmentCount = Math.max(0, points.length - 1)
@@ -150,6 +154,29 @@ export function FlashingDesigner({
       cancelAnimationFrame(frame)
     }
   }, [])
+
+  useLayoutEffect(() => {
+    if (stage !== "order" && stage !== "done") return
+    const html = document.documentElement
+    const body = document.body
+    const prevHtmlOverflow = html.style.overflow
+    const prevBodyOverflow = body.style.overflow
+    const toTop = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" })
+      html.scrollTop = 0
+      body.scrollTop = 0
+      mainRef.current?.scrollTo(0, 0)
+    }
+    html.style.overflow = "hidden"
+    body.style.overflow = "hidden"
+    toTop()
+    const frame = requestAnimationFrame(toTop)
+    return () => {
+      cancelAnimationFrame(frame)
+      html.style.overflow = prevHtmlOverflow
+      body.style.overflow = prevBodyOverflow
+    }
+  }, [stage])
 
   useEffect(() => {
     if (!hydrated) return
@@ -297,7 +324,16 @@ export function FlashingDesigner({
 
   return (
     <TooltipProvider delay={300}>
-      <main className="flex min-h-[100dvh] flex-1 flex-col lg:h-[100dvh]">
+      <main
+        ref={mainRef}
+        className={cn(
+          "flex flex-1 flex-col",
+          stage === "order" || stage === "done"
+            ? "h-[100dvh] overflow-hidden"
+            : "min-h-[100dvh] lg:h-[100dvh] lg:overflow-hidden"
+        )}
+        style={{ overflowAnchor: "none" }}
+      >
         <header className="shrink-0 border-b border-border text-sm">
           {chrome ? (
             chrome({
@@ -350,7 +386,7 @@ export function FlashingDesigner({
           ) : null}
         </header>
 
-        {stage === "intro" ? <IntroStep onStart={() => setStage("length")} /> : null}
+        {stage === "intro" ? <IntroStep notice={introNotice} onStart={() => setStage("length")} /> : null}
 
         {stage === "length" ? (
           <LengthStep
@@ -448,7 +484,13 @@ export function FlashingDesigner({
                 }}
                 onRequestQuote={requestQuote}
                 onAddToCart={addToCart}
-                onOrderNow={() => setStage("order")}
+                onOrderNow={() => {
+                  window.scrollTo({ top: 0, left: 0, behavior: "auto" })
+                  document.documentElement.scrollTop = 0
+                  document.body.scrollTop = 0
+                  mainRef.current?.scrollTo(0, 0)
+                  setStage("order")
+                }}
               />
             ) : (
               <div className="relative mx-4 mb-4 min-h-[min(70dvh,560px)] flex-1 overflow-hidden rounded-2xl border border-black/[0.08] bg-white sm:mx-6">

@@ -1,4 +1,4 @@
-import type { B2BHelpLink, B2BLogo } from "@/lib/b2b/tenants"
+import type { B2BLogo } from "@/lib/b2b/tenants"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import Link from "next/link"
@@ -8,16 +8,16 @@ export function B2BAppHeader({
   logo,
   customerName,
   productName,
-  help,
   trailing,
+  actions,
   homeHref = "/",
   className,
 }: {
   logo: B2BLogo
   customerName: string
   productName: string
-  help?: B2BHelpLink
   trailing?: ReactNode
+  actions?: ReactNode
   homeHref?: string
   className?: string
 }) {
@@ -40,14 +40,7 @@ export function B2BAppHeader({
       <span className="min-w-0 truncate text-sm font-medium text-[var(--nb-primary)]">{productName}</span>
       <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
         {trailing}
-        {help ? (
-          <Link
-            href={help.href}
-            className="inline-flex h-8 items-center rounded-md px-2 text-[13px] font-medium text-[var(--nb-secondary)] outline-none hover:bg-[var(--nb-accent)] hover:text-[var(--nb-primary)] focus-visible:ring-3 focus-visible:ring-ring/50"
-          >
-            {help.label}
-          </Link>
-        ) : null}
+        {actions}
       </div>
     </div>
   )

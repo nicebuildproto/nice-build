@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { formatPrice, type PriceResult } from "@/lib/flashing/pricing"
-import { useId, useState } from "react"
+import { useId, useLayoutEffect, useRef, useState } from "react"
 import { downloadDrawing, TechnicalDrawing, type DrawingInfo } from "./TechnicalDrawing"
 import type { Point } from "@/lib/flashing/geometry"
 
@@ -37,6 +37,25 @@ export function OrderStep({
 }) {
   const [fulfillment, setFulfillment] = useState<Fulfillment>("delivery")
   const [error, setError] = useState<string | null>(null)
+  const scroller = useRef<HTMLDivElement>(null)
+  const headingRef = useRef<HTMLHeadingElement>(null)
+
+  useLayoutEffect(() => {
+    const top = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" })
+      document.documentElement.scrollTop = 0
+      document.body.scrollTop = 0
+      scroller.current?.scrollTo(0, 0)
+      headingRef.current?.focus({ preventScroll: true })
+    }
+    top()
+    const frame = requestAnimationFrame(top)
+    const later = window.setTimeout(top, 80)
+    return () => {
+      cancelAnimationFrame(frame)
+      window.clearTimeout(later)
+    }
+  }, [])
   const nameId = useId()
   const companyId = useId()
   const emailId = useId()
@@ -47,7 +66,7 @@ export function OrderStep({
   const postcodeId = useId()
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto" style={{ overflowAnchor: "none" }}>
       <form
         className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-5 py-10 sm:px-8"
         onSubmit={(event) => {
@@ -64,7 +83,13 @@ export function OrderStep({
         }}
       >
         <header className="flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight text-[var(--nb-primary)]">Complete your order</h1>
+          <h1
+            ref={headingRef}
+            tabIndex={-1}
+            className="text-2xl font-semibold tracking-tight text-[var(--nb-primary)] outline-none"
+          >
+            Complete your order
+          </h1>
           <p className="text-sm text-[var(--nb-secondary)]">This is a prototype. No payment will be taken.</p>
         </header>
 
