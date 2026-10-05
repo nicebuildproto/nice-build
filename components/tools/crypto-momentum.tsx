@@ -127,10 +127,10 @@ export function CryptoMomentumScanner() {
       </ToolNote>
 
       <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-end gap-3">
-          <fieldset className="flex min-w-0 flex-1 flex-col gap-2">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
+          <fieldset className="flex w-full flex-col gap-2 lg:min-w-0 lg:flex-1">
             <legend className="text-[13px] text-[var(--nb-primary)]">Timeframe</legend>
-            <div className="flex flex-wrap gap-1 rounded-lg bg-muted p-[3px]">
+            <div className="flex w-full flex-wrap gap-1 rounded-lg bg-muted p-[3px]">
               {TIMEFRAMES.map((item) => (
                 <button
                   key={item}
@@ -140,7 +140,7 @@ export function CryptoMomentumScanner() {
                     setPending(true)
                   }}
                   className={cn(
-                    "h-8 rounded-md px-2.5 text-sm transition-colors",
+                    "h-8 min-w-12 flex-1 rounded-md px-2.5 text-sm transition-colors sm:flex-none",
                     item === timeframe
                       ? "bg-background text-[var(--nb-primary)] shadow-sm"
                       : "text-[var(--nb-secondary)] hover:text-[var(--nb-primary)]",
@@ -151,6 +151,7 @@ export function CryptoMomentumScanner() {
               ))}
             </div>
           </fieldset>
+          <div className="flex flex-wrap items-end gap-3">
           <Field label="Min 24h volume" className="w-40">
             <select
               className={selectClass}
@@ -197,6 +198,7 @@ export function CryptoMomentumScanner() {
           >
             {pending ? "Scanning" : "Refresh"}
           </Button>
+          </div>
         </div>
         <label className="flex items-center gap-2 text-[13px] text-[var(--nb-secondary)]">
           <Switch checked={auto} onCheckedChange={(checked) => setAuto(checked)} size="sm" />
