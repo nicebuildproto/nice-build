@@ -132,9 +132,9 @@ export function ColourPalette() {
       {parsed ? (
         <>
           <PreviewCanvas label="Palette">
-            <ul className="grid grid-cols-2 sm:grid-cols-5">
+            <ul className="grid grid-cols-1 sm:grid-cols-5">
               {swatches.map((swatch) => (
-                <li key={swatch.id} className="flex min-h-40 flex-col sm:min-h-52">
+                <li key={swatch.id} className="flex min-h-28 flex-col sm:min-h-52">
                   <button
                     type="button"
                     className="min-h-24 flex-1 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
@@ -271,7 +271,7 @@ export function ContrastChecker() {
             <p className="mt-1 text-3xl font-semibold tabular-nums">{grades.ratio.toFixed(2)}:1</p>
           </div>
           <Grade label="WCAG AA" pass={grades.aaNormal} detail="Normal text, 4.5:1" />
-          <Grade label="AA large" pass={grades.aaLarge} detail="Large text, 3:1" />
+          <Grade label="WCAG AA large" pass={grades.aaLarge} detail="Large text, 3:1" />
           <Grade label="WCAG AAA" pass={grades.aaaNormal} detail="Normal text, 7:1" />
           <Grade label="UI 3:1" pass={grades.ui} detail="Non-text contrast" />
         </div>
