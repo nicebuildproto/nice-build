@@ -9,6 +9,7 @@ import {
   foldAngleAt,
   formatMm,
   girth,
+  liveExtendAngle,
   midpoint,
   normalOf,
   segmentAngle,
@@ -18,11 +19,10 @@ import {
 import { isEndpoint, originIndex, type EditorAction, type EditorState } from "@/lib/flashing/editor"
 import { templates } from "@/lib/flashing/templates"
 import { cn } from "@/lib/utils"
-import { LayoutTemplate, Redo2, SlidersHorizontal, Trash2, Undo2, X } from "lucide-react"
+import { LayoutTemplate, Redo2, RotateCcw, RotateCw, SlidersHorizontal, Trash2, Undo2, X } from "lucide-react"
 import { useEffect, useRef, useState, type Dispatch } from "react"
 import { GirthReadout } from "./GirthReadout"
 import { IconButton, ToolbarGroup } from "./IconButton"
-import { DirectionMarks } from "./DirectionMarks"
 import { ProfileIcon } from "./ProfileShape"
 import { isTypingTarget } from "./hooks"
 import { Viewport, type ViewportApi } from "./Viewport"
@@ -38,6 +38,65 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value))
 }
 
+function AngleMark({
+  vertex,
+  armA,
+  armB,
+  degrees,
+  live = false,
+}: {
+  vertex: Point
+  armA: Point
+  armB: Point
+  degrees: number
+  live?: boolean
+}) {
+  const la = Math.hypot(armA.x - vertex.x, armA.y - vertex.y) || 1
+  const lb = Math.hypot(armB.x - vertex.x, armB.y - vertex.y) || 1
+  const ua = { x: (armA.x - vertex.x) / la, y: (armA.y - vertex.y) / la }
+  const ub = { x: (armB.x - vertex.x) / lb, y: (armB.y - vertex.y) / lb }
+  const r = live ? 22 : 16
+  const start = { x: vertex.x + ua.x * r, y: vertex.y + ua.y * r }
+  const end = { x: vertex.x + ub.x * r, y: vertex.y + ub.y * r }
+  const sweep = ua.x * ub.y - ua.y * ub.x > 0 ? 1 : 0
+  let bx = ua.x + ub.x
+  let by = ua.y + ub.y
+  const bl = Math.hypot(bx, by)
+  if (bl < 1e-6) {
+    bx = -ub.y
+    by = ub.x
+  } else {
+    bx /= bl
+    by /= bl
+  }
+  const labelR = live ? 36 : 20
+  return (
+    <g className="pointer-events-none">
+      <path
+        d={`M${start.x} ${start.y} A ${r} ${r} 0 0 ${sweep} ${end.x} ${end.y}`}
+        fill="none"
+        stroke={live ? "var(--nb-secondary)" : "#6B7280"}
+        strokeWidth={1}
+      />
+      <text
+        x={vertex.x + bx * labelR}
+        y={vertex.y + by * labelR}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        className={cn(
+          "tabular-nums",
+          live ? "fill-[var(--nb-primary)] text-[12px] font-medium" : "fill-[#6B7280] text-[11px]"
+        )}
+        stroke="white"
+        strokeWidth={4}
+        paintOrder="stroke"
+      >
+        {Math.round(degrees)}°
+      </text>
+    </g>
+  )
+}
+
 export function DesignStep({
   editor,
   dispatch,
@@ -48,6 +107,7 @@ export function DesignStep({
   showGrid,
   onToggleGrid,
   onLoadTemplate,
+  onFit,
   fitKey,
 }: {
   editor: EditorState
@@ -59,6 +119,7 @@ export function DesignStep({
   showGrid: boolean
   onToggleGrid: () => void
   onLoadTemplate: (id: string | null) => void
+  onFit?: () => void
   fitKey: string
 }) {
   const points = editor.present
@@ -143,6 +204,26 @@ export function DesignStep({
               >
                 <Redo2 />
               </IconButton>
+              <IconButton
+                label="Rotate left 90°"
+                disabled={points.length < 2}
+                onClick={() => {
+                  dispatch({ type: "rotate", degrees: -90 })
+                  onFit?.()
+                }}
+              >
+                <RotateCcw />
+              </IconButton>
+              <IconButton
+                label="Rotate right 90°"
+                disabled={points.length < 2}
+                onClick={() => {
+                  dispatch({ type: "rotate", degrees: 90 })
+                  onFit?.()
+                }}
+              >
+                <RotateCw />
+              </IconButton>
             </ToolbarGroup>
             <ToolbarGroup className="flex-col items-start gap-0 px-3 py-1.5">
               <span className="text-[11px] leading-tight text-[var(--nb-secondary)]">Profile girth</span>
@@ -178,6 +259,11 @@ export function DesignStep({
         onSnapChange={onSnapChange}
         showDims={showDims}
         onShowDimsChange={onShowDimsChange}
+        canRotate={points.length >= 2}
+        onRotate={(degrees) => {
+          dispatch({ type: "rotate", degrees })
+          onFit?.()
+        }}
         onLoadTemplate={(id) => {
           onLoadTemplate(id)
           setPanelOpen(false)
@@ -195,6 +281,16 @@ export function DesignStep({
     const ghostFrom = ghost && origin !== null ? screen[origin] : null
     const ghostLength =
       showGhost && origin !== null ? distance(points[origin], snapPoint(hover, snap)) : 0
+    const liveAngle =
+      showGhost && origin !== null ? liveExtendAngle(points, origin, snapPoint(hover, snap)) : null
+    const liveArm =
+      origin === 0 && points.length >= 2
+        ? screen[1]
+        : origin !== null && origin === points.length - 1 && points.length >= 2
+          ? screen[origin - 1]
+          : origin !== null && points.length === 1
+            ? { x: screen[origin].x + 40, y: screen[origin].y }
+            : null
 
     const svg = (
       <g>
@@ -292,8 +388,6 @@ export function DesignStep({
             })
           : null}
 
-        <DirectionMarks points={screen} length={24} inset={8} />
-
         {ghost ? (
           <g className="pointer-events-none">
             {ghostFrom ? (
@@ -319,6 +413,9 @@ export function DesignStep({
               >
                 {formatMm(ghostLength)} mm
               </text>
+            ) : null}
+            {ghostFrom && liveAngle !== null && liveArm && origin !== null ? (
+              <AngleMark vertex={ghostFrom} armA={liveArm} armB={ghost} degrees={liveAngle} live />
             ) : null}
           </g>
         ) : null}
@@ -576,6 +673,8 @@ function OptionsPanel({
   onSnapChange,
   showDims,
   onShowDimsChange,
+  canRotate,
+  onRotate,
   onLoadTemplate,
 }: {
   open: boolean
@@ -586,6 +685,8 @@ function OptionsPanel({
   onSnapChange: (value: boolean) => void
   showDims: boolean
   onShowDimsChange: (value: boolean) => void
+  canRotate: boolean
+  onRotate: (degrees: number) => void
   onLoadTemplate: (id: string | null) => void
 }) {
   return (
@@ -678,6 +779,32 @@ function OptionsPanel({
               checked={showDims}
               onChange={onShowDimsChange}
             />
+            <div className="flex flex-col gap-2">
+              <span className="text-sm text-[var(--nb-primary)]">Rotate design</span>
+              <span className="text-xs text-[var(--nb-secondary)]">
+                Turn the whole profile 90° without changing lengths or folds.
+              </span>
+              <div className="flex gap-2 pt-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={!canRotate}
+                  onClick={() => onRotate(-90)}
+                >
+                  90° left
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={!canRotate}
+                  onClick={() => onRotate(90)}
+                >
+                  90° right
+                </Button>
+              </div>
+            </div>
             <div className="border-t border-black/[0.06] pt-4">
               <Button
                 variant="outline"

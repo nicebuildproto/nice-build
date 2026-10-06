@@ -18,6 +18,7 @@ export function B2BContactButton({ label = "Contact" }: { label?: string }) {
   const [sent, setSent] = useState(false)
   const nameId = useId()
   const emailId = useId()
+  const phoneId = useId()
   const messageId = useId()
 
   return (
@@ -36,11 +37,8 @@ export function B2BContactButton({ label = "Contact" }: { label?: string }) {
       <DialogContent className="w-[min(100%-2rem,28rem)] bg-background">
         {sent ? (
           <DialogHeader>
-            <DialogTitle>Noted on this page.</DialogTitle>
-            <DialogDescription>
-              The form isn’t connected to an inbox yet, so nothing was sent or stored. We’ll follow
-              up once this prototype is wired through.
-            </DialogDescription>
+            <DialogTitle>Thanks — we’ll come back to you directly.</DialogTitle>
+            <DialogDescription>No mailing lists, no spam.</DialogDescription>
           </DialogHeader>
         ) : (
           <form
@@ -51,10 +49,11 @@ export function B2BContactButton({ label = "Contact" }: { label?: string }) {
             }}
           >
             <DialogHeader>
-              <DialogTitle>Contact Nice Tools</DialogTitle>
+              <DialogTitle>Interested in this for Fielders?</DialogTitle>
               <DialogDescription>
-                Tell us what you think of the flashing designer — what worked, what didn’t, and
-                what you’d want next.
+                This is a working prototype, built to show what a flashing designer could look like on
+                your own site. If it’s a fit, let’s talk about what it’d take to make it real — no
+                obligation, just a conversation.
               </DialogDescription>
             </DialogHeader>
             <div className="mt-6 flex flex-col gap-4">
@@ -74,22 +73,32 @@ export function B2BContactButton({ label = "Contact" }: { label?: string }) {
                 />
               </div>
               <div className="flex flex-col gap-2">
+                <Label htmlFor={phoneId}>Best contact number</Label>
+                <Input
+                  id={phoneId}
+                  name="phone"
+                  type="tel"
+                  autoComplete="tel"
+                  required
+                  className="h-10"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
                 <Label htmlFor={messageId}>Message</Label>
                 <textarea
                   id={messageId}
                   name="message"
-                  required
-                  rows={5}
-                  placeholder="Thoughts on the flashing designer…"
+                  rows={4}
+                  placeholder="Anything specific you'd like to know?"
                   className="w-full resize-y rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm leading-relaxed outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                 />
               </div>
             </div>
             <Button type="submit" className="mt-6 h-10 w-full">
-              Send
+              Start the conversation
             </Button>
             <p className="mt-3 text-center text-xs text-[var(--nb-secondary)]">
-              Nothing is stored. This inbox isn’t connected yet.
+              We’ll come back to you directly — no mailing lists, no spam.
             </p>
           </form>
         )}

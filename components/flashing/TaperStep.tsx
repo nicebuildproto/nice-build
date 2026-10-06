@@ -5,7 +5,6 @@ import { Switch } from "@/components/ui/switch"
 import { centroid, distance, formatMm, midpoint, normalOf, taperedPoints, type Point } from "@/lib/flashing/geometry"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
-import { DirectionMarks } from "./DirectionMarks"
 import { ToolbarGroup } from "./IconButton"
 import { toPath } from "./ProfileShape"
 import { Viewport } from "./Viewport"
@@ -68,18 +67,16 @@ export function TaperLines({
         strokeLinecap="round"
       />
       {taper ? (
-        <path
-          d={toPath(taper)}
-          fill="none"
-          stroke="var(--nb-primary)"
-          strokeWidth={2}
-          strokeDasharray="7 5"
-          strokeLinejoin="round"
-          strokeLinecap="round"
-        />
+      <path
+        d={toPath(taper)}
+        fill="none"
+        stroke="var(--nb-primary)"
+        strokeWidth={2}
+        strokeDasharray="7 5"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
       ) : null}
-      <DirectionMarks points={base} stroke={taper ? "#6B7280" : "currentColor"} />
-      {taper ? <DirectionMarks points={taper} /> : null}
     </g>
   )
 }

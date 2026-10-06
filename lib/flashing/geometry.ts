@@ -88,6 +88,19 @@ export function segmentAngle(points: Point[], i: number): number {
   return foldAngleAt(points, i)
 }
 
+// Angle shown while the next segment is being placed from an endpoint.
+export function liveExtendAngle(points: Point[], origin: number, next: Point): number | null {
+  if (points.length === 0) return null
+  if (points.length === 1) return directionDeg(points[origin], next)
+  if (origin === 0 && points.length >= 2) {
+    return foldAngleAt([next, points[0], points[1]], 1)
+  }
+  if (origin === points.length - 1 && points.length >= 2) {
+    return foldAngleAt([points[origin - 1], points[origin], next], 1)
+  }
+  return null
+}
+
 export function withSegmentLength(points: Point[], i: number, lengthMm: number): Point[] {
   const d = unit(points[i], points[i + 1])
   const current = distance(points[i], points[i + 1])
@@ -137,6 +150,14 @@ export function centroid(points: Point[]): Point {
   if (points.length === 0) return { x: 0, y: 0 }
   const sum = points.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 })
   return { x: sum.x / points.length, y: sum.y / points.length }
+}
+
+// Clockwise on screen (y down). Used by the design-tool rotate control.
+export function rotatePoints(points: Point[], degrees: number): Point[] {
+  if (points.length === 0 || degrees === 0) return points
+  const center = centroid(points)
+  const radians = (degrees * Math.PI) / 180
+  return points.map((point) => rotateAround(point, center, radians))
 }
 
 export function offsetPolyline(points: Point[], d: number): Point[] {

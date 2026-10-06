@@ -37,24 +37,11 @@ export function OrderStep({
 }) {
   const [fulfillment, setFulfillment] = useState<Fulfillment>("delivery")
   const [error, setError] = useState<string | null>(null)
-  const scroller = useRef<HTMLDivElement>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
 
   useLayoutEffect(() => {
-    const top = () => {
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" })
-      document.documentElement.scrollTop = 0
-      document.body.scrollTop = 0
-      scroller.current?.scrollTo(0, 0)
-      headingRef.current?.focus({ preventScroll: true })
-    }
-    top()
-    const frame = requestAnimationFrame(top)
-    const later = window.setTimeout(top, 80)
-    return () => {
-      cancelAnimationFrame(frame)
-      window.clearTimeout(later)
-    }
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" })
+    headingRef.current?.focus({ preventScroll: true })
   }, [])
   const nameId = useId()
   const companyId = useId()
@@ -66,7 +53,7 @@ export function OrderStep({
   const postcodeId = useId()
 
   return (
-    <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto" style={{ overflowAnchor: "none" }}>
+    <div className="flex-1">
       <form
         className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-5 py-10 sm:px-8"
         onSubmit={(event) => {

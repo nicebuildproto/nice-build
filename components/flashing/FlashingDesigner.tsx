@@ -39,7 +39,7 @@ import {
 } from "@/lib/flashing/pricing"
 import { templateById } from "@/lib/flashing/templates"
 import { cn } from "@/lib/utils"
-import { useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react"
+import { useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react"
 import { AlignStep } from "./AlignStep"
 import { DesignStep } from "./DesignStep"
 import { useDebouncedValue } from "./hooks"
@@ -57,10 +57,8 @@ const designIndex = editSteps.findIndex((step) => step.id === "design")
 
 export function FlashingDesigner({
   chrome,
-  introNotice,
 }: {
   chrome?: (slots: { startOver: ReactNode }) => ReactNode
-  introNotice?: ReactNode
 } = {}) {
   const [hydrated, setHydrated] = useState(false)
   const [stage, setStage] = useState<FlashingStage>("intro")
@@ -88,6 +86,7 @@ export function FlashingDesigner({
   const [orderRef, setOrderRef] = useState<string | null>(null)
   const [returnToReview, setReturnToReview] = useState(false)
   const [confirmReset, setConfirmReset] = useState(false)
+  const [cartAdded, setCartAdded] = useState(false)
   const mainRef = useRef<HTMLElement>(null)
 
   const points = editor.present
@@ -154,29 +153,6 @@ export function FlashingDesigner({
       cancelAnimationFrame(frame)
     }
   }, [])
-
-  useLayoutEffect(() => {
-    if (stage !== "order" && stage !== "done") return
-    const html = document.documentElement
-    const body = document.body
-    const prevHtmlOverflow = html.style.overflow
-    const prevBodyOverflow = body.style.overflow
-    const toTop = () => {
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" })
-      html.scrollTop = 0
-      body.scrollTop = 0
-      mainRef.current?.scrollTo(0, 0)
-    }
-    html.style.overflow = "hidden"
-    body.style.overflow = "hidden"
-    toTop()
-    const frame = requestAnimationFrame(toTop)
-    return () => {
-      cancelAnimationFrame(frame)
-      html.style.overflow = prevHtmlOverflow
-      body.style.overflow = prevBodyOverflow
-    }
-  }, [stage])
 
   useEffect(() => {
     if (!hydrated) return
@@ -271,7 +247,22 @@ export function FlashingDesigner({
 
   const addToCart = () => {
     console.log("Add to cart", { itemCode: drawingInfo.itemCode, quantity, pieceLengthMm, total: price.total })
-    showToast(`Added ${quantity} × ${drawingInfo.itemCode} to cart`)
+    setCartAdded(true)
+  }
+
+  const startNewDesign = () => {
+    setCartAdded(false)
+    setTemplateId(null)
+    setTaperEnabled(false)
+    setStoredTaper([])
+    setAnchorOverride(null)
+    setReturnToReview(false)
+    setToast(null)
+    dispatch({ type: "reset", points: [] })
+    setFitCount((count) => count + 1)
+    setStage("template")
+    setStep(0)
+    setReached(0)
   }
 
   const requestQuote = () => {
@@ -300,6 +291,7 @@ export function FlashingDesigner({
     setOrderRef(null)
     setReturnToReview(false)
     setConfirmReset(false)
+    setCartAdded(false)
     setToast(null)
     dispatch({ type: "reset", points: [] })
     setFitCount((count) => count + 1)
@@ -329,12 +321,12 @@ export function FlashingDesigner({
         className={cn(
           "flex flex-1 flex-col",
           stage === "order" || stage === "done"
-            ? "h-[100dvh] overflow-hidden"
+            ? "min-h-[100dvh]"
             : "min-h-[100dvh] lg:h-[100dvh] lg:overflow-hidden"
         )}
         style={{ overflowAnchor: "none" }}
       >
-        <header className="shrink-0 border-b border-border text-sm">
+        <header className="sticky top-0 z-20 shrink-0 border-b border-border bg-background text-sm">
           {chrome ? (
             chrome({
               startOver:
@@ -386,7 +378,7 @@ export function FlashingDesigner({
           ) : null}
         </header>
 
-        {stage === "intro" ? <IntroStep notice={introNotice} onStart={() => setStage("length")} /> : null}
+        {stage === "intro" ? <IntroStep onStart={() => setStage("length")} /> : null}
 
         {stage === "length" ? (
           <LengthStep
@@ -486,9 +478,6 @@ export function FlashingDesigner({
                 onAddToCart={addToCart}
                 onOrderNow={() => {
                   window.scrollTo({ top: 0, left: 0, behavior: "auto" })
-                  document.documentElement.scrollTop = 0
-                  document.body.scrollTop = 0
-                  mainRef.current?.scrollTo(0, 0)
                   setStage("order")
                 }}
               />
@@ -506,6 +495,7 @@ export function FlashingDesigner({
                       showGrid={showGrid}
                       onToggleGrid={() => setShowGrid((value) => !value)}
                       onLoadTemplate={(id) => loadTemplate(id, true)}
+                      onFit={() => setFitCount((count) => count + 1)}
                       fitKey={`design-${fitCount}`}
                     />
                   ) : null}
@@ -607,6 +597,26 @@ export function FlashingDesigner({
               </Button>
               <Button type="button" variant="destructive" onClick={resetAll}>
                 Start over
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={cartAdded} onOpenChange={setCartAdded}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Added to your order</DialogTitle>
+              <DialogDescription>
+                {quantity} × {drawingInfo.itemCode} is in the order. Start a new design if you want to add
+                another flashing.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="sm:flex-row sm:justify-end">
+              <Button type="button" variant="ghost" onClick={() => setCartAdded(false)}>
+                Stay on review
+              </Button>
+              <Button type="button" onClick={startNewDesign}>
+                Start a new design
               </Button>
             </DialogFooter>
           </DialogContent>

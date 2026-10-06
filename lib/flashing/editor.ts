@@ -1,4 +1,4 @@
-import { withSegmentAngle, withSegmentLength, type Point } from "./geometry"
+import { rotatePoints, withSegmentAngle, withSegmentLength, type Point } from "./geometry"
 
 export type Selection =
   | { kind: "point"; index: number }
@@ -26,6 +26,7 @@ export type EditorAction =
   | { type: "dragPoint"; index: number; point: Point }
   | { type: "setLength"; index: number; lengthMm: number }
   | { type: "setAngle"; index: number; angleDeg: number }
+  | { type: "rotate"; degrees: number }
   | { type: "deleteSelection" }
   | { type: "undo" }
   | { type: "redo" }
@@ -105,6 +106,10 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
 
     case "setAngle":
       return commit(state, withSegmentAngle(state.present, action.index, action.angleDeg))
+
+    case "rotate":
+      if (state.present.length < 2) return state
+      return commit(state, rotatePoints(state.present, action.degrees))
 
     case "deleteSelection": {
       const selection = state.selection
