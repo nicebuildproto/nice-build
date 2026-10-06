@@ -1,6 +1,7 @@
 "use client"
 
-import { CopyButton, NumberField, Stat, ToolNote, parseAmount } from "@/components/tools/ui"
+import { CalculatorPrivacy, CalculatorResult } from "@/components/calculators/CalculatorResult"
+import { NumberField, ToolNote, parseAmount } from "@/components/tools/ui"
 import { money } from "@/lib/tools/format"
 import { netWorth, type MoneyLine } from "@/lib/tools/finance"
 import { useMemo, useState } from "react"
@@ -33,21 +34,20 @@ export function NetWorthCalculator() {
         <Column title="Assets" lines={assets} onChange={setAssets} />
         <Column title="Liabilities" lines={liabilities} onChange={setLiabilities} />
       </div>
-      <div className="flex flex-col gap-4" aria-live="polite">
-        <div className="flex flex-wrap gap-10">
-          <Stat label="Assets" value={money(result.totalAssets)} />
-          <Stat label="Liabilities" value={money(result.totalLiabilities)} />
-          <Stat label="Net worth" value={money(result.net)} />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Bar label="Assets" value={result.totalAssets} max={max} />
-          <Bar label="Liabilities" value={result.totalLiabilities} max={max} />
-        </div>
-        <CopyButton
-          text={`Assets: ${money(result.totalAssets)}\nLiabilities: ${money(result.totalLiabilities)}\nNet worth: ${money(result.net)}`}
-          label="Copy result"
-        />
+      <CalculatorResult
+        primary={{ label: "Net worth", value: money(result.net) }}
+        context={`Assets ${money(result.totalAssets)} minus liabilities ${money(result.totalLiabilities)}.`}
+        secondary={[
+          { label: "Assets", value: money(result.totalAssets) },
+          { label: "Liabilities", value: money(result.totalLiabilities) },
+        ]}
+        copyText={`Assets: ${money(result.totalAssets)}\nLiabilities: ${money(result.totalLiabilities)}\nNet worth: ${money(result.net)}`}
+      />
+      <div className="flex flex-col gap-2">
+        <Bar label="Assets" value={result.totalAssets} max={max} />
+        <Bar label="Liabilities" value={result.totalLiabilities} max={max} />
       </div>
+      <CalculatorPrivacy />
     </div>
   )
 }

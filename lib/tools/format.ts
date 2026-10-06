@@ -8,6 +8,11 @@ export function num(value: number, digits = 2) {
   return new Intl.NumberFormat("en-AU", { maximumFractionDigits: digits }).format(value)
 }
 
+export function percent(value: number, digits = 2) {
+  if (!Number.isFinite(value)) return "—"
+  return `${num(value, digits)}%`
+}
+
 export function parseHex(input: string) {
   let hex = input.trim().replace(/^#/, "")
   if (/^[0-9a-fA-F]{3}$/.test(hex)) hex = hex.split("").map((char) => char + char).join("")

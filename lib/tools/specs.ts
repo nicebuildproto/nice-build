@@ -1,5 +1,5 @@
 import { addedSpecs } from "@/lib/tools/added-specs"
-import { money, num } from "@/lib/tools/format"
+import { money, num, percent } from "@/lib/tools/format"
 import {
   activityFactor,
   aprFromApy,
@@ -57,15 +57,23 @@ export type SpecField = {
   suffix?: string
   min?: number
   step?: string
-  options?: { value: string; label: string }[]
+  options?: { value: string; label: string; group?: string }[]
   rows?: number
   placeholder?: string
 }
 
+export type SpecStat = {
+  label: string
+  value: string
+  primary?: boolean
+}
+
 export type SpecResult = {
-  stats?: { label: string; value: string }[]
+  stats?: SpecStat[]
   text?: string
   note?: string
+  formula?: string
+  copy?: string
   demo?: { background?: string; boxShadow?: string; borderRadius?: string }
 }
 
@@ -75,6 +83,8 @@ export type ToolSpec = {
   action?: string
   random?: boolean
   columns?: 2 | 3
+  privacy?: boolean
+  example?: { label: string; values: Record<string, string> }
   fields: SpecField[]
   run: (values: Record<string, string>) => SpecResult | null
   runAsync?: (values: Record<string, string>) => Promise<SpecResult | null>
@@ -107,8 +117,17 @@ function read(values: Record<string, string>, key: string) {
   return Number.isFinite(amount) ? amount : null
 }
 
-function stats(pairs: [string, string][], extra: Partial<SpecResult> = {}): SpecResult {
-  return { stats: pairs.map(([label, value]) => ({ label, value })), ...extra }
+type StatPair = [string, string] | [string, string, boolean]
+
+function stats(pairs: StatPair[], extra: Partial<SpecResult> = {}): SpecResult {
+  return {
+    stats: pairs.map(([label, value, primary]) => ({
+      label,
+      value,
+      ...(primary ? { primary: true } : {}),
+    })),
+    ...extra,
+  }
 }
 
 const feeIntro = "Rates change. These defaults are a starting point — edit them to match your account."
@@ -133,58 +152,80 @@ function platformFee(percent: string, fixed: string): ToolSpec {
   }
 }
 
-const unitOptions: [string, string][] = [
-  ["mm", "Millimetres"],
-  ["cm", "Centimetres"],
-  ["m", "Metres"],
-  ["km", "Kilometres"],
-  ["in", "Inches"],
-  ["ft", "Feet"],
-  ["yd", "Yards"],
-  ["mi", "Miles"],
-  ["mg", "Milligrams"],
-  ["g", "Grams"],
-  ["kg", "Kilograms"],
-  ["oz", "Ounces"],
-  ["lb", "Pounds"],
-  ["°C", "Celsius"],
-  ["°F", "Fahrenheit"],
-  ["K", "Kelvin"],
-  ["ml", "Millilitres"],
-  ["L", "Litres"],
-  ["tsp", "Teaspoons"],
-  ["tbsp", "Tablespoons"],
-  ["cup", "Cups"],
-  ["fl oz", "Fluid ounces"],
-  ["m²", "Square metres"],
-  ["ft²", "Square feet"],
-  ["acre", "Acres"],
+const unitOptions: { value: string; label: string; group: string }[] = [
+  { value: "mm", label: "Millimetres", group: "Length" },
+  { value: "cm", label: "Centimetres", group: "Length" },
+  { value: "m", label: "Metres", group: "Length" },
+  { value: "km", label: "Kilometres", group: "Length" },
+  { value: "in", label: "Inches", group: "Length" },
+  { value: "ft", label: "Feet", group: "Length" },
+  { value: "yd", label: "Yards", group: "Length" },
+  { value: "mi", label: "Miles", group: "Length" },
+  { value: "mg", label: "Milligrams", group: "Weight" },
+  { value: "g", label: "Grams", group: "Weight" },
+  { value: "kg", label: "Kilograms", group: "Weight" },
+  { value: "oz", label: "Ounces", group: "Weight" },
+  { value: "lb", label: "Pounds", group: "Weight" },
+  { value: "°C", label: "Celsius", group: "Temperature" },
+  { value: "°F", label: "Fahrenheit", group: "Temperature" },
+  { value: "K", label: "Kelvin", group: "Temperature" },
+  { value: "ml", label: "Millilitres", group: "Volume" },
+  { value: "L", label: "Litres", group: "Volume" },
+  { value: "tsp", label: "Teaspoons", group: "Volume" },
+  { value: "tbsp", label: "Tablespoons", group: "Volume" },
+  { value: "cup", label: "Cups", group: "Volume" },
+  { value: "fl oz", label: "Fluid ounces", group: "Volume" },
+  { value: "m²", label: "Square metres", group: "Area" },
+  { value: "ft²", label: "Square feet", group: "Area" },
+  { value: "acre", label: "Acres", group: "Area" },
 ]
 
 export const toolSpecs: Record<string, ToolSpec> = {
   "general-calculator": {
+    example: { label: "12 × (4 + 1)", values: { expression: "12 * (4 + 1)" } },
     fields: [field("expression", "Expression", "text", "12 * (4 + 1)", { placeholder: "12 * (4 + 1)" })],
-    run: (values) => stats([["Result", num(evaluateExpression(values.expression) ?? Number.NaN, 6)]]),
+    run: (values) => {
+      const expression = values.expression.trim()
+      if (!expression) return null
+      const value = evaluateExpression(expression)
+      if (value === null || !Number.isFinite(value)) return { note: "That expression is not valid." }
+      return stats([["Result", num(value, 6), true]], {
+        formula: `${expression} = ${num(value, 6)}`,
+        copy: `${expression} = ${num(value, 6)}`,
+      })
+    },
   },
   "loan-calculator": {
     intro: "A standard fixed repayment. The rate is nominal, compounded monthly.",
+    privacy: true,
     columns: 3,
+    example: { label: "$20,000 at 6.5% for 5 years", values: { principal: "20000", rate: "6.5", years: "5" } },
     fields: [number("principal", "Amount", "20000", "AUD"), number("rate", "Annual rate", "6.5", "%"), number("years", "Years", "5", "yr", 0)],
     run: (values) => {
       const principal = read(values, "principal")
       const rate = read(values, "rate")
       const years = read(values, "years")
-      if (principal === null || rate === null || !years || years <= 0) return null
+      if (principal === null || rate === null) return null
+      if (years === null || years <= 0) return { note: "Enter a term greater than 0 years." }
       const result = loanPayment(principal, rate, years)
-      return stats([
-        ["Each month", money(result.payment)],
-        ["Interest", money(result.interest)],
-        ["Total", money(result.total)],
-      ])
+      if (!Number.isFinite(result.payment)) return { note: "Those figures don’t produce a repayment." }
+      return stats(
+        [
+          ["Each month", money(result.payment), true],
+          ["Interest", money(result.interest)],
+          ["Total repaid", money(result.total)],
+        ],
+        {
+          formula: `${money(principal)} at ${percent(rate)} over ${num(years, 2)} years.`,
+          copy: `A ${money(principal)} loan at ${percent(rate)} for ${num(years, 2)} years is ${money(result.payment)} a month. Interest ${money(result.interest)}, total repaid ${money(result.total)}.`,
+        },
+      )
     },
   },
   "compound-interest-calculator": {
+    privacy: true,
     columns: 3,
+    example: { label: "$5,000 plus $200 a month for 10 years", values: { principal: "5000", rate: "4.5", years: "10", compounds: "12", deposit: "200" } },
     fields: [
       number("principal", "Starting balance", "5000", "AUD"),
       number("rate", "Annual rate", "4.5", "%"),
@@ -197,13 +238,29 @@ export const toolSpecs: Record<string, ToolSpec> = {
       const rate = read(values, "rate")
       const years = read(values, "years")
       const deposit = read(values, "deposit")
+      const compounds = Number(values.compounds)
       if (principal === null || rate === null || years === null || deposit === null) return null
-      const value = futureValue(principal, rate, years, Number(values.compounds), deposit)
-      return stats([["Future balance", money(value)]])
+      if (years < 0) return { note: "Enter a term of 0 years or more." }
+      if (!Number.isFinite(compounds) || compounds <= 0) return { note: "Choose how often interest compounds." }
+      const value = futureValue(principal, rate, years, compounds, deposit)
+      if (!Number.isFinite(value)) return { note: "Those figures don’t produce a balance." }
+      const contributed = principal + deposit * years * compounds
+      return stats(
+        [
+          ["Future balance", money(value), true],
+          ["You put in", money(contributed)],
+          ["Growth", money(value - contributed)],
+        ],
+        {
+          copy: `${money(principal)} growing at ${percent(rate)} for ${num(years, 2)} years, with ${money(deposit)} each period, becomes ${money(value)}.`,
+        },
+      )
     },
   },
   "savings-calculator": {
+    privacy: true,
     columns: 2,
+    example: { label: "$1,000 plus $400 a month for 5 years", values: { principal: "1000", deposit: "400", rate: "4", years: "5" } },
     fields: [
       number("principal", "Starting balance", "1000", "AUD"),
       number("deposit", "Monthly deposit", "400", "AUD"),
@@ -216,30 +273,47 @@ export const toolSpecs: Record<string, ToolSpec> = {
       const rate = read(values, "rate")
       const years = read(values, "years")
       if (principal === null || deposit === null || rate === null || years === null) return null
+      if (years < 0) return { note: "Enter a term of 0 years or more." }
       const value = futureValue(principal, rate, years, 12, deposit)
+      if (!Number.isFinite(value)) return { note: "Those figures don’t produce a balance." }
       const contributed = principal + deposit * years * 12
-      return stats([
-        ["Balance", money(value)],
-        ["You put in", money(contributed)],
-        ["Growth", money(value - contributed)],
-      ])
+      return stats(
+        [
+          ["Balance", money(value), true],
+          ["You put in", money(contributed)],
+          ["Growth", money(value - contributed)],
+        ],
+        {
+          copy: `Starting at ${money(principal)} and adding ${money(deposit)} a month for ${num(years, 2)} years at ${percent(rate)} leaves ${money(value)}. You put in ${money(contributed)}; growth is ${money(value - contributed)}.`,
+        },
+      )
     },
   },
   "roi-calculator": {
+    example: { label: "$1,000 in, $1,350 back", values: { cost: "1000", returned: "1350" } },
     fields: [number("cost", "Invested", "1000", "AUD"), number("returned", "Returned", "1350", "AUD")],
     run: (values) => {
       const cost = read(values, "cost")
       const returned = read(values, "returned")
-      if (cost === null || returned === null || cost === 0) return null
+      if (cost === null || returned === null) return null
+      if (cost === 0) return { note: "Enter an invested amount other than 0." }
       const profit = returned - cost
-      return stats([
-        ["Profit", money(profit)],
-        ["ROI", `${num((profit / cost) * 100)}%`],
-      ])
+      const roi = (profit / cost) * 100
+      return stats(
+        [
+          ["ROI", percent(roi), true],
+          ["Profit", money(profit)],
+        ],
+        {
+          formula: `(${money(returned)} − ${money(cost)}) ÷ ${money(cost)} × 100 = ${percent(roi)}`,
+          copy: `${money(cost)} returned ${money(returned)}: profit ${money(profit)}, ROI ${percent(roi)}.`,
+        },
+      )
     },
   },
   "sales-tax-calculator": {
     columns: 3,
+    example: { label: "10% GST on $80", values: { amount: "80", rate: "10", mode: "add" } },
     fields: [
       number("amount", "Amount", "80", "AUD"),
       number("rate", "Tax rate", "10", "%"),
@@ -249,15 +323,28 @@ export const toolSpecs: Record<string, ToolSpec> = {
       const amount = read(values, "amount")
       const rate = read(values, "rate")
       if (amount === null || rate === null) return null
+      if (values.mode === "extract" && rate <= -100) return { note: "Enter a tax rate above −100% to extract tax." }
       const result = salesTax(amount, rate, values.mode)
-      return stats([
-        ["Net", money(result.net)],
-        ["Tax", money(result.tax)],
-        ["Total", money(result.total)],
-      ])
+      const adding = values.mode !== "extract"
+      return stats(
+        [
+          [adding ? "Total" : "Net", money(adding ? result.total : result.net), true],
+          ["Tax", money(result.tax)],
+          [adding ? "Net" : "Total", money(adding ? result.net : result.total)],
+        ],
+        {
+          formula: adding
+            ? `${money(amount)} + ${percent(rate)} = ${money(result.total)}`
+            : `${money(amount)} includes ${percent(rate)} tax, so net is ${money(result.net)}`,
+          copy: adding
+            ? `${percent(rate)} on ${money(amount)} is ${money(result.tax)} tax, ${money(result.total)} in total.`
+            : `${money(amount)} including ${percent(rate)} tax is ${money(result.net)} net, ${money(result.tax)} tax.`,
+        },
+      )
     },
   },
   "time-duration-calculator": {
+    example: { label: "09:30 to 17:45", values: { start: "09:30", end: "17:45" } },
     fields: [
       field("start", "Start", "text", "09:30", { placeholder: "09:30" }),
       field("end", "End", "text", "17:45", { placeholder: "17:45" }),
@@ -266,50 +353,82 @@ export const toolSpecs: Record<string, ToolSpec> = {
       const start = clockSeconds(values.start)
       const end = clockSeconds(values.end)
       if (start === null || end === null) return { note: "Use 24-hour times, such as 09:30." }
-      const span = end >= start ? end - start : end + 86400 - start
-      return stats([["Duration", formatDuration(span)]], { note: end < start ? "The end time is on the next day." : undefined })
+      const overnight = end < start
+      const span = overnight ? end + 86400 - start : end - start
+      return stats([["Duration", formatDuration(span), true]], {
+        note: overnight ? "The end time is on the next day." : undefined,
+        copy: `From ${values.start.trim()} to ${values.end.trim()} is ${formatDuration(span)}${overnight ? " (next day)" : ""}.`,
+      })
     },
   },
   "date-difference-calculator": {
+    example: { label: "1 Jan to 3 Oct 2026", values: { start: "2026-01-01", end: "2026-10-03" } },
     fields: [field("start", "Start", "date", "2026-01-01"), field("end", "End", "date", "2026-10-03")],
     run: (values) => {
       const span = dateSpan(values.start, values.end)
-      if (!span) return null
-      return stats([
-        ["Days", num(span.days, 0)],
-        ["Weeks", num(span.weeks, 1)],
-        ["Calendar months", num(span.months, 0)],
-      ])
+      if (!span) return { note: "Enter two valid dates." }
+      return stats(
+        [
+          ["Days", num(span.days, 0), true],
+          ["Weeks", num(span.weeks, 1)],
+          ["Calendar months", num(span.months, 0)],
+        ],
+        {
+          note: span.days < 0 ? "The end date is before the start date." : undefined,
+          copy: `From ${values.start} to ${values.end} is ${num(span.days, 0)} days (${num(span.weeks, 1)} weeks, ${num(span.months, 0)} calendar months).`,
+        },
+      )
     },
   },
   "take-home-salary-calculator": {
     intro: "Resident estimate using the stage 3 brackets (16%, 30%, 37%, 45%) plus a 2% Medicare levy. Offsets and HELP are not included.",
+    privacy: true,
+    example: { label: "$95,000 a year", values: { income: "95000" } },
     fields: [number("income", "Annual salary", "95000", "AUD")],
     run: (values) => {
       const income = read(values, "income")
-      if (income === null || income < 0) return null
+      if (income === null) return null
+      if (income < 0) return { note: "Enter a salary of 0 or more." }
       const result = australianTakeHome(income)
-      return stats([
-        ["Tax", money(result.tax)],
-        ["Medicare", money(result.medicare)],
-        ["Take-home", money(result.takeHome)],
-        ["Each month", money(result.takeHome / 12)],
-      ])
+      return stats(
+        [
+          ["Take-home", money(result.takeHome), true],
+          ["Each month", money(result.takeHome / 12)],
+          ["Tax", money(result.tax)],
+          ["Medicare", money(result.medicare)],
+        ],
+        {
+          copy: `On ${money(income)} a year, estimated take-home is ${money(result.takeHome)} (${money(result.takeHome / 12)} a month), after ${money(result.tax)} tax and ${money(result.medicare)} Medicare.`,
+        },
+      )
     },
   },
   "salary-to-hourly-calculator": {
     columns: 3,
+    example: { label: "$95,000 at 38 hours", values: { salary: "95000", hours: "38", weeks: "52" } },
     fields: [number("salary", "Annual salary", "95000", "AUD"), number("hours", "Hours a week", "38", "h"), number("weeks", "Weeks a year", "52")],
     run: (values) => {
       const salary = read(values, "salary")
       const hours = read(values, "hours")
       const weeks = read(values, "weeks")
-      if (!salary || !hours || !weeks) return null
-      return stats([["Hourly", money(salary / (hours * weeks))]])
+      if (salary === null || hours === null || weeks === null) return null
+      if (hours <= 0 || weeks <= 0) return { note: "Enter hours and weeks greater than 0." }
+      const hourly = salary / (hours * weeks)
+      return stats(
+        [
+          ["Hourly", money(hourly), true],
+          ["Hours a year", num(hours * weeks, 1)],
+        ],
+        {
+          formula: `${money(salary)} ÷ (${num(hours, 2)} × ${num(weeks, 2)}) = ${money(hourly)}`,
+          copy: `${money(salary)} a year at ${num(hours, 2)} hours a week for ${num(weeks, 2)} weeks is ${money(hourly)} an hour.`,
+        },
+      )
     },
   },
   "overtime-calculator": {
     columns: 2,
+    example: { label: "$42 an hour, 4 hours at 1.5×", values: { rate: "42", ordinary: "38", overtime: "4", multiplier: "1.5" } },
     fields: [
       number("rate", "Hourly rate", "42", "AUD"),
       number("ordinary", "Ordinary hours", "38", "h"),
@@ -322,30 +441,51 @@ export const toolSpecs: Record<string, ToolSpec> = {
       const overtime = read(values, "overtime")
       const multiplier = read(values, "multiplier")
       if (rate === null || ordinary === null || overtime === null || multiplier === null) return null
+      if (ordinary < 0 || overtime < 0) return { note: "Hours can’t be negative." }
       const base = ordinary * rate
       const extra = overtime * rate * multiplier
-      return stats([
-        ["Ordinary", money(base)],
-        ["Overtime", money(extra)],
-        ["Total", money(base + extra)],
-      ])
+      const total = base + extra
+      return stats(
+        [
+          ["Total", money(total), true],
+          ["Ordinary", money(base)],
+          ["Overtime", money(extra)],
+        ],
+        {
+          formula: `${num(ordinary, 2)} × ${money(rate)} + ${num(overtime, 2)} × ${money(rate)} × ${num(multiplier, 2)} = ${money(total)}`,
+          copy: `${num(ordinary, 2)} ordinary hours and ${num(overtime, 2)} overtime hours at ${money(rate)} (${num(multiplier, 2)}×) total ${money(total)}.`,
+        },
+      )
     },
   },
   "bmi-calculator": {
+    privacy: true,
+    example: { label: "72 kg at 178 cm", values: { weight: "72", height: "178" } },
     fields: [number("weight", "Weight", "72", "kg"), number("height", "Height", "178", "cm")],
     run: (values) => {
       const weight = read(values, "weight")
       const height = read(values, "height")
-      if (!weight || !height) return null
+      if (weight === null || height === null) return null
+      if (weight <= 0) return { note: "Enter a weight greater than 0." }
+      if (height <= 0) return { note: "Enter a height greater than 0." }
       const result = bmi(weight, height)
-      return stats([
-        ["BMI", num(result.value, 1)],
-        ["Range", result.label],
-      ], { note: "World Health Organization ranges for adults. It is a screening figure, not a diagnosis." })
+      if (!Number.isFinite(result.value)) return { note: "Those figures don’t produce a BMI." }
+      return stats(
+        [
+          ["BMI", num(result.value, 1), true],
+          ["Range", result.label],
+        ],
+        {
+          formula: `${num(weight, 2)} ÷ (${num(height / 100, 4)})² = ${num(result.value, 1)}`,
+          copy: `${num(weight, 2)} kg at ${num(height, 1)} cm is a BMI of ${num(result.value, 1)} (${result.label}).`,
+          note: "World Health Organization ranges for adults. It is a screening figure, not a diagnosis.",
+        },
+      )
     },
   },
   "bmr-calculator": {
     intro: bodyIntro,
+    privacy: true,
     columns: 2,
     fields: [
       select("sex", "Sex", "female", [["female", "Female"], ["male", "Male"]]),
@@ -357,12 +497,18 @@ export const toolSpecs: Record<string, ToolSpec> = {
       const weight = read(values, "weight")
       const height = read(values, "height")
       const age = read(values, "age")
-      if (!weight || !height || !age) return null
-      return stats([["BMR", `${num(bmr(values.sex, weight, height, age), 0)} kcal`]])
+      if (weight === null || height === null || age === null) return null
+      if (weight <= 0 || height <= 0 || age <= 0) return { note: "Enter weight, height, and age greater than 0." }
+      const value = bmr(values.sex, weight, height, age)
+      return stats([["BMR", `${num(value, 0)} kcal`, true]], {
+        copy: `Estimated BMR is ${num(value, 0)} kcal a day at rest.`,
+        note: "Mifflin–St Jeor. Resting energy only — it does not include activity.",
+      })
     },
   },
   "tdee-calculator": {
     intro: bodyIntro,
+    privacy: true,
     columns: 2,
     fields: [
       select("sex", "Sex", "female", [["female", "Female"], ["male", "Male"]]),
@@ -381,16 +527,24 @@ export const toolSpecs: Record<string, ToolSpec> = {
       const weight = read(values, "weight")
       const height = read(values, "height")
       const age = read(values, "age")
-      if (!weight || !height || !age) return null
+      if (weight === null || height === null || age === null) return null
+      if (weight <= 0 || height <= 0 || age <= 0) return { note: "Enter weight, height, and age greater than 0." }
       const base = bmr(values.sex, weight, height, age)
-      return stats([
-        ["BMR", `${num(base, 0)} kcal`],
-        ["TDEE", `${num(base * activityFactor(values.activity), 0)} kcal`],
-      ])
+      const tdee = base * activityFactor(values.activity)
+      return stats(
+        [
+          ["TDEE", `${num(tdee, 0)} kcal`, true],
+          ["BMR", `${num(base, 0)} kcal`],
+        ],
+        {
+          copy: `Estimated daily energy use is ${num(tdee, 0)} kcal (BMR ${num(base, 0)} kcal × activity).`,
+        },
+      )
     },
   },
   "calorie-calculator": {
     intro: bodyIntro,
+    privacy: true,
     columns: 2,
     fields: [
       select("sex", "Sex", "female", [["female", "Female"], ["male", "Male"]]),
@@ -410,13 +564,21 @@ export const toolSpecs: Record<string, ToolSpec> = {
       const weight = read(values, "weight")
       const height = read(values, "height")
       const age = read(values, "age")
-      if (!weight || !height || !age) return null
+      if (weight === null || height === null || age === null) return null
+      if (weight <= 0 || height <= 0 || age <= 0) return { note: "Enter weight, height, and age greater than 0." }
       const tdee = bmr(values.sex, weight, height, age) * activityFactor(values.activity)
       const target = values.goal === "lose" ? tdee - 500 : values.goal === "gain" ? tdee + 300 : tdee
-      return stats([
-        ["Maintenance", `${num(tdee, 0)} kcal`],
-        ["Target", `${num(target, 0)} kcal`],
-      ], { note: "Lose uses a 500 kcal deficit. Gain uses a 300 kcal surplus." })
+      const goalLabel = values.goal === "lose" ? "lose" : values.goal === "gain" ? "gain" : "maintain"
+      return stats(
+        [
+          ["Target", `${num(target, 0)} kcal`, true],
+          ["Maintenance", `${num(tdee, 0)} kcal`],
+        ],
+        {
+          copy: `A ${goalLabel} target of ${num(target, 0)} kcal a day, against maintenance of ${num(tdee, 0)} kcal.`,
+          note: "Lose uses a 500 kcal deficit. Gain uses a 300 kcal surplus.",
+        },
+      )
     },
   },
   "gpa-calculator": {
@@ -424,38 +586,65 @@ export const toolSpecs: Record<string, ToolSpec> = {
     intro: "One course a line: letter grade, then credits. Example: A- 3",
     fields: [area("courses", "Courses", "A 3\nB+ 4\nA- 3")],
     run: (values) => {
+      if (!values.courses.trim()) return null
       const result = gpaFromLines(values.courses)
       if (!result) return null
-      return stats([
-        ["GPA", num(result.gpa, 2)],
-        ["Credits", num(result.credits, 0)],
-      ], { note: "4.0 scale. A and A+ are both 4.0." })
+      return stats(
+        [
+          ["GPA", num(result.gpa, 2), true],
+          ["Credits", num(result.credits, 0)],
+        ],
+        {
+          copy: `GPA ${num(result.gpa, 2)} across ${num(result.credits, 0)} credits.`,
+          note: "4.0 scale. A and A+ are both 4.0.",
+        },
+      )
     },
   },
   "grade-calculator": {
+    example: { label: "86 out of 100", values: { earned: "86", possible: "100" } },
     fields: [number("earned", "Points earned", "86"), number("possible", "Points possible", "100")],
     run: (values) => {
       const earned = read(values, "earned")
       const possible = read(values, "possible")
-      if (earned === null || !possible) return null
-      const percent = (earned / possible) * 100
-      return stats([
-        ["Percent", `${num(percent, 1)}%`],
-        ["Letter", letterGrade(percent)],
-      ], { note: "A common scale: A from 90, B from 80, C from 70, D from 60." })
+      if (earned === null || possible === null) return null
+      if (possible === 0) return { note: "Enter points possible other than 0." }
+      const score = (earned / possible) * 100
+      const letter = letterGrade(score)
+      return stats(
+        [
+          ["Percent", percent(score, 1), true],
+          ["Letter", letter],
+        ],
+        {
+          formula: `${num(earned, 2)} ÷ ${num(possible, 2)} × 100 = ${percent(score, 1)}`,
+          copy: `${num(earned, 2)} out of ${num(possible, 2)} is ${percent(score, 1)} (${letter}).`,
+          note: "A common scale: A from 90, B from 80, C from 70, D from 60.",
+        },
+      )
     },
   },
   "unit-converter": {
     columns: 3,
+    example: { label: "1 metre to feet", values: { value: "1", from: "m", to: "ft" } },
     fields: [
       number("value", "Value", "1", undefined, null),
-      select("from", "From", "m", unitOptions),
-      select("to", "To", "ft", unitOptions),
+      field("from", "From", "select", "m", { options: unitOptions }),
+      field("to", "To", "select", "ft", { options: unitOptions }),
     ],
     run: (values) => {
       const value = read(values, "value")
       if (value === null) return null
-      return stats([["Result", num(convertUnit(value, values.from, values.to), 4)]])
+      try {
+        const converted = convertUnit(value, values.from, values.to)
+        if (!Number.isFinite(converted)) return { note: "Those units don’t convert to a number." }
+        return stats([["Result", `${num(converted, 6)} ${values.to}`, true]], {
+          formula: `${num(value, 6)} ${values.from} = ${num(converted, 6)} ${values.to}`,
+          copy: `${num(value, 6)} ${values.from} is ${num(converted, 6)} ${values.to}.`,
+        })
+      } catch (error) {
+        return { note: error instanceof Error ? error.message : "Choose two units of the same kind." }
+      }
     },
   },
   "password-generator": {

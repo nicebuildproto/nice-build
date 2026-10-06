@@ -2,28 +2,29 @@ import { guide, type ToolGuideCopy } from "@/lib/tools/guides/types"
 
 export const calculatorGuides: Record<string, ToolGuideCopy> = {
   "percentage-calculator": guide(
-    "Say you want to know what share 25 is of 200 — you'll see 12.5%. Separately, 15% of 80 is 12. Use the left card for “what share is this?”, and the right card for “how much is this percent?”",
+    "Say you want to know what share 25 is of 200 — you'll see 12.5%. Separately, 15% of 200 is 30. Use the left card for “what share is this?”, and the right card for “how much is this percent?”",
     ["How do I work out “X is what percent of Y”?", "Divide X by Y, then multiply by 100. If Y is 0, there's no percentage to show — a number can't be a share of nothing."],
-    ["How do I work out “what is X% of Y”?", "Multiply Y by X, then divide by 100. So 15% of 80 is 80 × 0.15, which is 12."],
+    ["How do I work out “what is X% of Y”?", "Multiply Y by X, then divide by 100. So 15% of 200 is 200 × 0.15, which is 30."],
     ["Is this the same as a percentage increase?", "Nope — this page answers “what share?” and “how much is this percent?”. If you want to grow or shrink a starting amount, use the increase, decrease, or discount calculators."],
   ),
   "percentage-increase-calculator": guide(
     "Say a $50 item increases by 20%. The increase is $10, so the new price is $60. The same steps work for a 4% raise on a $90,000 salary: the rise is $3,600 and the new salary is $93,600.",
     ["How do you calculate a percentage increase?", "Multiply the original amount by the percent, divide by 100, then add that back to the original. New amount = original × (1 + percent ÷ 100)."],
     ["Is this the same as “what is X% of Y”?", "That question only gives you the increase itself. This calculator also adds it back, so you'll see both the rise and the new total."],
+    ["How do I find the percentage increase between two numbers?", "Use the second card. Divide the difference by the original, then multiply by 100. From 50 to 60 is a 20% increase."],
     ["What if I increase twice in a row?", "Apply the second increase to the new amount, not the original. A 10% rise then another 10% is 21% in total, not 20% — you're growing from a bigger base the second time."],
   ),
   "percentage-decrease-calculator": guide(
     "Say an $80 bill decreases by 15%. The drop is $12, so $68 remains. The same method works for a 30% fall in website traffic: 10,000 visits becomes 7,000.",
     ["How is a decrease different from a discount?", "The maths is the same. Use this page when the shrinking number isn't a shop price tag — usage, headcount, inventory, that kind of thing."],
     ["Can the result go below zero?", "A 100% decrease reaches zero. More than 100% goes negative, which is valid for some ledgers and not for quantities. Check the context before you use it."],
-    ["How do I reverse a decrease?", "You can't just add the same percent back. After a 20% drop, you'll need a 25% increase to return to the original, because you're growing from a smaller base."],
+    ["How do I find the percentage decrease between two numbers?", "Use the second card. Divide the drop by the original, then multiply by 100. From 80 to 68 is a 15% decrease."],
   ),
   "discount-calculator": guide(
     "Say a $120 jacket is 25% off. You'll save $30 and pay $90. If a $64 weekly shop has 10% off, you save $6.40 and pay $57.60.",
     ["Is a discount the same as a percentage decrease?", "Same arithmetic, different job. A discount is always “money off a price”. Use the decrease calculator when the number isn't a retail price."],
     ["How do stacked discounts work?", "Apply them one after another to the already-reduced price. 20% off, then an extra 10% off, is 28% off in total — not 30%."],
-    ["Does this include GST?", "Nope — it only applies the percent you enter to the amount you enter. Add or remove tax first if the sticker price isn't the figure you want to discount."],
+    ["How do I find what percent off a sale was?", "Use the second card with the original price and the sale price. $120 to $90 is 25% off."],
   ),
   "tip-calculator": guide(
     "Say an $86 dinner, a 10% tip, split two ways. The tip is $8.60, the table total is $94.60, and each person pays $47.30 — no napkin maths required.",

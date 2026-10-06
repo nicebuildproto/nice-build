@@ -1,4 +1,4 @@
-import { money, num } from "@/lib/tools/format"
+import { money, num, percent } from "@/lib/tools/format"
 import { modelPriceMap as apiModels, PRICES_CHECKED } from "@/lib/ai/pricing"
 import type { SpecField, SpecResult, ToolSpec } from "@/lib/tools/specs"
 
@@ -29,8 +29,17 @@ function sumKeys(values: Record<string, string>, keys: string[]) {
   return total
 }
 
-function stats(pairs: [string, string][], extra: Partial<SpecResult> = {}): SpecResult {
-  return { stats: pairs.map(([label, value]) => ({ label, value })), ...extra }
+type StatPair = [string, string] | [string, string, boolean]
+
+function stats(pairs: StatPair[], extra: Partial<SpecResult> = {}): SpecResult {
+  return {
+    stats: pairs.map(([label, value, primary]) => ({
+      label,
+      value,
+      ...(primary ? { primary: true } : {}),
+    })),
+    ...extra,
+  }
 }
 
 function usd(value: number) {
@@ -265,7 +274,9 @@ export const addedSpecs: Record<string, ToolSpec> = {
   "bnpl-cost-calculator": {
     intro:
       "Interest-free is not the same as free. Add the purchase price, how many instalments, and every fee the plan charges. The gap between the cash price and what you pay is the true extra cost, even when the advertised rate is 0%.",
+    privacy: true,
     columns: 3,
+    example: { label: "$240 in 4 payments with $12 fees", values: { price: "240", instalments: "4", fees: "12" } },
     fields: [
       number("price", "Purchase price", "240", "AUD"),
       number("instalments", "Instalments", "4"),
@@ -275,23 +286,29 @@ export const addedSpecs: Record<string, ToolSpec> = {
       const price = read(values, "price")
       const instalments = read(values, "instalments")
       const fees = read(values, "fees")
-      if (price === null || !instalments || fees === null) return null
+      if (price === null || instalments === null || fees === null) return null
+      if (instalments <= 0) return { note: "Enter at least 1 instalment." }
       const total = price + fees
       return stats(
         [
-          ["You pay", money(total)],
+          ["You pay", money(total), true],
           ["Each instalment", money(total / instalments)],
           ["Extra over the price", money(fees)],
-          ["Extra as a share of price", price ? `${num((fees / price) * 100)}%` : "—"],
+          ["Extra as a share of price", price ? percent((fees / price) * 100) : "—"],
         ],
-        { note: fees > 0 ? "The plan can still say interest-free. The fee is the cost." : "With no fees, you pay the purchase price split across the instalments." },
+        {
+          copy: `A ${money(price)} purchase with ${money(fees)} in fees costs ${money(total)}, or ${money(total / instalments)} across ${num(instalments, 0)} instalments.`,
+          note: fees > 0 ? "The plan can still say interest-free. The fee is the cost." : "With no fees, you pay the purchase price split across the instalments.",
+        },
       )
     },
   },
   "fire-calculator": {
     intro:
       "Financial independence here means a portfolio of 25 times annual expenses, the 4% rule. Savings rate is the share of income you keep, so income is inferred from expenses and that rate. The balance grows once a year at the return you enter, then the year’s savings are added. It is a planning sketch, not a forecast.",
+    privacy: true,
     columns: 2,
+    example: { label: "$80k saved, $50k expenses, 30% savings", values: { savings: "80000", expenses: "50000", return: "7", rate: "30" } },
     fields: [
       number("savings", "Current savings", "80000", "AUD"),
       number("expenses", "Annual expenses", "50000", "AUD"),
@@ -303,10 +320,11 @@ export const addedSpecs: Record<string, ToolSpec> = {
       const expenses = read(values, "expenses")
       const expected = read(values, "return")
       const rate = read(values, "rate")
-      if (savings === null || !expenses || expected === null || rate === null) return null
+      if (savings === null || expenses === null || expected === null || rate === null) return null
+      if (!(expenses > 0)) return { note: "Enter annual expenses greater than 0." }
       if (rate < 0 || rate >= 100) return { note: "Use a savings rate from 0 up to, but not including, 100%." }
       const target = expenses / 0.04
-      const contribution = expenses * (rate / 100) / (1 - rate / 100)
+      const contribution = (expenses * (rate / 100)) / (1 - rate / 100)
       let balance = savings
       let years = 0
       if (balance < target) {
@@ -318,18 +336,30 @@ export const addedSpecs: Record<string, ToolSpec> = {
           }
         }
       }
-      if (balance < target) return stats([["FI number", money(target)]], { note: "Still short after 80 years at these figures." })
-      return stats([
-        ["Years to FI", years === 0 ? "Already there" : String(years)],
-        ["FI number", money(target)],
-        ["Saved each year", money(contribution)],
-      ])
+      if (balance < target) {
+        return stats([["FI number", money(target), true]], { note: "Still short after 80 years at these figures." })
+      }
+      return stats(
+        [
+          ["Years to FI", years === 0 ? "Already there" : String(years), true],
+          ["FI number", money(target)],
+          ["Saved each year", money(contribution)],
+        ],
+        {
+          copy:
+            years === 0
+              ? `Already at the FI number of ${money(target)}.`
+              : `${years} years to a ${money(target)} FI number, saving ${money(contribution)} a year at ${percent(expected)} expected return.`,
+        },
+      )
     },
   },
   "gig-tax-estimator": {
     intro:
       "An estimate for the 2026–27 income year, not tax advice. Resident brackets from the ATO: nil to $18,200, then 15% to $45,000, 30% to $135,000, 37% to $190,000, and 45% above that. Medicare levy is a flat 2% here, with no low-income reduction. Offsets, deductions, and GST are not included.",
+    privacy: true,
     columns: 2,
+    example: { label: "$65k wage plus $18k gig", values: { wage: "65000", gig: "18000" } },
     fields: [
       number("wage", "Employment income", "65000", "AUD"),
       number("gig", "Freelance or rideshare", "18000", "AUD"),
@@ -346,10 +376,13 @@ export const addedSpecs: Record<string, ToolSpec> = {
       const extra = taxOnAll - taxOnWage + (medicareOnAll - medicareOnWage)
       return stats(
         [
-          ["Tax on the gig income", money(extra)],
+          ["Tax on the gig income", money(extra), true],
           ["Tax and levy on all income", money(taxOnAll + medicareOnAll)],
         ],
-        { note: "2026–27 resident rates. Confirm on the ATO page: https://www.ato.gov.au/tax-rates-and-codes/tax-rates-australian-residents" },
+        {
+          copy: `The extra tax and Medicare on ${money(Math.max(0, gig))} of gig income is about ${money(extra)}. Combined tax and levy on ${money(combined)} is ${money(taxOnAll + medicareOnAll)}.`,
+          note: "2026–27 resident rates. Confirm on the ATO page: https://www.ato.gov.au/tax-rates-and-codes/tax-rates-australian-residents",
+        },
       )
     },
   },
@@ -357,6 +390,7 @@ export const addedSpecs: Record<string, ToolSpec> = {
     intro:
       "Enter a typical week: how much you spend, how many transactions get rounded up, and the average round-up on each one. The monthly and annual figures are that weekly spare change, stretched across the year. Nothing is invested for you.",
     columns: 3,
+    example: { label: "14 round-ups of 45c", values: { spend: "280", transactions: "14", roundup: "0.45" } },
     fields: [
       number("spend", "Average weekly spend", "280", "AUD"),
       number("transactions", "Transactions a week", "14"),
@@ -367,12 +401,19 @@ export const addedSpecs: Record<string, ToolSpec> = {
       const transactions = read(values, "transactions")
       const roundup = read(values, "roundup")
       if (spend === null || transactions === null || roundup === null) return null
+      if (transactions < 0 || roundup < 0) return { note: "Transactions and round-ups can’t be negative." }
       const weekly = transactions * roundup
-      return stats([
-        ["Each month", money((weekly * 52) / 12)],
-        ["Each year", money(weekly * 52)],
-        ["Share of weekly spend", spend ? `${num((weekly / spend) * 100)}%` : "—"],
-      ])
+      const yearly = weekly * 52
+      return stats(
+        [
+          ["Each year", money(yearly), true],
+          ["Each month", money(yearly / 12)],
+          ["Share of weekly spend", spend ? percent((weekly / spend) * 100) : "—"],
+        ],
+        {
+          copy: `${num(transactions, 0)} round-ups of ${money(roundup)} is ${money(weekly)} a week, about ${money(yearly)} a year.`,
+        },
+      )
     },
   },
   "rate-limit-calculator": {

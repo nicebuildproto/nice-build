@@ -30,6 +30,7 @@ export function NumberField({
   suffix,
   min,
   step = "any",
+  placeholder,
 }: {
   label: string
   value: string
@@ -37,6 +38,7 @@ export function NumberField({
   suffix?: string
   min?: number
   step?: string
+  placeholder?: string
 }) {
   return (
     <Field label={label}>
@@ -46,8 +48,9 @@ export function NumberField({
           value={value}
           min={min}
           step={step}
+          placeholder={placeholder}
           onChange={(event) => onChange(event.target.value)}
-          className={cn("h-10 tabular-nums", suffix && (suffix.length > 3 ? "pr-16" : "pr-12"))}
+          className={cn("h-11 tabular-nums sm:h-10", suffix && (suffix.length > 3 ? "pr-16" : "pr-12"))}
         />
         {suffix ? (
           <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-[var(--nb-secondary)]">

@@ -1,25 +1,7 @@
-import { PercentageClusterView } from "@/components/calculators/PercentageClusterView"
-import { SoftwareApplicationJsonLd } from "@/components/seo/SoftwareApplicationJsonLd"
-import { percentagePages } from "@/lib/calculators/content"
-import { titleSuffix } from "@/lib/site"
-import type { Metadata } from "next"
+import { PercentageToolPage, percentageMetadata } from "@/app/calculators/percentage-page"
 
-const page = percentagePages.increase
-
-export const metadata: Metadata = {
-  title: `${page.title}${titleSuffix}`,
-  description: page.description,
-}
+export const metadata = percentageMetadata("increase")
 
 export default function PercentageIncreaseCalculatorPage() {
-  return (
-    <>
-      <SoftwareApplicationJsonLd
-        name={page.title}
-        description={page.description}
-        path="/calculators/percentage-increase-calculator"
-      />
-      <PercentageClusterView page={page} />
-    </>
-  )
+  return <PercentageToolPage mode="increase" />
 }

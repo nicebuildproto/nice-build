@@ -1,5 +1,6 @@
 "use client"
 
+import { CalculatorExample, CalculatorPrivacy, CalculatorResult } from "@/components/calculators/CalculatorResult"
 import { CopyButton, NumberField, TextArea } from "@/components/tools/ui"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,7 +9,7 @@ import { cn } from "@/lib/utils"
 import { useEffect, useMemo, useState } from "react"
 
 const controlClass =
-  "h-10 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+  "h-11 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:h-10"
 
 export function BoundSpec({ slug }: { slug: string }) {
   const spec = toolSpecs[slug]
@@ -54,7 +55,9 @@ export function SpecTool({ spec }: { spec: ToolSpec }) {
   }, [spec, values, nonce])
 
   const shown = spec.random || spec.runAsync ? asyncResult : result
-  const copyText = shown?.text ?? shown?.stats?.map((item) => `${item.label}: ${item.value}`).join("\n") ?? ""
+  const primary = shown?.stats?.find((item) => item.primary)
+  const secondary = shown?.stats?.filter((item) => item !== primary)
+  const copyText = shown?.copy ?? shown?.text ?? shown?.stats?.map((item) => `${item.label}: ${item.value}`).join("\n") ?? ""
   const dirty = spec.fields.some((field) => (values[field.key] ?? "") !== field.default)
 
   function set(key: string, value: string) {
@@ -75,6 +78,7 @@ export function SpecTool({ spec }: { spec: ToolSpec }) {
           ))}
         </div>
       ) : null}
+      {spec.example ? <CalculatorExample label={spec.example.label} onClick={() => setValues({ ...values, ...spec.example?.values })} /> : null}
       {spec.action || dirty ? (
         <div className="flex flex-wrap gap-2">
           {spec.action ? (
@@ -89,47 +93,70 @@ export function SpecTool({ spec }: { spec: ToolSpec }) {
           ) : null}
         </div>
       ) : null}
-      <div className="flex flex-col gap-4" aria-live="polite">
-        {shown?.demo ? (
-          <div className="grid h-32 place-items-center rounded-xl border border-border">
-            <div className="size-16 bg-[var(--nb-accent)]" style={shown.demo} />
-          </div>
-        ) : null}
-        {shown?.stats?.length ? (
-          <div className="flex flex-wrap gap-x-10 gap-y-6">
-            {shown.stats.map((item) => (
-              <div key={item.label}>
-                <div className="text-xs font-medium text-[var(--nb-secondary)]">{item.label}</div>
-                <div
-                  className={cn(
-                    "mt-1 max-w-xl font-semibold tracking-[-0.04em] text-[var(--nb-primary)] tabular-nums",
-                    item.value.length > 18 ? "text-base leading-snug font-medium break-all" : "text-2xl leading-tight sm:text-3xl"
-                  )}
-                >
-                  {item.value}
+      {primary ? (
+        <CalculatorResult
+          primary={primary}
+          secondary={secondary}
+          context={shown?.copy}
+          formula={shown?.formula}
+          note={shown?.note}
+          copyText={copyText}
+        />
+      ) : (
+        <div className="flex flex-col gap-4" aria-live="polite">
+          {shown?.demo ? (
+            <div className="grid h-32 place-items-center rounded-xl border border-border">
+              <div className="size-16 bg-[var(--nb-accent)]" style={shown.demo} />
+            </div>
+          ) : null}
+          {shown?.stats?.length ? (
+            <div className="flex flex-wrap gap-x-10 gap-y-6">
+              {shown.stats.map((item) => (
+                <div key={item.label}>
+                  <div className="text-xs font-medium text-[var(--nb-secondary)]">{item.label}</div>
+                  <div
+                    className={cn(
+                      "mt-1 max-w-xl font-semibold tracking-[-0.04em] text-[var(--nb-primary)] tabular-nums",
+                      item.value.length > 18 ? "text-base leading-snug font-medium break-all" : "text-2xl leading-tight sm:text-3xl",
+                    )}
+                  >
+                    {item.value}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : null}
-        {shown?.text ? (
-          <pre className="overflow-x-auto rounded-xl border border-border bg-[var(--nb-accent)] p-4 text-sm leading-relaxed whitespace-pre-wrap text-[var(--nb-primary)]">
-            {shown.text}
-          </pre>
-        ) : null}
-        {shown?.note ? <p className="max-w-xl text-sm leading-relaxed text-[var(--nb-secondary)]">{shown.note}</p> : null}
-        {!shown && !spec.random && !spec.runAsync ? (
-          <p className="text-sm text-[var(--nb-secondary)]">Enter the figures to see a result.</p>
-        ) : null}
-        {copyText ? <CopyButton text={copyText} label="Copy result" /> : null}
-      </div>
+              ))}
+            </div>
+          ) : null}
+          {shown?.formula ? <p className="font-mono text-[13px] text-[var(--nb-secondary)]">{shown.formula}</p> : null}
+          {shown?.text ? (
+            <pre className="overflow-x-auto rounded-xl border border-border bg-[var(--nb-accent)] p-4 text-sm leading-relaxed whitespace-pre-wrap text-[var(--nb-primary)]">
+              {shown.text}
+            </pre>
+          ) : null}
+          {shown?.note ? <p className="max-w-xl text-sm leading-relaxed text-[var(--nb-secondary)]">{shown.note}</p> : null}
+          {!shown && !spec.random && !spec.runAsync ? (
+            <p className="text-sm text-[var(--nb-secondary)]">Enter the figures to see a result.</p>
+          ) : null}
+          {copyText ? <CopyButton text={copyText} label="Copy result" /> : null}
+        </div>
+      )}
+      {spec.privacy ? <CalculatorPrivacy /> : null}
     </div>
   )
 }
 
 function SpecControl({ field, value, onChange }: { field: SpecField; value: string; onChange: (value: string) => void }) {
   if (field.kind === "number") {
-    return <NumberField label={field.label} value={value} onChange={onChange} suffix={field.suffix} min={field.min} step={field.step} />
+    return (
+      <NumberField
+        label={field.label}
+        value={value}
+        onChange={onChange}
+        suffix={field.suffix}
+        min={field.min}
+        step={field.step}
+        placeholder={field.placeholder}
+      />
+    )
   }
   if (field.kind === "textarea") {
     return (
@@ -152,15 +179,36 @@ function SpecControl({ field, value, onChange }: { field: SpecField; value: stri
     )
   }
   if (field.kind === "select") {
+    const options = field.options ?? []
+    const hasGroups = options.some((option) => option.group)
+    const groups = new Map<string, { value: string; label: string }[]>()
+    if (hasGroups) {
+      for (const option of options) {
+        const group = option.group ?? "Other"
+        const list = groups.get(group) ?? []
+        list.push(option)
+        groups.set(group, list)
+      }
+    }
     return (
       <label className="flex flex-col gap-2 text-[13px] text-[var(--nb-primary)]">
         {field.label}
         <select className={controlClass} value={value} onChange={(event) => onChange(event.target.value)}>
-          {field.options?.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
+          {hasGroups
+            ? [...groups.entries()].map(([group, items]) => (
+                <optgroup key={group} label={group}>
+                  {items.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </optgroup>
+              ))
+            : options.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
         </select>
       </label>
     )
@@ -169,7 +217,7 @@ function SpecControl({ field, value, onChange }: { field: SpecField; value: stri
     return (
       <label className="flex flex-col gap-2 text-[13px] text-[var(--nb-primary)]">
         {field.label}
-        <input type="color" value={value} onChange={(event) => onChange(event.target.value)} className="h-10 w-full cursor-pointer rounded-lg border border-input bg-transparent p-1" />
+        <input type="color" value={value} onChange={(event) => onChange(event.target.value)} className="h-11 w-full cursor-pointer rounded-lg border border-input bg-transparent p-1 sm:h-10" />
       </label>
     )
   }
@@ -181,7 +229,7 @@ function SpecControl({ field, value, onChange }: { field: SpecField; value: stri
         placeholder={field.placeholder}
         type={field.kind === "date" ? "date" : "text"}
         onChange={(event) => onChange(event.target.value)}
-        className="h-10"
+        className="h-11 sm:h-10"
       />
     </label>
   )

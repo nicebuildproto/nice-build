@@ -1,44 +1,83 @@
 "use client"
 
+import {
+  CalculatorExample,
+  CalculatorPresets,
+  CalculatorPrivacy,
+  CalculatorResult,
+} from "@/components/calculators/CalculatorResult"
 import { CopyButton, NumberField, Stat, parseAmount } from "@/components/tools/ui"
 import { Input } from "@/components/ui/input"
-import { exactAge, money, num } from "@/lib/tools/format"
+import { tipSplit } from "@/lib/calculators/math"
+import { useQueryFields } from "@/lib/calculators/query"
+import { exactAge, money, num, percent } from "@/lib/tools/format"
 import { useMemo, useState } from "react"
 
+const tipDefaults = { bill: "86", tip: "10", people: "2" }
+
 export function TipCalculator() {
-  const [bill, setBill] = useState("86")
-  const [tip, setTip] = useState("10")
-  const [people, setPeople] = useState("2")
-  const result = useMemo(() => {
-    const amount = parseAmount(bill)
-    const percent = parseAmount(tip)
-    const count = parseAmount(people)
-    if (amount === null || percent === null || count === null || count <= 0) return null
-    const tipAmount = amount * (percent / 100)
-    const total = amount + tipAmount
-    return { tipAmount, total, each: total / count }
-  }, [bill, tip, people])
+  const { values, set, reset, dirty } = useQueryFields(tipDefaults)
+  const bill = values.bill ?? ""
+  const tip = values.tip ?? ""
+  const people = values.people ?? ""
+  const amount = parseAmount(bill)
+  const percentValue = parseAmount(tip)
+  const count = parseAmount(people)
+  const result =
+    amount === null || percentValue === null || count === null ? null : tipSplit(amount, percentValue, count)
+  const error =
+    count !== null && count <= 0 ? "Enter at least 1 person." : amount !== null && amount < 0 ? "Enter a bill of 0 or more." : null
+
+  const copyText =
+    result && amount !== null && percentValue !== null && count !== null
+      ? count === 1
+        ? `On a ${money(amount)} bill with a ${percent(percentValue)} tip, the tip is ${money(result.tipAmount)} and the total is ${money(result.total)}.`
+        : `On a ${money(amount)} bill with a ${percent(percentValue)} tip split ${num(count, 0)} ways, the tip is ${money(result.tipAmount)}, the total is ${money(result.total)}, and each person pays ${money(result.each)}.`
+      : undefined
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-8">
       <div className="grid gap-4 sm:grid-cols-3">
-        <NumberField label="Bill" value={bill} onChange={setBill} suffix="AUD" min={0} />
-        <NumberField label="Tip" value={tip} onChange={setTip} suffix="%" min={0} />
-        <NumberField label="People" value={people} onChange={setPeople} min={1} step="1" />
+        <NumberField label="Bill" value={bill} onChange={(value) => set("bill", value)} suffix="AUD" min={0} placeholder="86" />
+        <NumberField label="Tip" value={tip} onChange={(value) => set("tip", value)} suffix="%" min={0} placeholder="15" />
+        <NumberField label="People" value={people} onChange={(value) => set("people", value)} min={1} step="1" placeholder="2" />
       </div>
-      <div className="flex flex-col gap-4" aria-live="polite">
-        <div className="flex flex-wrap gap-10">
-          <Stat label="Tip" value={result ? money(result.tipAmount) : "—"} />
-          <Stat label="Total" value={result ? money(result.total) : "—"} />
-          <Stat label="Each" value={result ? money(result.each) : "—"} />
-        </div>
-        {result ? (
-          <CopyButton
-            label="Copy result"
-            text={`Tip: ${money(result.tipAmount)}\nTotal: ${money(result.total)}\nEach: ${money(result.each)}`}
-          />
-        ) : null}
-      </div>
+      <CalculatorPresets
+        label="Common tip rates"
+        values={[
+          { label: "10%", value: "10" },
+          { label: "12%", value: "12" },
+          { label: "15%", value: "15" },
+          { label: "18%", value: "18" },
+          { label: "20%", value: "20" },
+        ]}
+        current={tip}
+        onSelect={(value) => set("tip", value)}
+      />
+      <CalculatorExample label="$86 at 15% for 2" onClick={() => {
+        set("bill", "86")
+        set("tip", "15")
+        set("people", "2")
+      }} />
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      <CalculatorResult
+        primary={result ? { label: "Total", value: money(result.total) } : undefined}
+        context={copyText}
+        formula={result && amount !== null && percentValue !== null ? `${money(amount)} × ${percent(percentValue)} tip = ${money(result.tipAmount)}` : undefined}
+        secondary={
+          result
+            ? [
+                { label: "Tip", value: money(result.tipAmount) },
+                { label: "Each", value: money(result.each) },
+              ]
+            : undefined
+        }
+        copyText={copyText}
+        onReset={dirty ? reset : undefined}
+        share
+        empty={error ?? "Enter the bill, tip percent, and how many people."}
+      />
+      <CalculatorPrivacy />
     </div>
   )
 }

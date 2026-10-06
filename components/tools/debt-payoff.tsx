@@ -1,6 +1,7 @@
 "use client"
 
-import { CopyButton, ErrorNote, NumberField, ResetButton, Stat, ToolNote, parseAmount } from "@/components/tools/ui"
+import { CalculatorPrivacy, CalculatorResult } from "@/components/calculators/CalculatorResult"
+import { ErrorNote, NumberField, ToolNote, parseAmount } from "@/components/tools/ui"
 import { money } from "@/lib/tools/format"
 import { debtPayoff } from "@/lib/tools/finance"
 import { useMemo, useState } from "react"
@@ -42,34 +43,41 @@ export function DebtPayoffCalculator() {
         <NumberField label="Extra payment" value={extra} onChange={setExtra} suffix="AUD" min={0} />
       </div>
       {error ? <ErrorNote>{error}</ErrorNote> : null}
-      <div className="flex flex-col gap-4" aria-live="polite">
-        <div className="flex flex-wrap gap-10">
-          <Stat label="Payoff" value={ok ? ok.payoffDate : "—"} />
-          <Stat label="Months" value={ok ? String(ok.months) : "—"} />
-          <Stat label="Interest" value={ok ? money(ok.totalInterest) : "—"} />
-          <Stat label="Total repaid" value={ok ? money(ok.totalPaid) : "—"} />
-        </div>
-        {ok && plain && extra && Number(extra) > 0 ? (
-          <p className="max-w-xl text-sm text-[var(--nb-secondary)]">
-            Without the extra {money(Number(extra))} each month, payoff would be {plain.payoffDate} and interest about {money(plain.totalInterest)}
-            {plain.months > ok.months ? ` — ${plain.months - ok.months} extra months.` : "."}
-          </p>
-        ) : null}
-        {ok ? (
-          <CopyButton
-            text={`Payoff: ${ok.payoffDate}\nMonths: ${ok.months}\nInterest: ${money(ok.totalInterest)}\nTotal: ${money(ok.totalPaid)}\nMonthly payment: ${money(ok.payment)}`}
-            label="Copy result"
-          />
-        ) : null}
-        <ResetButton
-          onClick={() => {
-            setBalance("")
-            setRate("")
-            setMinimum("")
-            setExtra("")
-          }}
-        />
-      </div>
+      <CalculatorResult
+        primary={ok ? { label: "Payoff", value: ok.payoffDate } : undefined}
+        context={
+          ok
+            ? `${ok.months} months, paying ${money(ok.payment)} a month. Interest ${money(ok.totalInterest)}, total repaid ${money(ok.totalPaid)}.`
+            : undefined
+        }
+        secondary={
+          ok
+            ? [
+                { label: "Months", value: String(ok.months) },
+                { label: "Interest", value: money(ok.totalInterest) },
+                { label: "Total repaid", value: money(ok.totalPaid) },
+              ]
+            : undefined
+        }
+        note={
+          ok && plain && extra && Number(extra) > 0
+            ? `Without the extra ${money(Number(extra))} each month, payoff would be ${plain.payoffDate} and interest about ${money(plain.totalInterest)}${plain.months > ok.months ? ` — ${plain.months - ok.months} extra months.` : "."}`
+            : undefined
+        }
+        copyText={
+          ok
+            ? `Payoff ${ok.payoffDate} in ${ok.months} months. Interest ${money(ok.totalInterest)}, total ${money(ok.totalPaid)}, paying ${money(ok.payment)} a month.`
+            : undefined
+        }
+        onReset={() => {
+          setBalance("8000")
+          setRate("18")
+          setMinimum("240")
+          setExtra("100")
+        }}
+        empty={error ?? "Enter a balance, rate, and payment to see a payoff date."}
+      />
+      <CalculatorPrivacy />
     </div>
   )
 }

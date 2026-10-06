@@ -1,5 +1,6 @@
 "use client"
 
+import { CalculatorPrivacy, CalculatorResult } from "@/components/calculators/CalculatorResult"
 import { NumberField } from "@/components/tools/ui"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -165,6 +166,8 @@ export function SubscriptionAudit() {
     { id: uid(), name: "Music", cost: "12" },
   ])
   const monthly = rows.reduce((sum, row) => sum + (Number(row.cost) || 0), 0)
+  const yearly = monthly * 12
+  const copyText = `Subscriptions: ${money(monthly)} a month, ${money(yearly)} a year.`
   return (
     <div className="flex flex-col gap-6">
       <p className="max-w-xl text-sm leading-relaxed text-[var(--nb-secondary)]">
@@ -174,7 +177,7 @@ export function SubscriptionAudit() {
         <div key={row.id} className="grid gap-2 sm:grid-cols-[1fr_8rem_auto]">
           <Input value={row.name} placeholder="Name" onChange={(event) => setRows((current) => current.map((item) => (item.id === row.id ? { ...item, name: event.target.value } : item)))} />
           <NumberField label="Monthly" value={row.cost} suffix="AUD" onChange={(value) => setRows((current) => current.map((item) => (item.id === row.id ? { ...item, cost: value } : item)))} />
-          <Button type="button" variant="outline" className="h-10 self-end" onClick={() => setRows((current) => current.filter((item) => item.id !== row.id))}>
+          <Button type="button" variant="outline" className="h-11 self-end sm:h-10" onClick={() => setRows((current) => current.filter((item) => item.id !== row.id))}>
             Remove
           </Button>
         </div>
@@ -182,16 +185,19 @@ export function SubscriptionAudit() {
       <Button type="button" variant="outline" className="h-10 w-fit" onClick={() => setRows((current) => [...current, { id: uid(), name: "", cost: "" }])}>
         Add subscription
       </Button>
-      <div className="flex flex-wrap gap-10">
-        <div>
-          <div className="text-xs font-medium text-[var(--nb-secondary)]">A year</div>
-          <div className="mt-1 text-3xl font-semibold tracking-[-0.04em] tabular-nums">{money(monthly * 12)}</div>
-        </div>
-        <div>
-          <div className="text-xs font-medium text-[var(--nb-secondary)]">A month</div>
-          <div className="mt-1 text-3xl font-semibold tracking-[-0.04em] tabular-nums">{money(monthly)}</div>
-        </div>
-      </div>
+      <CalculatorResult
+        primary={{ label: "A year", value: money(yearly) }}
+        context={`${money(monthly)} a month across ${rows.filter((row) => row.name.trim() || Number(row.cost)).length} subscriptions.`}
+        secondary={[{ label: "A month", value: money(monthly) }]}
+        copyText={copyText}
+        onReset={() =>
+          setRows([
+            { id: uid(), name: "Streaming", cost: "16" },
+            { id: uid(), name: "Music", cost: "12" },
+          ])
+        }
+      />
+      <CalculatorPrivacy />
     </div>
   )
 }
@@ -215,7 +221,7 @@ export function ExpenseSplitter() {
       {rows.map((row) => (
         <div key={row.id} className="grid gap-2 sm:grid-cols-[1fr_8rem_auto]">
           <Input value={row.name} placeholder="Name" onChange={(event) => setRows((current) => current.map((item) => (item.id === row.id ? { ...item, name: event.target.value } : item)))} />
-          <Input inputMode="decimal" value={row.paid} aria-label="Paid" onChange={(event) => setRows((current) => current.map((item) => (item.id === row.id ? { ...item, paid: event.target.value } : item)))} />
+          <NumberField label="Paid" value={row.paid} suffix="AUD" onChange={(value) => setRows((current) => current.map((item) => (item.id === row.id ? { ...item, paid: value } : item)))} />
           <Button type="button" variant="outline" className="h-10" onClick={() => setRows((current) => current.filter((item) => item.id !== row.id))}>
             Remove
           </Button>
@@ -224,10 +230,18 @@ export function ExpenseSplitter() {
       <Button type="button" variant="outline" className="h-10 w-fit" onClick={() => setRows((current) => [...current, { id: uid(), name: "", paid: "" }])}>
         Add person
       </Button>
-      <div>
-        <div className="text-xs font-medium text-[var(--nb-secondary)]">Each share</div>
-        <div className="mt-1 text-3xl font-semibold tracking-[-0.04em] tabular-nums">{money(share)}</div>
-      </div>
+      <CalculatorResult
+        primary={{ label: "Each share", value: money(share) }}
+        context={people.length ? `${money(total)} split ${people.length} ways.` : "Add people to split the bill."}
+        secondary={people.length ? [{ label: "Total", value: money(total) }] : undefined}
+        copyText={
+          transfers.length
+            ? [`${money(total)} split ${people.length} ways is ${money(share)} each.`, ...transfers.map((item) => `${item.from} pays ${item.to} ${money(item.amount)}`)].join("\n")
+            : people.length
+              ? `${money(total)} split ${people.length} ways is ${money(share)} each. Nobody owes anyone.`
+              : undefined
+        }
+      />
       {transfers.length ? (
         <ul className="flex flex-col gap-2 text-sm">
           {transfers.map((item) => (
@@ -279,7 +293,7 @@ export function SideHustleTracker() {
             <option value="expense">Expense</option>
           </select>
           <Input value={row.note} placeholder="Note" onChange={(event) => setRows((current) => current.map((item) => (item.id === row.id ? { ...item, note: event.target.value } : item)))} />
-          <Input inputMode="decimal" value={row.amount} aria-label="Amount" onChange={(event) => setRows((current) => current.map((item) => (item.id === row.id ? { ...item, amount: event.target.value } : item)))} />
+          <NumberField label="Amount" value={row.amount} suffix="AUD" onChange={(value) => setRows((current) => current.map((item) => (item.id === row.id ? { ...item, amount: value } : item)))} />
           <Button type="button" variant="outline" className="h-10" onClick={() => setRows((current) => current.filter((item) => item.id !== row.id))}>
             Remove
           </Button>
@@ -288,11 +302,22 @@ export function SideHustleTracker() {
       <Button type="button" variant="outline" className="h-10 w-fit" onClick={() => setRows((current) => [...current, { id: uid(), kind: "income", note: "", amount: "" }])}>
         Add line
       </Button>
-      <div className="flex flex-wrap gap-10">
-        <Stat label="Profit" value={money(income - expenses)} />
-        <Stat label="Income" value={money(income)} />
-        <Stat label="Expenses" value={money(expenses)} />
-      </div>
+      <CalculatorResult
+        primary={{ label: "Profit", value: money(income - expenses) }}
+        context={`Income ${money(income)} minus expenses ${money(expenses)}.`}
+        secondary={[
+          { label: "Income", value: money(income) },
+          { label: "Expenses", value: money(expenses) },
+        ]}
+        copyText={`Profit ${money(income - expenses)} from ${money(income)} income and ${money(expenses)} expenses.`}
+        onReset={() =>
+          setRows([
+            { id: uid(), kind: "income", note: "Saturday market", amount: "180" },
+            { id: uid(), kind: "expense", note: "Stall fee", amount: "40" },
+          ])
+        }
+      />
+      <CalculatorPrivacy />
     </div>
   )
 }

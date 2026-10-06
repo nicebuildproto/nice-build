@@ -45,7 +45,7 @@ export function ToolGuide({ slug }: { slug: string }) {
       {related.length > 0 ? (
         <aside className="mt-16 flex flex-col gap-4" aria-labelledby={`${slug}-related`}>
           <h2 id={`${slug}-related`} className={heading}>
-            Related tools
+            {tool.category === "calculators" ? "Related calculators" : "Related tools"}
           </h2>
           <ul className="flex flex-col gap-2">
             {related.map((item) => (
