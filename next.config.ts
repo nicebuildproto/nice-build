@@ -15,6 +15,16 @@ const nextConfig: NextConfig = {
         destination: "/design-creative/sankey-generator",
         permanent: true,
       },
+      {
+        source: "/flashing-designer",
+        destination: "/category/home-trade",
+        permanent: true,
+      },
+      {
+        source: "/home-trade/flashing-designer",
+        destination: "/category/home-trade",
+        permanent: true,
+      },
     ]
   },
 }

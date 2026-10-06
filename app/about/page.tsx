@@ -19,7 +19,7 @@ export default function AboutPage() {
     >
       <InfoSection title="What it is">
         <p>
-          Fourteen categories, from everyday percentages to a flashing designer. Each tool is there to finish one job — not to keep you clicking around.
+          Fourteen categories, from everyday percentages to invoices and material estimates. Each tool is there to finish one job — not to keep you clicking around.
         </p>
         <p>
           There’s no account to create. Log in on this site is a preview, and it doesn’t save anything.

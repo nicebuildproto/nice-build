@@ -1,12 +1,6 @@
 import { guide, type ToolGuideCopy } from "@/lib/tools/guides/types"
 
 export const homePeopleTextGuides: Record<string, ToolGuideCopy> = {
-  "flashing-designer": guide(
-    "A 2,400 mm length of a simple Z profile, in a standard colour, prices from the girth, the folds, and the material rate. Change the length or the colour and the price bar updates as you go.",
-    ["What is girth?", "The width of the flat sheet before it is folded, in millimetres. More bends and a deeper profile increase it."],
-    ["Does the price include delivery or GST?", "The price uses the rate card in the tool. Read the breakdown on the price bar rather than assuming delivery or tax is included."],
-    ["Can I order from this page?", "The add-to-cart action on this demo records the item code locally. It’s a design and pricing tool, not a live checkout."],
-  ),
   "paint-calculator": guide(
     "A room 4.2 m by 3.6 m, 2.7 m high, with 3 m² of openings, two coats, and the ceiling included, is about 54.2 m². At 12 m² per litre that’s about 9.0 L of paint — enough to know which tin to buy.",
     ["Does it include the ceiling?", "Only when you’ve ticked the ceiling box. Walls are included either way, minus the openings you enter."],

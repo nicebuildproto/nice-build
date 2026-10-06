@@ -138,7 +138,6 @@ Invoices, quotes, and everyday business calculations.
 
 7. Home & Trade
 Material estimates and tools for building and renovating.
-- Flashing Designer — /home-trade/flashing-designer
 - Paint Calculator — /home-trade/paint-calculator
 - Material Estimator — /home-trade/material-estimator
 - Concrete Calculator — /home-trade/concrete-calculator
