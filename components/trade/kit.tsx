@@ -83,6 +83,17 @@ export function ModeTabs({
                   : "border-border bg-background text-[var(--nb-primary)] hover:bg-muted",
               )}
               onClick={() => onChange(option.id)}
+              onKeyDown={(event) => {
+                const index = options.findIndex((item) => item.id === value)
+                if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+                  event.preventDefault()
+                  onChange(options[(index + 1) % options.length].id)
+                }
+                if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+                  event.preventDefault()
+                  onChange(options[(index - 1 + options.length) % options.length].id)
+                }
+              }}
             >
               {option.label}
             </button>
