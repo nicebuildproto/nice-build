@@ -1,7 +1,7 @@
 "use client"
 
 import { ActionRow, CreativeShell, CssBlock, PresetRow, PreviewCanvas } from "@/components/design/kit"
-import { CopyButton, NumberField, ResetButton, ToolNote, selectClass } from "@/components/tools/ui"
+import { CopyButton, NumberField, ResetButton, selectClass } from "@/components/tools/ui"
 import { Button } from "@/components/ui/button"
 import { cellCount, defaultGrid, gridCss, gridPresets, type GridAlign, type GridConfig, type GridJustify } from "@/lib/tools/css-grid"
 import { useMemo, useState } from "react"
@@ -20,7 +20,6 @@ export function CssGridGenerator() {
 
   return (
     <CreativeShell>
-      <ToolNote>Dial in columns, rows, and gaps, then copy the CSS. The preview uses the same grid.</ToolNote>
       <PresetRow>
         {gridPresets.map((preset) => (
           <Button key={preset.id} type="button" variant="outline" className="h-10" onClick={() => setConfig({ ...defaultGrid, ...preset.config })}>
