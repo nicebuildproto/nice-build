@@ -3,7 +3,14 @@
 import { CategoryTile } from "@/components/CategoryTile"
 import { catalogGrid } from "@/components/site/frame"
 import { ToolCard } from "@/components/ToolCard"
-import { categories, getCategory, getLiveTools, searchTools, type ToolEntry } from "@/lib/registry"
+import {
+  categories,
+  getCategory,
+  getHomeFeaturedTools,
+  getLiveTools,
+  searchTools,
+  type ToolEntry,
+} from "@/lib/registry"
 import { cn } from "@/lib/utils"
 import { Search, X } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -11,6 +18,8 @@ import { useEffect, useId, useMemo, useRef, useState } from "react"
 
 const reveal =
   "animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300 ease-out motion-reduce:animate-none"
+
+const homeFeatured = getHomeFeaturedTools()
 
 export function HomeCatalog() {
   const [query, setQuery] = useState("")
@@ -213,10 +222,30 @@ export function HomeCatalog() {
             </section>
           )
         ) : (
+          <>
+            {homeFeatured.length > 0 ? (
+              <section
+                aria-labelledby="featured-tools-heading"
+                className={`flex scroll-mt-24 flex-col gap-4 ${reveal}`}
+                style={{ animationDelay: "60ms" }}
+              >
+                <h2
+                  id="featured-tools-heading"
+                  className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase"
+                >
+                  Featured tools
+                </h2>
+                <div className={catalogGrid}>
+                  {homeFeatured.map((tool) => (
+                    <ToolCard key={tool.slug} tool={tool} />
+                  ))}
+                </div>
+              </section>
+            ) : null}
             <section
               id="browse"
               className={`flex scroll-mt-24 flex-col gap-4 ${reveal}`}
-              style={{ animationDelay: "60ms" }}
+              style={{ animationDelay: "90ms" }}
             >
               <h2 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
                 Browse
@@ -227,6 +256,7 @@ export function HomeCatalog() {
                 ))}
               </div>
             </section>
+          </>
         )}
       </div>
     </div>
