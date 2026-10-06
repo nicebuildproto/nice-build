@@ -33,6 +33,7 @@ export function nextRaci(current: string) {
 
 export function taskIssues(task: string, people: string[], grid: Record<string, string>) {
   const cells = people.map((person) => grid[`${task}|${person}`] || "")
+  if (!cells.some(Boolean)) return []
   const accountable = cells.filter((cell) => cell === "A").length
   const responsible = cells.filter((cell) => cell === "R").length
   const issues: string[] = []

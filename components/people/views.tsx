@@ -131,7 +131,7 @@ export function WorkStyleQuiz() {
             ))}
           </ul>
         </div>
-        <CopyReset text={copy} filename="work-style.txt" onReset={reset} copyLabel="Copy result" />
+        <CopyReset text={copy} filename="work-style.txt" onReset={reset} copyLabel="Copy result" resetLabel="Start again" />
       </PeopleToolShell>
     )
   }
@@ -287,7 +287,10 @@ export function RaciGenerator() {
           </li>
         ))}
       </ul>
-      <p className="text-[13px] text-[var(--nb-secondary)]">Click a cell to cycle R, A, C, and I. Aim for one accountable on each task.</p>
+      <p className="text-[13px] text-[var(--nb-secondary)]">
+        Click a cell to cycle R, A, C, and I. Aim for one accountable on each task.
+        <span className="lg:hidden"> Swipe sideways to see every person.</span>
+      </p>
       {empty ? (
         <p className="text-sm text-[var(--nb-secondary)]">Add at least one person and one task.</p>
       ) : (

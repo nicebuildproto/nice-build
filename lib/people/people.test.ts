@@ -48,7 +48,8 @@ test("meetingCost uses people × rate × hours", () => {
 
 test("RACI flags missing and duplicate accountable", () => {
   const people = ["Alex", "Sam"]
-  assert.deepEqual(taskIssues("Publish", people, {}), ["No one is accountable", "No one is responsible"])
+  assert.deepEqual(taskIssues("Publish", people, {}), [])
+  assert.deepEqual(taskIssues("Publish", people, { "Publish|Alex": "R" }), ["No one is accountable"])
   assert.deepEqual(taskIssues("Publish", people, { "Publish|Alex": "A", "Publish|Sam": "A" }), [
     "More than one accountable",
     "No one is responsible",

@@ -97,18 +97,20 @@ export function CopyReset({
   filename,
   onReset,
   copyLabel = "Copy",
+  resetLabel = "Clear",
 }: {
   text: string
   filename?: string
   onReset?: () => void
   copyLabel?: string
+  resetLabel?: string
 }) {
   return (
     <ActionBar>
       <CopyTextButton text={text} label={copyLabel} />
       {filename ? <DownloadTxt text={text} filename={filename} /> : null}
       <PrintButton />
-      {onReset ? <ResetButton onClick={onReset} label="Clear" /> : null}
+      {onReset ? <ResetButton onClick={onReset} label={resetLabel} /> : null}
     </ActionBar>
   )
 }
