@@ -77,9 +77,9 @@ export function CatalogCard({
   )
 }
 
-export function ToolCard({ tool }: { tool: ToolEntry }) {
+export function ToolCard({ tool, showCategory = false }: { tool: ToolEntry; showCategory?: boolean }) {
   const isLive = tool.status === "live"
-  const category = getCategory(tool.category)
+  const category = showCategory ? getCategory(tool.category) : undefined
 
   return (
     <CatalogCard
