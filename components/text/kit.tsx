@@ -8,7 +8,7 @@ import { ArrowLeftRight, Check, Copy } from "lucide-react"
 import { useId, useState, type KeyboardEvent, type ReactNode } from "react"
 
 export function TextToolShell({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn("flex flex-col gap-6 pb-16 sm:gap-8 sm:pb-0", className)}>{children}</div>
+  return <div className={cn("flex flex-col gap-6 sm:gap-8", className)}>{children}</div>
 }
 
 export function PrivacyNote({
@@ -20,11 +20,7 @@ export function PrivacyNote({
 }
 
 export function ActionBar({ children }: { children: ReactNode }) {
-  return (
-    <div className="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center gap-2 border-t border-border bg-background px-4 py-3 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
-      {children}
-    </div>
-  )
+  return <div className="flex flex-wrap items-center gap-2">{children}</div>
 }
 
 export function StatsPanel({ items }: { items: { label: string; value: string }[] }) {
