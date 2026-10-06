@@ -2,27 +2,28 @@ import { guide, type ToolGuideCopy } from "@/lib/tools/guides/types"
 
 export const filesDesignVizGuides: Record<string, ToolGuideCopy> = {
   "image-compressor": guide(
-    "Take a 4 MB photo, save it again as a JPEG at about 70% quality with no edge longer than 2,400 pixels, and you'll often land well under 1 MB. Your original file stays put.",
-    ["Is the image uploaded?", "No — it's redrawn on a canvas in your browser, then offered as a download."],
+    "Take a 4 MB photo, save it again as a JPEG at about 70% quality with no edge longer than 2,400 pixels, and you'll often land well under 1 MB. The download is named photo-compressed.jpg. Your original file stays put.",
+    ["Is the image uploaded?", "No. Your files stay on your device. The photo is redrawn on a canvas in your browser, then offered as a download."],
     ["Why is the result a JPEG?", "The compressor saves JPEG so the quality slider can shrink the file. If your image has transparency, that's flattened onto white."],
     ["Will this hurt print quality?", "For large prints, you'll want the original. The size cap and the quality slider are meant for screens and the web."],
+    ["Can I compress several photos?", "Yes — add up to 12. They are processed one at a time so the browser stays stable, then you can download each file or all of them."],
   ),
   "exif-stripper": guide(
-    "A phone photo can carry GPS coordinates in its EXIF. Redraw it as a new JPEG and that metadata is dropped. You download a new file, and the original stays where it was.",
+    "A phone photo can carry GPS coordinates in its EXIF. Redraw it as a new JPEG and that metadata is dropped. You download photo-clean.jpg, and the original stays where it was.",
     ["What is removed?", "Anything that lived in the file metadata, including camera model and location, because the pixels are copied onto a fresh canvas and saved again."],
-    ["Does the picture look the same?", "It's saved as a high-quality JPEG, so you may see a small compression change. The framing stays the same."],
+    ["Does the picture look the same?", "It's saved as a high-quality JPEG, so you may see a small compression change. The framing stays the same unless the photo is extremely large."],
     ["Is this a guarantee for a sensitive photo?", "It removes metadata from the new file. If the picture itself shows something you don't want to share, crop or edit that separately."],
   ),
   "image-resizer": guide(
-    "An image that's 4,000 pixels wide, resized to 800 with proportion locked, becomes 800 by whatever height keeps the same shape. Only unlock proportion if you mean to stretch it.",
-    ["Where does the resize happen?", "Right in your browser, on a canvas. The file isn't uploaded."],
+    "An image that's 4,000 pixels wide, resized to 800 with proportion locked, becomes 800 by whatever height keeps the same shape. The download is named photo-800w.jpg. Only unlock proportion if you mean to stretch it.",
+    ["Where does the resize happen?", "Right in your browser, on a canvas. Your files stay on your device."],
     ["What does keep proportion do?", "Height is calculated from the original aspect ratio. Turn it off and the height stays at the original pixel height."],
     ["Which format is the download?", "JPEG. If your image is transparent, it's drawn on white."],
     ["What do the social presets do?", "Instagram Reels, YouTube Shorts, and TikTok cover-crop to 1080×1920. LinkedIn banner cover-crops to 1584×396. Reels also shows a dashed safe-zone guide that isn't saved into the file."],
   ),
   "image-cropper": guide(
-    "Set X 10, Y 10, width 80, height 80 and you'll keep the middle 80% of the photo, dropping a 10% margin on each side. Those values are percentages of the original.",
-    ["How do the crop numbers work?", "X and Y are the top-left of your crop, as a percent of width and height. W and H are the size of the crop, also in percent."],
+    "Set Left 10, Top 10, Width 80, Height 80 and you'll keep the middle 80% of the photo, dropping a 10% margin on each side. Those values are percentages of the original. The download is photo-cropped.png.",
+    ["How do the crop numbers work?", "Left and Top are the top-left of your crop, as a percent of width and height. Width and Height are the size of the crop, also in percent. A dashed box shows the keep-region on the original."],
     ["Can the crop run off the edge?", "The rectangle is clamped so it stays inside the image."],
     ["Is the original file changed?", "No. You download a new image, and the source file stays put."],
   ),

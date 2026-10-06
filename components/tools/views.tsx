@@ -15,10 +15,26 @@ import { BreakEvenCalculator, CommissionCalculator } from "@/components/business
 import { InvoiceGenerator, QuoteBuilder } from "@/components/business/documents"
 import { MarginCalculator } from "@/components/business/margin"
 import { ReceiptGenerator } from "@/components/business/receipt"
-import { Countdown, NamePicker } from "@/components/tools/everyday"
-import { ExifStripper, ImageCompressor } from "@/components/tools/files"
 import {
-  FaviconGenerator,
+  AgeCalculator,
+  CarbonFootprintEstimator,
+  CoinFlip,
+  CookingTimer,
+  Countdown,
+  NamePicker,
+  RandomChoice,
+  RandomNumber,
+  RecipeScaler,
+  ScreenTimeAudit,
+  SocialBatteryCheckin,
+  StopwatchTool,
+  TimeZoneMeetingPlanner,
+  WheelSpinner,
+  WorldClock,
+} from "@/components/everyday/views"
+import {
+  ExifStripper,
+  ImageCompressor,
   ImageCropper,
   ImageResizer,
   ImageToBase64,
@@ -26,40 +42,68 @@ import {
   PngToJpg,
   SvgToPng,
   WebpToJpg,
-} from "@/components/tools/media"
+} from "@/components/files/images"
+import { FaviconGenerator } from "@/components/tools/media"
+import { TipCalculator } from "@/components/tools/numbers"
+import { MaterialEstimator } from "@/components/trade/estimator"
+import { PaintCalculator } from "@/components/trade/paint"
 import {
-  AgeCalculator,
-  MaterialEstimator,
-  MeetingCost,
-  PaintCalculator,
-  TipCalculator,
-} from "@/components/tools/numbers"
+  BoardFootCalculator,
+  ConcreteCalculator,
+  ConstructionEstimateGenerator,
+  DeckCalculator,
+  DrywallCalculator,
+  FenceCalculator,
+  GravelCalculator,
+  GutterCalculator,
+  HvacBtuCalculator,
+  MulchCalculator,
+  PaverCalculator,
+  RoofingCalculator,
+  RoofingShingleCalculator,
+  RoofPitchCalculator,
+  StairStringerCalculator,
+  StudWallCalculator,
+  TileCalculator,
+} from "@/components/trade/calcs"
 import { CoverLetterGenerator, ResumeBuilder } from "@/components/tools/papers"
-import { RaciGenerator, WorkStyleQuiz } from "@/components/tools/people"
+import {
+  MeetingAgenda,
+  MeetingCost,
+  OneOnOneAgenda,
+  RaciGenerator,
+  TeamIcebreaker,
+  TeamWorkingAgreement,
+  WorkStyleQuiz,
+} from "@/components/people/views"
 import {
   BitcoinHalvingCountdown,
-  CookingTimer,
+  QrCodeGenerator,
+} from "@/components/tools/play"
+import {
+  BatteryRuntimeCalculator,
+  BracketGenerator,
   CpsTest,
   DeadZoneTester,
+  EdpiCalculator,
+  FovCalculator,
   GamepadTester,
   KeyboardTester,
-  MarkdownPreview,
+  LootBoxCalculator,
+  MonitorPpiCalculator,
   MouseTester,
-  QrCodeGenerator,
+  PcBuildCostEstimator,
   ReactionTimeTest,
   RefreshRateTester,
   ScreenPpiCalculator,
-  StopwatchTool,
-  WheelSpinner,
-  WorldClock,
-} from "@/components/tools/play"
+  SensitivityConverter,
+  SteamLibraryCalculator,
+} from "@/components/gaming/views"
 import { CryptoDcaBacktest } from "@/components/tools/dca-backtest"
 import {
   AiToolFitQuiz,
   BioLinkBuilder,
-  BracketGenerator,
   PromptLibrary,
-  SocialBatteryCheckin,
   ThreadFormatter,
   ThumbnailPreview,
   TokenCounter,
@@ -68,18 +112,30 @@ import {
 import {
   CryptoTaxCalculator,
   ExpenseSplitter,
-  LootBoxCalculator,
   ResaleProfitCalculator,
   SideHustleTracker,
-  SteamLibraryCalculator,
   SubscriptionAudit,
 } from "@/components/tools/ledgers"
 import { BoundSpec } from "@/components/tools/SpecTool"
-import { CaseConverter, DiffChecker, WordCounter } from "@/components/tools/text"
+import {
+  CaseConverter,
+  CharacterCounter,
+  DiffChecker,
+  LoremIpsum,
+  MarkdownPreview,
+  MarkdownTable,
+  NumberToWordsTool,
+  ReadabilityChecker,
+  ReadingTime,
+  RemoveDuplicateLines,
+  SlugGenerator,
+  TextCleaner,
+  WordCounter,
+} from "@/components/text/views"
 import { FunnelChart, GanttChart } from "@/components/tools/viz"
-import { PdfOcr, PdfSigner, PdfToText } from "@/components/tools/pdf-tools"
-import { AudioTrimmer, GifMaker, VideoTrimmer } from "@/components/tools/motion-tools"
-import { ScreenshotAnnotator, ScreenshotBeautifier } from "@/components/tools/screenshot-tools"
+import { PdfMerger, PdfOcr, PdfSigner, PdfToText } from "@/components/files/pdf"
+import { AudioTrimmer, GifMaker, VideoTrimmer } from "@/components/files/motion"
+import { ScreenshotAnnotator, ScreenshotBeautifier } from "@/components/files/screenshots"
 import { JsonSchemaGenerator } from "@/components/tools/json-schema"
 import { PasswordStrengthChecker } from "@/components/tools/password-strength"
 import { EmailHeaderAnalyzer } from "@/components/tools/email-headers"
@@ -88,9 +144,6 @@ import { OpenGraphImageGenerator } from "@/components/tools/og-image"
 import { NetWorthCalculator } from "@/components/tools/net-worth"
 import { DebtPayoffCalculator } from "@/components/tools/debt-payoff"
 import { AiContextWindowCalculator, PromptCostCalculator } from "@/components/tools/ai-cost"
-import { FovCalculator } from "@/components/tools/fov"
-import { GamingSensitivityCalculator } from "@/components/tools/sensitivity"
-import { TimeZoneMeetingPlanner } from "@/components/tools/meeting-planner"
 import { CryptoMomentumScanner } from "@/components/tools/crypto-momentum"
 import { toolSpecs } from "@/lib/tools/specs"
 import type { ComponentType } from "react"
@@ -106,8 +159,9 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "json-formatter": { View: JsonFormatter, width: "tool" },
   "uuid-generator": { View: UuidGenerator, width: "tool" },
   "regex-tester": { View: RegexTester, width: "tool" },
-  "image-compressor": { View: ImageCompressor },
-  "exif-stripper": { View: ExifStripper },
+  "image-compressor": { View: ImageCompressor, width: "tool" },
+  "exif-stripper": { View: ExifStripper, width: "tool" },
+  "pdf-merger": { View: PdfMerger, width: "tool" },
   "colour-palette-generator": { View: ColourPalette, width: "tool" },
   "contrast-checker": { View: ContrastChecker, width: "tool" },
   "gradient-generator": { View: GradientGenerator, width: "tool" },
@@ -127,15 +181,51 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "commission-calculator": { View: CommissionCalculator },
   "paint-calculator": { View: PaintCalculator, width: "tool" },
   "material-estimator": { View: MaterialEstimator, width: "tool" },
-  "work-style": { View: WorkStyleQuiz },
-  "meeting-cost": { View: MeetingCost },
+  "concrete-calculator": { View: ConcreteCalculator, width: "tool" },
+  "gravel-calculator": { View: GravelCalculator, width: "tool" },
+  "mulch-calculator": { View: MulchCalculator, width: "tool" },
+  "roof-pitch-calculator": { View: RoofPitchCalculator, width: "tool" },
+  "tile-calculator": { View: TileCalculator, width: "tool" },
+  "drywall-calculator": { View: DrywallCalculator, width: "tool" },
+  "fence-calculator": { View: FenceCalculator, width: "tool" },
+  "deck-calculator": { View: DeckCalculator, width: "tool" },
+  "paver-calculator": { View: PaverCalculator, width: "tool" },
+  "roofing-calculator": { View: RoofingCalculator, width: "tool" },
+  "roofing-shingle-calculator": { View: RoofingShingleCalculator, width: "tool" },
+  "gutter-calculator": { View: GutterCalculator, width: "tool" },
+  "hvac-btu-calculator": { View: HvacBtuCalculator, width: "tool" },
+  "board-foot-calculator": { View: BoardFootCalculator, width: "tool" },
+  "stair-stringer-calculator": { View: StairStringerCalculator, width: "tool" },
+  "stud-wall-calculator": { View: StudWallCalculator, width: "tool" },
+  "construction-estimate-generator": { View: ConstructionEstimateGenerator, width: "tool" },
+  "work-style": { View: WorkStyleQuiz, width: "tool" },
+  "meeting-cost": { View: MeetingCost, width: "tool" },
   "raci-generator": { View: RaciGenerator, width: "tool" },
+  "team-working-agreement": { View: TeamWorkingAgreement, width: "tool" },
+  "meeting-agenda": { View: MeetingAgenda, width: "tool" },
+  "one-on-one-agenda": { View: OneOnOneAgenda, width: "tool" },
+  "team-icebreaker": { View: TeamIcebreaker, width: "tool" },
   "word-counter": { View: WordCounter, width: "tool" },
   "diff-checker": { View: DiffChecker, width: "tool" },
   "case-converter": { View: CaseConverter, width: "tool" },
+  "character-counter": { View: CharacterCounter, width: "tool" },
+  "readability-checker": { View: ReadabilityChecker, width: "tool" },
+  "reading-time": { View: ReadingTime, width: "tool" },
+  "lorem-ipsum": { View: LoremIpsum, width: "tool" },
+  "remove-duplicate-lines": { View: RemoveDuplicateLines, width: "tool" },
+  "slug-generator": { View: SlugGenerator, width: "tool" },
+  "markdown-table": { View: MarkdownTable, width: "tool" },
+  "number-to-words": { View: NumberToWordsTool, width: "tool" },
+  "text-cleaner": { View: TextCleaner, width: "tool" },
   "age-calculator": { View: AgeCalculator },
   countdown: { View: Countdown },
-  "name-picker": { View: NamePicker },
+  "name-picker": { View: NamePicker, width: "tool" },
+  "coin-flip": { View: CoinFlip },
+  "random-number": { View: RandomNumber },
+  "random-choice": { View: RandomChoice, width: "tool" },
+  "recipe-scaler": { View: RecipeScaler, width: "tool" },
+  "screen-time-audit": { View: ScreenTimeAudit, width: "tool" },
+  "carbon-footprint-estimator": { View: CarbonFootprintEstimator },
   "image-resizer": { View: ImageResizer, width: "tool" },
   "image-cropper": { View: ImageCropper, width: "tool" },
   "jpg-to-png": { View: JpgToPng, width: "tool" },
@@ -158,21 +248,24 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "wheel-spinner": { View: WheelSpinner },
   stopwatch: { View: StopwatchTool },
   "cooking-timer": { View: CookingTimer },
-  "world-clock": { View: WorldClock },
+  "world-clock": { View: WorldClock, width: "tool" },
   "gamepad-tester": { View: GamepadTester, width: "tool" },
   "keyboard-tester": { View: KeyboardTester, width: "tool" },
   "mouse-tester": { View: MouseTester, width: "tool" },
   "reaction-time": { View: ReactionTimeTest },
   "cps-test": { View: CpsTest },
   "refresh-rate-tester": { View: RefreshRateTester },
-  "dead-zone-tester": { View: DeadZoneTester },
-  "screen-ppi-calculator": { View: ScreenPpiCalculator },
+  "dead-zone-tester": { View: DeadZoneTester, width: "tool" },
+  "screen-ppi-calculator": { View: ScreenPpiCalculator, width: "tool" },
+  "monitor-ppi-calculator": { View: MonitorPpiCalculator, width: "tool" },
+  "battery-runtime-calculator": { View: BatteryRuntimeCalculator, width: "tool" },
+  "pc-build-cost-estimator": { View: PcBuildCostEstimator, width: "tool" },
   "bitcoin-halving-countdown": { View: BitcoinHalvingCountdown },
   "crypto-momentum-scanner": { View: CryptoMomentumScanner, width: "wide" },
   "crypto-tax-calculator": { View: CryptoTaxCalculator, width: "tool" },
   "crypto-dca-backtest-calculator": { View: CryptoDcaBacktest, width: "tool" },
   "loot-box-calculator": { View: LootBoxCalculator, width: "tool" },
-  "library-value-calculator": { View: SteamLibraryCalculator },
+  "library-value-calculator": { View: SteamLibraryCalculator, width: "tool" },
   "bracket-generator": { View: BracketGenerator, width: "tool" },
   "thread-formatter": { View: ThreadFormatter, width: "tool" },
   "thumbnail-preview": { View: ThumbnailPreview, width: "tool" },
@@ -206,8 +299,8 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "ai-context-window-calculator": { View: AiContextWindowCalculator, width: "tool" },
   "prompt-cost-calculator": { View: PromptCostCalculator, width: "tool" },
   "fov-calculator": { View: FovCalculator, width: "tool" },
-  "sensitivity-converter": { View: GamingSensitivityCalculator, width: "tool" },
-  "edpi-calculator": { View: GamingSensitivityCalculator, width: "tool" },
+  "sensitivity-converter": { View: SensitivityConverter, width: "tool" },
+  "edpi-calculator": { View: EdpiCalculator, width: "tool" },
   "time-zone-meeting-planner": { View: TimeZoneMeetingPlanner, width: "wide" },
 }
 
