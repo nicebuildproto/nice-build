@@ -59,8 +59,11 @@ export function LengthStep({
               <ArrowLeft className="size-3.5" /> Back
             </button>
           ) : null}
-          <h1 className="text-2xl font-semibold tracking-tight">How long is each piece?</h1>
-          <p className="text-sm text-[var(--nb-secondary)]">You can change this later.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">How long is this piece?</h1>
+          <p className="text-sm text-[var(--nb-secondary)]">
+            Choose the length for this design. Need another piece? You can add it later with a different
+            design, length or quantity.
+          </p>
         </div>
         <div className="flex flex-col gap-2">
           <label htmlFor="flashing-piece-length" className="text-sm text-[var(--nb-secondary)]">
