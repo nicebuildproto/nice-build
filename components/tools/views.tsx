@@ -78,21 +78,31 @@ import {
 } from "@/components/people/views"
 import {
   BitcoinHalvingCountdown,
+  QrCodeGenerator,
+} from "@/components/tools/play"
+import {
+  BatteryRuntimeCalculator,
+  BracketGenerator,
   CpsTest,
   DeadZoneTester,
+  EdpiCalculator,
+  FovCalculator,
   GamepadTester,
   KeyboardTester,
+  LootBoxCalculator,
+  MonitorPpiCalculator,
   MouseTester,
-  QrCodeGenerator,
+  PcBuildCostEstimator,
   ReactionTimeTest,
   RefreshRateTester,
   ScreenPpiCalculator,
-} from "@/components/tools/play"
+  SensitivityConverter,
+  SteamLibraryCalculator,
+} from "@/components/gaming/views"
 import { CryptoDcaBacktest } from "@/components/tools/dca-backtest"
 import {
   AiToolFitQuiz,
   BioLinkBuilder,
-  BracketGenerator,
   PromptLibrary,
   ThreadFormatter,
   ThumbnailPreview,
@@ -102,10 +112,8 @@ import {
 import {
   CryptoTaxCalculator,
   ExpenseSplitter,
-  LootBoxCalculator,
   ResaleProfitCalculator,
   SideHustleTracker,
-  SteamLibraryCalculator,
   SubscriptionAudit,
 } from "@/components/tools/ledgers"
 import { BoundSpec } from "@/components/tools/SpecTool"
@@ -136,8 +144,6 @@ import { OpenGraphImageGenerator } from "@/components/tools/og-image"
 import { NetWorthCalculator } from "@/components/tools/net-worth"
 import { DebtPayoffCalculator } from "@/components/tools/debt-payoff"
 import { AiContextWindowCalculator, PromptCostCalculator } from "@/components/tools/ai-cost"
-import { FovCalculator } from "@/components/tools/fov"
-import { GamingSensitivityCalculator } from "@/components/tools/sensitivity"
 import { CryptoMomentumScanner } from "@/components/tools/crypto-momentum"
 import { toolSpecs } from "@/lib/tools/specs"
 import type { ComponentType } from "react"
@@ -249,14 +255,17 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "reaction-time": { View: ReactionTimeTest },
   "cps-test": { View: CpsTest },
   "refresh-rate-tester": { View: RefreshRateTester },
-  "dead-zone-tester": { View: DeadZoneTester },
-  "screen-ppi-calculator": { View: ScreenPpiCalculator },
+  "dead-zone-tester": { View: DeadZoneTester, width: "tool" },
+  "screen-ppi-calculator": { View: ScreenPpiCalculator, width: "tool" },
+  "monitor-ppi-calculator": { View: MonitorPpiCalculator, width: "tool" },
+  "battery-runtime-calculator": { View: BatteryRuntimeCalculator, width: "tool" },
+  "pc-build-cost-estimator": { View: PcBuildCostEstimator, width: "tool" },
   "bitcoin-halving-countdown": { View: BitcoinHalvingCountdown },
   "crypto-momentum-scanner": { View: CryptoMomentumScanner, width: "wide" },
   "crypto-tax-calculator": { View: CryptoTaxCalculator, width: "tool" },
   "crypto-dca-backtest-calculator": { View: CryptoDcaBacktest, width: "tool" },
   "loot-box-calculator": { View: LootBoxCalculator, width: "tool" },
-  "library-value-calculator": { View: SteamLibraryCalculator },
+  "library-value-calculator": { View: SteamLibraryCalculator, width: "tool" },
   "bracket-generator": { View: BracketGenerator, width: "tool" },
   "thread-formatter": { View: ThreadFormatter, width: "tool" },
   "thumbnail-preview": { View: ThumbnailPreview, width: "tool" },
@@ -290,8 +299,8 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "ai-context-window-calculator": { View: AiContextWindowCalculator, width: "tool" },
   "prompt-cost-calculator": { View: PromptCostCalculator, width: "tool" },
   "fov-calculator": { View: FovCalculator, width: "tool" },
-  "sensitivity-converter": { View: GamingSensitivityCalculator, width: "tool" },
-  "edpi-calculator": { View: GamingSensitivityCalculator, width: "tool" },
+  "sensitivity-converter": { View: SensitivityConverter, width: "tool" },
+  "edpi-calculator": { View: EdpiCalculator, width: "tool" },
   "time-zone-meeting-planner": { View: TimeZoneMeetingPlanner, width: "wide" },
 }
 

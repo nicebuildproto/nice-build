@@ -122,10 +122,11 @@ export const batchGuides: Record<string, ToolGuideCopy> = {
     ["Does this include cache or batch?", "No. Standard input and output rates only."],
   ),
   "fov-calculator": guide(
-    "Valorant’s 103° horizontal on 16:9 is about 70.5° vertical. Switching the input to vertical and typing that number returns 103° horizontal.",
-    ["What does the wedge show?", "A simple top-down view of the horizontal FOV against a screen rectangle."],
-    ["Are game presets measured?", "They use advertised FOV values, not a photographed camera."],
-    ["What is the optional screen width?", "If you type viewing distance and screen width, you get the angle that screen subtends."],
+    "Valorant’s 103° horizontal on 16:9 is about 70.5° vertical and about 110.5° diagonal. Switching the input to vertical and typing 70.5 returns about 103° horizontal.",
+    ["What do horizontal, vertical, and diagonal mean?", "Horizontal is left-to-right, vertical is up-and-down, and diagonal is the corner-to-corner angle. They are linked by aspect ratio."],
+    ["Are game presets measured?", "They use advertised FOV values, not a photographed camera. CS2’s 90° is a 4:3 figure."],
+    ["What is hor+?", "Source games keep the 4:3 vertical FOV and widen the horizontal angle on a wider monitor. On 16:9, 90° 4:3 is about 106.3° horizontal. That is a community convention. Typing 90° as horizontal on 16:9 is a narrower view."],
+    ["What is the optional screen width?", "Viewing distance and screen width give the angle that screen subtends to your eyes — not the game’s FOV setting."],
   ),
   "time-zone-meeting-planner": guide(
     "Sydney, London, and New York on 5 October 2026. Green cells are hours that sit inside 9:00–17:00 for every city. A +1 under a cell means that city is already on the next calendar day.",

@@ -59,7 +59,7 @@ export const categories: { key: Category; label: string; description: string; ic
   { key: "people-teams", label: "People & Teams", description: "Short tools for how you work together — meetings, roles, and a light work-style quiz.", icon: "Users" },
   { key: "text-tools", label: "Text Tools", description: "Paste text, see the result. Count, convert, clean, and compare — in this browser.", icon: "Type" },
   { key: "everyday-fun", label: "Everyday & Fun", description: "Small helpers for everyday moments — timers, pickers, dice, and a bit of play.", icon: "Sparkles" },
-  { key: "gaming-hardware", label: "Gaming & Hardware", description: "Test a controller, check a click, or convert the numbers players actually use.", icon: "Gamepad2" },
+  { key: "gaming-hardware", label: "Gaming & Hardware", description: "Testers that show live hardware, and calculators that answer the number a player actually needs.", icon: "Gamepad2" },
   { key: "crypto", label: "Crypto", description: "A free momentum scanner plus calculators for profit, position size, and staking. No wallet connection.", icon: "Bitcoin" },
   { key: "creator", label: "Creator Tools", description: "Rates, posting windows, and small utilities for publishing — starting points, not promises.", icon: "Video" },
   { key: "ai-tools", label: "AI Tools", description: "Token counts, prompt notes, and cost estimates from published prices you can check yourself.", icon: "Bot" },
