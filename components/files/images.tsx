@@ -281,7 +281,7 @@ type StudioMode = "resize" | "crop" | "png" | "jpg" | "webp" | "svg" | "base64"
 
 const studioCopy: Record<StudioMode, string> = {
   resize: "Set a width and the height follows, unless you unlock it. Social presets cover-crop to a fixed frame. Your files stay on your device.",
-  crop: "Drag the handles, or type percentages. You download a new image — the original stays put.",
+  crop: "Set the keep-region as percentages of the original. A dashed box shows what you’ll download — the source file stays put.",
   png: "The JPEG is redrawn as a PNG in this browser.",
   jpg: "The image is redrawn as a JPEG. Transparent pixels become white.",
   webp: "The WebP is redrawn as a JPEG in this browser.",
