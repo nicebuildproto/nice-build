@@ -425,6 +425,19 @@ export function getFeaturedTools(key: Category, limit = 3) {
   return (featured.length > 0 ? featured : tools).slice(0, limit)
 }
 
+export const homeFeaturedSlugs = [
+  "percentage-calculator",
+  "crypto-momentum-scanner",
+  "sankey-generator",
+] as const
+
+export function getHomeFeaturedTools() {
+  return homeFeaturedSlugs.flatMap((slug) => {
+    const tool = registry.find((entry) => entry.slug === slug)
+    return tool?.status === "live" ? [tool] : []
+  })
+}
+
 export function getToolsByCluster(cluster: string) {
   return registry.filter((tool) => tool.cluster === cluster)
 }
