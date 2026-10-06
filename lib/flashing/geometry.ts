@@ -175,8 +175,13 @@ export function outwardSign(points: Point[]): 1 | -1 {
 
 export type Stroke = { a: Point; b: Point }
 
-// Short ticks on the weather face at folds and cut ends, so the facing of the
-// piece is readable without extra labels.
+// Piece length recedes up-right at 45° in drawing space, so every facing mark
+// is parallel and the profile reads as a short extrusion.
+export const LENGTH_DIRECTION: Point = { x: Math.SQRT1_2, y: -Math.SQRT1_2 }
+
+// Short ticks on the weather face at folds and cut ends. They sit just off
+// the colour/weather side, then all run in LENGTH_DIRECTION so the length of
+// the piece is readable without extra labels.
 export function directionStrokes(points: Point[], length: number, inset = 0): Stroke[] {
   const strokes: Stroke[] = []
   if (points.length < 2 || length <= 0) return strokes
@@ -187,11 +192,16 @@ export function directionStrokes(points: Point[], length: number, inset = 0): St
     const y = ny * out
     const mag = Math.hypot(x, y)
     if (mag < 1e-6) return
-    const ux = x / mag
-    const uy = y / mag
+    const origin = {
+      x: vertex.x + (x / mag) * inset,
+      y: vertex.y + (y / mag) * inset,
+    }
     strokes.push({
-      a: { x: vertex.x + ux * inset, y: vertex.y + uy * inset },
-      b: { x: vertex.x + ux * length, y: vertex.y + uy * length },
+      a: origin,
+      b: {
+        x: origin.x + LENGTH_DIRECTION.x * length,
+        y: origin.y + LENGTH_DIRECTION.y * length,
+      },
     })
   }
 
