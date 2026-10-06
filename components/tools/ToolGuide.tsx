@@ -64,6 +64,11 @@ export function ToolGuide({ slug }: { slug: string }) {
 }
 
 function relatedTools(tool: ToolEntry) {
+  if (tool.related?.length) {
+    return tool.related
+      .map((slug) => registry.find((item) => item.slug === slug && item.status === "live"))
+      .filter((item): item is ToolEntry => Boolean(item))
+  }
   const live = registry.filter((item) => item.status === "live" && item.slug !== tool.slug)
   if (tool.cluster) return live.filter((item) => item.cluster === tool.cluster)
   const sameCategory = registry.filter(

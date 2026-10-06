@@ -29,6 +29,7 @@ export interface ToolEntry {
   cluster?: string
   tags?: string[]
   seoTitle?: string
+  related?: string[]
 }
 
 export type CategoryIcon =
@@ -54,7 +55,7 @@ export const categories: { key: Category; label: string; description: string; ic
   { key: "design-creative", label: "Design & Creative", description: "Colour palettes, contrast, gradients, and CSS extras you can preview and copy.", icon: "Palette" },
   { key: "data-viz", label: "Data Visualization", description: "Paste a table, get a chart you can export. Funnels, Gantt, bars, lines, pies, scatter, waterfall, timelines, and simple diagrams.", icon: "BarChart3" },
   { key: "business", label: "Business Tools", description: "Invoices, quotes, fees, and margins — the everyday numbers behind running a job.", icon: "Briefcase" },
-  { key: "home-trade", label: "Home & Trade", description: "Material estimates for jobs around the house or on site.", icon: "Hammer" },
+  { key: "home-trade", label: "Home & Trade", description: "Paint, concrete, tiles, and material quantities for a job — from measurements you already have.", icon: "Hammer" },
   { key: "people-teams", label: "People & Teams", description: "A few tools for how you work together — meetings, roles, and a light work-style quiz.", icon: "Users" },
   { key: "text-tools", label: "Text Tools", description: "Count, clean, convert, and compare text without sending it anywhere.", icon: "Type" },
   { key: "everyday-fun", label: "Everyday & Fun", description: "Small helpers for everyday moments — timers, pickers, dice, and a bit of play.", icon: "Sparkles" },
@@ -287,20 +288,24 @@ export const registry: ToolEntry[] = [
     slug: "paint-calculator",
     category: "home-trade",
     title: "Paint Calculator",
-    description: "Estimate how much paint a room needs from the walls, coats, and coverage on the tin.",
+    description: "How much paint do you need? Measure the room, set the coats, and get litres plus a tin size to take to the shop.",
     route: "/home-trade/paint-calculator",
     status: "live",
     featured: true,
-    tags: ["paint", "room", "estimate"],
+    seoTitle: "Paint Calculator",
+    tags: ["paint", "paint calculator", "how much paint", "litres", "room", "walls"],
+    related: ["material-estimator", "drywall-calculator", "tile-calculator", "stud-wall-calculator"],
   },
   {
     slug: "material-estimator",
     category: "home-trade",
     title: "Material Estimator",
-    description: "Ballpark timber, plaster, and sheet quantities from a few measurements you already have.",
+    description: "How many plasterboard sheets, timber studs, or flooring packs a job needs — with waste you can see.",
     route: "/home-trade/material-estimator",
     status: "live",
-    tags: ["materials", "estimate", "trade"],
+    seoTitle: "Material Estimator",
+    tags: ["materials", "plasterboard", "studs", "flooring", "estimate"],
+    related: ["paint-calculator", "drywall-calculator", "stud-wall-calculator", "concrete-calculator"],
   },
   {
     slug: "work-style",

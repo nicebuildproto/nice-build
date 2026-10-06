@@ -27,13 +27,28 @@ import {
   SvgToPng,
   WebpToJpg,
 } from "@/components/tools/media"
+import { AgeCalculator, MeetingCost, TipCalculator } from "@/components/tools/numbers"
+import { MaterialEstimator } from "@/components/trade/estimator"
+import { PaintCalculator } from "@/components/trade/paint"
 import {
-  AgeCalculator,
-  MaterialEstimator,
-  MeetingCost,
-  PaintCalculator,
-  TipCalculator,
-} from "@/components/tools/numbers"
+  BoardFootCalculator,
+  ConcreteCalculator,
+  ConstructionEstimateGenerator,
+  DeckCalculator,
+  DrywallCalculator,
+  FenceCalculator,
+  GravelCalculator,
+  GutterCalculator,
+  HvacBtuCalculator,
+  MulchCalculator,
+  PaverCalculator,
+  RoofingCalculator,
+  RoofingShingleCalculator,
+  RoofPitchCalculator,
+  StairStringerCalculator,
+  StudWallCalculator,
+  TileCalculator,
+} from "@/components/trade/calcs"
 import { CoverLetterGenerator, ResumeBuilder } from "@/components/tools/papers"
 import { RaciGenerator, WorkStyleQuiz } from "@/components/tools/people"
 import {
@@ -127,6 +142,23 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "commission-calculator": { View: CommissionCalculator },
   "paint-calculator": { View: PaintCalculator, width: "tool" },
   "material-estimator": { View: MaterialEstimator, width: "tool" },
+  "concrete-calculator": { View: ConcreteCalculator, width: "tool" },
+  "gravel-calculator": { View: GravelCalculator, width: "tool" },
+  "mulch-calculator": { View: MulchCalculator, width: "tool" },
+  "roof-pitch-calculator": { View: RoofPitchCalculator, width: "tool" },
+  "tile-calculator": { View: TileCalculator, width: "tool" },
+  "drywall-calculator": { View: DrywallCalculator, width: "tool" },
+  "fence-calculator": { View: FenceCalculator, width: "tool" },
+  "deck-calculator": { View: DeckCalculator, width: "tool" },
+  "paver-calculator": { View: PaverCalculator, width: "tool" },
+  "roofing-calculator": { View: RoofingCalculator, width: "tool" },
+  "roofing-shingle-calculator": { View: RoofingShingleCalculator, width: "tool" },
+  "gutter-calculator": { View: GutterCalculator, width: "tool" },
+  "hvac-btu-calculator": { View: HvacBtuCalculator, width: "tool" },
+  "board-foot-calculator": { View: BoardFootCalculator, width: "tool" },
+  "stair-stringer-calculator": { View: StairStringerCalculator, width: "tool" },
+  "stud-wall-calculator": { View: StudWallCalculator, width: "tool" },
+  "construction-estimate-generator": { View: ConstructionEstimateGenerator, width: "tool" },
   "work-style": { View: WorkStyleQuiz },
   "meeting-cost": { View: MeetingCost },
   "raci-generator": { View: RaciGenerator, width: "tool" },
