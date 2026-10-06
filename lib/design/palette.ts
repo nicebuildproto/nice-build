@@ -1,4 +1,4 @@
-import { parseHex, randomHex, shiftHex } from "./colour.ts"
+import { parseHex, randomHex, shiftHex } from "./colour"
 
 export type PaletteMode = "tints" | "complementary" | "analogous" | "triadic" | "mono"
 

@@ -1,4 +1,4 @@
-import { hexToRgb, parseHex } from "./colour.ts"
+import { hexToRgb, parseHex } from "./colour"
 
 export function gcd(a: number, b: number): number {
   let x = Math.abs(Math.round(a))

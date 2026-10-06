@@ -1,4 +1,4 @@
-import { parseHex, randomHex } from "./colour.ts"
+import { parseHex, randomHex } from "./colour"
 
 export type GradientKind = "linear" | "radial"
 

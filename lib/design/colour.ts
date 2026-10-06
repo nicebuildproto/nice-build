@@ -6,7 +6,7 @@ import {
   rgbToHex,
   rgbToHsl,
   shiftHex,
-} from "../tools/format.ts"
+} from "../tools/format"
 
 export { contrastRatio, hexToRgb, hslToRgb, parseHex, rgbToHex, rgbToHsl, shiftHex }
 
