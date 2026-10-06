@@ -2,22 +2,22 @@ import { guide, type ToolGuideCopy } from "@/lib/tools/guides/types"
 
 export const businessGuides: Record<string, ToolGuideCopy> = {
   "invoice-generator": guide(
-    "One line, “Design and documentation”, quantity 1 at $1,200, plus 10% tax, gives you a $1,200 subtotal, $120 tax, and a $1,320 total. Print opens the browser’s print dialog so you can send it from there.",
-    ["Does print make a PDF?", "Choose “Save as PDF” in the print dialog and you’ll have a file. The page doesn’t upload the invoice anywhere."],
-    ["Is the tax GST?", "It’s whatever percent you type. For Australian GST, use 10 and put GST in the description if you need the word on the page."],
-    ["Can I add more than one line?", "Yes. Each line has a description, a quantity, and a rate. The amount is quantity times rate, so you can stack as many as you need."],
+    "The example starts as North Studio invoicing River & Co. One line of design at $1,200 and two workshops at $180 is a $1,560 subtotal. At 10% GST exclusive that’s $156 GST and $1,716 due. Download PDF saves a file in this browser; print opens the print dialog.",
+    ["Does this upload my invoice?", "No. The invoice stays in your browser until you download or print it. Remembering business details only writes them to this device."],
+    ["Is the tax GST?", "The rate is whatever you type. The default is 10% for Australian GST. Tick “Line prices include GST” if your rates are already tax-inclusive."],
+    ["Can I turn a quote into an invoice?", "Yes — from Quote Builder, use Create invoice. It copies the customer and lines across and relabels the document as an invoice."],
   ),
   "quote-builder": guide(
-    "A quote numbered Q-001 with one line at $1,200 and 10% tax totals $1,320 — the same arithmetic as an invoice. The printed page is labelled Quote rather than Invoice, so the two don’t get mixed up.",
-    ["What is the difference between a quote and an invoice?", "On this site, the layout is the same and the heading changes. A quote is an offer. An invoice asks to be paid."],
-    ["Are the numbers stored?", "No. They live in the page until you refresh. Print or save a PDF if you need a copy to keep."],
-    ["Can the tax be zero?", "Yes. Set tax to 0 and the total equals the subtotal."],
+    "Quote Q-104 for a shopfront refresh uses the same lines as the invoice example: $1,560 plus 10% GST is a $1,716 quoted total. The page is labelled Quote, and the notes say it is an offer, not a request for payment.",
+    ["What is the difference between a quote and an invoice?", "A quote is a proposed price before anyone is committed. An invoice asks to be paid. When a quote is accepted, Create invoice copies the details across."],
+    ["Are customer details stored?", "No. Only business details you choose to remember stay on this device. Customer names, addresses, and prices are not uploaded."],
+    ["Can the GST be zero?", "Yes. Set the GST rate to 0 and the quoted total equals the subtotal."],
   ),
   "margin-calculator": guide(
-    "A cost of $40 and a sell price of $65 is $25 profit. Margin is 25 ÷ 65, about 38.5%. Markup is 25 ÷ 40, which is 62.5% — same dollars, two different stories.",
-    ["What is the difference between margin and markup?", "Margin divides profit by the sell price. Markup divides profit by the cost. The same dollars produce a higher markup percent than margin percent."],
-    ["What if the sell price is below cost?", "Profit is negative, and so are margin and markup. That’s a loss, and you’ll see it shown that way."],
-    ["Does this include GST?", "No. Use prices that are both inclusive or both exclusive, so the margin isn’t mixed."],
+    "A cost of $40 and a selling price of $65 is $25 gross profit. Margin is 25 ÷ 65, about 38.46%. Markup is 25 ÷ 40, which is 62.5% — the same dollars, two different percentages. Switch to Cost and margin if you want the selling price instead.",
+    ["What is the difference between margin and markup?", "Margin divides profit by the selling price. Markup divides profit by the cost. Markup percent is always higher than margin percent on the same job."],
+    ["How do I work backwards from a margin?", "Choose Cost and margin, type the cost and the margin you want, and the selling price updates. Margin must stay below 100%."],
+    ["Does this include GST?", "No. Use two GST-exclusive prices, or two GST-inclusive prices — don’t mix them."],
   ),
   "resume-builder": guide(
     "A name, a role, a contact line, a two-sentence summary, and a short experience block print as a one-page resume — enough to get you out the door. The print dialog can save it as a PDF.",
@@ -32,10 +32,10 @@ export const businessGuides: Record<string, ToolGuideCopy> = {
     ["Where does the letter go?", "Only to the print dialog. Nothing is emailed or stored."],
   ),
   "receipt-generator": guide(
-    "Workshop $80 and Materials $24 give you a $104 subtotal. At 10% tax the tax is $10.40 and the total is $114.40. Print hands you a receipt with those lines.",
-    ["How do I enter a line?", "A name, then the amount, such as Workshop, 80. One line each."],
-    ["Can a line be a refund?", "Yes. A negative amount reduces the subtotal, so you can show a refund on the same receipt."],
-    ["Does this send the receipt to a customer?", "No. Print it, or save a PDF, and send that yourself."],
+    "Workshop $80 and Materials $24 is a $104 subtotal. At 10% GST exclusive the GST is $10.40 and the total is $114.40. Print opens a receipt with those lines; copy puts the same figures on the clipboard.",
+    ["How do I enter a line?", "Type a description and an amount. Use a negative amount for a refund on the same receipt."],
+    ["Does this send the receipt?", "No. Print it, or copy it, and send that yourself. Nothing is uploaded."],
+    ["What’s the difference from an invoice?", "A receipt records a payment that already happened. An invoice asks for payment."],
   ),
   "qr-code-generator": guide(
     "The URL https://nice-build-ten.vercel.app becomes a square code. Point a phone camera at it and it should open that address. Download saves a PNG of the same code.",
@@ -50,7 +50,7 @@ export const businessGuides: Record<string, ToolGuideCopy> = {
     ["What if the price is below the variable cost?", "There is no break-even. Every sale increases the loss, and the page says so."],
   ),
   "commission-calculator": guide(
-    "$4,800 of sales at 8% commission is $384. The commission is the sales amount times the rate — nothing else is mixed in.",
+    "$4,800 of sales at 8% commission is $384. The remaining $4,416 is the sales amount after commission — before any costs or tax.",
     ["Is the rate on revenue or on profit?", "On the sales amount you enter. Subtract costs yourself if the agreement pays commission on margin."],
     ["Can I split commission across people?", "Run it once, then divide the result. The page applies one rate to one amount."],
     ["Does this include tax on the commission?", "No. It’s the commission itself, before any tax you owe on it."],

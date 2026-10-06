@@ -11,7 +11,10 @@ import {
 import { ColourPalette, ContrastChecker, GradientGenerator, ColourPicker, HexToRgb, RgbToHex } from "@/components/tools/colour"
 import { AspectRatioCalculator, BorderRadiusGenerator, BoxShadowGenerator, PxToRem } from "@/components/tools/css-preview"
 import { JsonFormatter, RegexTester, UuidGenerator } from "@/components/tools/developer"
-import { InvoiceGenerator, QuoteBuilder } from "@/components/tools/documents"
+import { BreakEvenCalculator, CommissionCalculator } from "@/components/business/calcs"
+import { InvoiceGenerator, QuoteBuilder } from "@/components/business/documents"
+import { MarginCalculator } from "@/components/business/margin"
+import { ReceiptGenerator } from "@/components/business/receipt"
 import { Countdown, NamePicker } from "@/components/tools/everyday"
 import { ExifStripper, ImageCompressor } from "@/components/tools/files"
 import {
@@ -26,13 +29,12 @@ import {
 } from "@/components/tools/media"
 import {
   AgeCalculator,
-  MarginCalculator,
   MaterialEstimator,
   MeetingCost,
   PaintCalculator,
   TipCalculator,
 } from "@/components/tools/numbers"
-import { CoverLetterGenerator, ReceiptGenerator, ResumeBuilder } from "@/components/tools/papers"
+import { CoverLetterGenerator, ResumeBuilder } from "@/components/tools/papers"
 import { RaciGenerator, WorkStyleQuiz } from "@/components/tools/people"
 import {
   BitcoinHalvingCountdown,
@@ -120,7 +122,9 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "gantt-chart": { View: GanttChart, width: "wide" },
   "invoice-generator": { View: InvoiceGenerator, width: "tool" },
   "quote-builder": { View: QuoteBuilder, width: "tool" },
-  "margin-calculator": { View: MarginCalculator },
+  "margin-calculator": { View: MarginCalculator, width: "tool" },
+  "break-even-calculator": { View: BreakEvenCalculator, width: "tool" },
+  "commission-calculator": { View: CommissionCalculator },
   "paint-calculator": { View: PaintCalculator, width: "tool" },
   "material-estimator": { View: MaterialEstimator, width: "tool" },
   "work-style": { View: WorkStyleQuiz },
