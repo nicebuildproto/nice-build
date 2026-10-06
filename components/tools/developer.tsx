@@ -95,7 +95,7 @@ export function JsonFormatter() {
 
   return (
     <div className="flex flex-col gap-5">
-      <DeveloperPrivacy>Format, validate, and inspect JSON in your browser. Nothing is uploaded.</DeveloperPrivacy>
+      <DeveloperPrivacy />
       <CodeField
         label="JSON"
         value={source}
