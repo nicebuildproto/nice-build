@@ -13,27 +13,31 @@ import { Button } from "@/components/ui/button"
 import { formatWorldClock, worldCities } from "@/lib/everyday/time"
 import { localDateValue } from "@/lib/everyday/age"
 import { formatHour, overlapHours, plannerGrid, zoneCities } from "@/lib/tools/timezone-planner"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 export function WorldClock() {
-  const nowMs = useNow(true, 1000)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  const nowMs = useNow(mounted, 1000)
   const now = new Date(nowMs)
-  const localDate = new Intl.DateTimeFormat("en-AU", { weekday: "short", day: "numeric", month: "short" }).format(now)
+  const localDate = mounted
+    ? new Intl.DateTimeFormat("en-AU", { weekday: "short", day: "numeric", month: "short" }).format(now)
+    : ""
 
   return (
     <EverydayToolShell>
       <Note>Times follow this device’s clock, including daylight saving in each zone.</Note>
       <div className="grid gap-6 sm:grid-cols-2">
         {worldCities.map((city) => {
-          const shown = formatWorldClock(now, city.zone)
-          const otherDay = shown.date !== localDate
+          const shown = mounted ? formatWorldClock(now, city.zone) : null
+          const otherDay = shown ? shown.date !== localDate : false
           return (
             <div key={city.zone}>
               <div className="text-xs text-[var(--nb-secondary)]">
                 {city.city}
-                {shown.offset ? ` · ${shown.offset}` : ""}
+                {shown?.offset ? ` · ${shown.offset}` : ""}
               </div>
-              <div className="mt-1 text-3xl font-semibold tabular-nums">{shown.time}</div>
+              <div className="mt-1 text-3xl font-semibold tabular-nums">{shown?.time ?? "—"}</div>
               {otherDay ? <div className="mt-1 text-xs text-[var(--nb-secondary)]">{shown.date}</div> : null}
             </div>
           )
