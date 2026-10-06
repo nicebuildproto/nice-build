@@ -16,9 +16,9 @@ import { InvoiceGenerator, QuoteBuilder } from "@/components/business/documents"
 import { MarginCalculator } from "@/components/business/margin"
 import { ReceiptGenerator } from "@/components/business/receipt"
 import { Countdown, NamePicker } from "@/components/tools/everyday"
-import { ExifStripper, ImageCompressor } from "@/components/tools/files"
 import {
-  FaviconGenerator,
+  ExifStripper,
+  ImageCompressor,
   ImageCropper,
   ImageResizer,
   ImageToBase64,
@@ -26,7 +26,8 @@ import {
   PngToJpg,
   SvgToPng,
   WebpToJpg,
-} from "@/components/tools/media"
+} from "@/components/files/images"
+import { FaviconGenerator } from "@/components/tools/media"
 import { AgeCalculator, MeetingCost, TipCalculator } from "@/components/tools/numbers"
 import { MaterialEstimator } from "@/components/trade/estimator"
 import { PaintCalculator } from "@/components/trade/paint"
@@ -92,9 +93,9 @@ import {
 import { BoundSpec } from "@/components/tools/SpecTool"
 import { CaseConverter, DiffChecker, WordCounter } from "@/components/tools/text"
 import { FunnelChart, GanttChart } from "@/components/tools/viz"
-import { PdfOcr, PdfSigner, PdfToText } from "@/components/tools/pdf-tools"
-import { AudioTrimmer, GifMaker, VideoTrimmer } from "@/components/tools/motion-tools"
-import { ScreenshotAnnotator, ScreenshotBeautifier } from "@/components/tools/screenshot-tools"
+import { PdfMerger, PdfOcr, PdfSigner, PdfToText } from "@/components/files/pdf"
+import { AudioTrimmer, GifMaker, VideoTrimmer } from "@/components/files/motion"
+import { ScreenshotAnnotator, ScreenshotBeautifier } from "@/components/files/screenshots"
 import { JsonSchemaGenerator } from "@/components/tools/json-schema"
 import { PasswordStrengthChecker } from "@/components/tools/password-strength"
 import { EmailHeaderAnalyzer } from "@/components/tools/email-headers"
@@ -121,8 +122,9 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "json-formatter": { View: JsonFormatter, width: "tool" },
   "uuid-generator": { View: UuidGenerator, width: "tool" },
   "regex-tester": { View: RegexTester, width: "tool" },
-  "image-compressor": { View: ImageCompressor },
-  "exif-stripper": { View: ExifStripper },
+  "image-compressor": { View: ImageCompressor, width: "tool" },
+  "exif-stripper": { View: ExifStripper, width: "tool" },
+  "pdf-merger": { View: PdfMerger, width: "tool" },
   "colour-palette-generator": { View: ColourPalette, width: "tool" },
   "contrast-checker": { View: ContrastChecker, width: "tool" },
   "gradient-generator": { View: GradientGenerator, width: "tool" },
