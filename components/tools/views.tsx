@@ -59,7 +59,6 @@ import {
   DeadZoneTester,
   GamepadTester,
   KeyboardTester,
-  MarkdownPreview,
   MouseTester,
   QrCodeGenerator,
   ReactionTimeTest,
@@ -91,7 +90,21 @@ import {
   SubscriptionAudit,
 } from "@/components/tools/ledgers"
 import { BoundSpec } from "@/components/tools/SpecTool"
-import { CaseConverter, DiffChecker, WordCounter } from "@/components/tools/text"
+import {
+  CaseConverter,
+  CharacterCounter,
+  DiffChecker,
+  LoremIpsum,
+  MarkdownPreview,
+  MarkdownTable,
+  NumberToWordsTool,
+  ReadabilityChecker,
+  ReadingTime,
+  RemoveDuplicateLines,
+  SlugGenerator,
+  TextCleaner,
+  WordCounter,
+} from "@/components/text/views"
 import { FunnelChart, GanttChart } from "@/components/tools/viz"
 import { PdfMerger, PdfOcr, PdfSigner, PdfToText } from "@/components/files/pdf"
 import { AudioTrimmer, GifMaker, VideoTrimmer } from "@/components/files/motion"
@@ -167,6 +180,15 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "word-counter": { View: WordCounter, width: "tool" },
   "diff-checker": { View: DiffChecker, width: "tool" },
   "case-converter": { View: CaseConverter, width: "tool" },
+  "character-counter": { View: CharacterCounter, width: "tool" },
+  "readability-checker": { View: ReadabilityChecker, width: "tool" },
+  "reading-time": { View: ReadingTime, width: "tool" },
+  "lorem-ipsum": { View: LoremIpsum, width: "tool" },
+  "remove-duplicate-lines": { View: RemoveDuplicateLines, width: "tool" },
+  "slug-generator": { View: SlugGenerator, width: "tool" },
+  "markdown-table": { View: MarkdownTable, width: "tool" },
+  "number-to-words": { View: NumberToWordsTool, width: "tool" },
+  "text-cleaner": { View: TextCleaner, width: "tool" },
   "age-calculator": { View: AgeCalculator },
   countdown: { View: Countdown },
   "name-picker": { View: NamePicker },

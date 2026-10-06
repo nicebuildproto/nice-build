@@ -6,7 +6,7 @@ import { buttonVariants } from "@/components/ui/button"
 import { ppi } from "@/lib/tools/pure"
 import { cn } from "@/lib/utils"
 import QRCode from "qrcode"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 const keys = ["1234567890", "qwertyuiop", "asdfghjkl", "zxcvbnm"]
 
@@ -49,16 +49,7 @@ export function QrCodeGenerator() {
   )
 }
 
-export function MarkdownPreview() {
-  const [text, setText] = useState("# Notes\n\nA **quiet** list:\n\n- One\n- Two\n\nSee [Nice Build](https://nice-build-ten.vercel.app).")
-  const blocks = useMemo(() => renderMarkdown(text), [text])
-  return (
-    <div className="grid gap-6 lg:grid-cols-2">
-      <TextArea label="Markdown" value={text} onChange={setText} rows={14} />
-      <div className="flex flex-col gap-3 text-sm leading-relaxed">{blocks}</div>
-    </div>
-  )
-}
+export { MarkdownPreview } from "@/components/text/views"
 
 export function WheelSpinner() {
   const [text, setText] = useState("Ada\nLin\nNoor\nSam")
@@ -490,47 +481,4 @@ function beep() {
   oscillator.connect(context.destination)
   oscillator.start()
   oscillator.stop(context.currentTime + 0.18)
-}
-
-function renderMarkdown(source: string) {
-  return source.split(/\n{2,}/).map((block, index) => {
-    const lines = block.split("\n")
-    if (lines.every((line) => line.startsWith("- "))) {
-      return (
-        <ul key={index} className="list-disc pl-5">
-          {lines.map((line) => (
-            <li key={line}>{inline(line.slice(2))}</li>
-          ))}
-        </ul>
-      )
-    }
-    const heading = /^(#{1,3}) /.exec(lines[0])
-    if (heading && lines.length === 1) {
-      const Tag = heading[1].length === 1 ? "h2" : "h3"
-      return (
-        <Tag key={index} className="text-xl font-semibold">
-          {inline(lines[0].slice(heading[1].length + 1))}
-        </Tag>
-      )
-    }
-    return <p key={index}>{inline(lines.join(" "))}</p>
-  })
-}
-
-function inline(text: string) {
-  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g)
-  return parts.map((part, index) => {
-    if (part.startsWith("**")) return <strong key={index}>{part.slice(2, -2)}</strong>
-    if (part.startsWith("*")) return <em key={index}>{part.slice(1, -1)}</em>
-    if (part.startsWith("`")) return <code key={index}>{part.slice(1, -1)}</code>
-    const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
-    if (link && /^https?:\/\//.test(link[2])) {
-      return (
-        <a key={index} href={link[2]} className="underline">
-          {link[1]}
-        </a>
-      )
-    }
-    return <span key={index}>{part}</span>
-  })
 }
