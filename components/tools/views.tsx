@@ -28,7 +28,7 @@ import {
   WebpToJpg,
 } from "@/components/files/images"
 import { FaviconGenerator } from "@/components/tools/media"
-import { AgeCalculator, MeetingCost, TipCalculator } from "@/components/tools/numbers"
+import { AgeCalculator, TipCalculator } from "@/components/tools/numbers"
 import { MaterialEstimator } from "@/components/trade/estimator"
 import { PaintCalculator } from "@/components/trade/paint"
 import {
@@ -51,7 +51,15 @@ import {
   TileCalculator,
 } from "@/components/trade/calcs"
 import { CoverLetterGenerator, ResumeBuilder } from "@/components/tools/papers"
-import { RaciGenerator, WorkStyleQuiz } from "@/components/tools/people"
+import {
+  MeetingAgenda,
+  MeetingCost,
+  OneOnOneAgenda,
+  RaciGenerator,
+  TeamIcebreaker,
+  TeamWorkingAgreement,
+  WorkStyleQuiz,
+} from "@/components/people/views"
 import {
   BitcoinHalvingCountdown,
   CookingTimer,
@@ -174,9 +182,13 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "stair-stringer-calculator": { View: StairStringerCalculator, width: "tool" },
   "stud-wall-calculator": { View: StudWallCalculator, width: "tool" },
   "construction-estimate-generator": { View: ConstructionEstimateGenerator, width: "tool" },
-  "work-style": { View: WorkStyleQuiz },
-  "meeting-cost": { View: MeetingCost },
+  "work-style": { View: WorkStyleQuiz, width: "tool" },
+  "meeting-cost": { View: MeetingCost, width: "tool" },
   "raci-generator": { View: RaciGenerator, width: "tool" },
+  "team-working-agreement": { View: TeamWorkingAgreement, width: "tool" },
+  "meeting-agenda": { View: MeetingAgenda, width: "tool" },
+  "one-on-one-agenda": { View: OneOnOneAgenda, width: "tool" },
+  "team-icebreaker": { View: TeamIcebreaker, width: "tool" },
   "word-counter": { View: WordCounter, width: "tool" },
   "diff-checker": { View: DiffChecker, width: "tool" },
   "case-converter": { View: CaseConverter, width: "tool" },

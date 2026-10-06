@@ -120,45 +120,7 @@ export function MarginCalculator() {
   )
 }
 
-export function MeetingCost() {
-  const [people, setPeople] = useState("6")
-  const [rate, setRate] = useState("85")
-  const [minutes, setMinutes] = useState("45")
-  const [perMonth, setPerMonth] = useState("4")
-  const result = useMemo(() => {
-    const count = parseAmount(people)
-    const hourly = parseAmount(rate)
-    const mins = parseAmount(minutes)
-    const times = parseAmount(perMonth)
-    if (count === null || hourly === null || mins === null || times === null) return null
-    const meeting = count * hourly * (mins / 60)
-    return { meeting, month: meeting * times, year: meeting * times * 12 }
-  }, [people, rate, minutes, perMonth])
-
-  return (
-    <div className="flex flex-col gap-10">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <NumberField label="People" value={people} onChange={setPeople} min={1} step="1" />
-        <NumberField label="Average hourly cost" value={rate} onChange={setRate} suffix="AUD" min={0} />
-        <NumberField label="Length" value={minutes} onChange={setMinutes} suffix="min" min={1} />
-        <NumberField label="Times each month" value={perMonth} onChange={setPerMonth} min={0} />
-      </div>
-      <div className="flex flex-col gap-4" aria-live="polite">
-        <div className="flex flex-wrap gap-10">
-          <Stat label="Each meeting" value={result ? money(result.meeting) : "—"} />
-          <Stat label="Each month" value={result ? money(result.month) : "—"} />
-          <Stat label="Each year" value={result ? money(result.year) : "—"} />
-        </div>
-        {result ? (
-          <CopyButton
-            label="Copy result"
-            text={`Each meeting: ${money(result.meeting)}\nEach month: ${money(result.month)}\nEach year: ${money(result.year)}`}
-          />
-        ) : null}
-      </div>
-    </div>
-  )
-}
+export { MeetingCost } from "@/components/people/views"
 
 export function AgeCalculator() {
   const [dob, setDob] = useState("1994-06-12")
