@@ -83,7 +83,7 @@ export function HomeCatalog() {
     <div className="flex flex-col">
       <header className={`relative z-20 mb-14 max-w-3xl sm:mb-20 ${reveal}`}>
         <h1 className="font-mono text-[2.5rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance text-[var(--nb-primary)] sm:text-[length:var(--text-5xl)]">
-          Your (free)
+          Your (nice)
           <br />
           digital toolkit.
         </h1>
