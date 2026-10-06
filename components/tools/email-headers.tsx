@@ -1,6 +1,6 @@
 "use client"
 
-import { CopyButton, ErrorNote, ResetButton, TextArea, ToolNote } from "@/components/tools/ui"
+import { CodeField, CopyButton, DeveloperPrivacy, ResetButton } from "@/components/developer/kit"
 import { parseEmailHeaders } from "@/lib/tools/email-headers"
 import { useMemo, useState } from "react"
 
@@ -25,12 +25,14 @@ export function EmailHeaderAnalyzer() {
 
   return (
     <div className="flex flex-col gap-6">
-      <ToolNote>
-        Paste the raw headers from a message source. This page reads common fields and auth tokens. It does not prove whether a message is genuine.
-      </ToolNote>
-      <TextArea label="Raw headers" value={raw} onChange={setRaw} rows={12} />
+      <DeveloperPrivacy>
+        Paste the raw headers from a message source. This page reads common fields and auth tokens in your browser. It does not prove whether a message is genuine.
+      </DeveloperPrivacy>
+      <CodeField label="Raw headers" value={raw} onChange={setRaw} rows={12} />
       {"error" in parsed ? (
-        <ErrorNote>{parsed.error}</ErrorNote>
+        <p role="alert" className="text-sm text-destructive">
+          {parsed.error}
+        </p>
       ) : (
         <div className="flex flex-col gap-6" aria-live="polite">
           <dl className="grid gap-4 sm:grid-cols-2">
@@ -59,7 +61,9 @@ export function EmailHeaderAnalyzer() {
               <ol className="flex flex-col gap-2">
                 {parsed.received.map((hop, index) => (
                   <li key={index} className="rounded-xl border border-border px-3 py-2 text-sm">
-                    <div className="text-[var(--nb-primary)]">{hop.by ? `by ${hop.by}` : "Hop"} {hop.from ? `from ${hop.from}` : ""}</div>
+                    <div className="text-[var(--nb-primary)]">
+                      {hop.by ? `by ${hop.by}` : "Hop"} {hop.from ? `from ${hop.from}` : ""}
+                    </div>
                     <div className="text-[12px] text-[var(--nb-secondary)]">{hop.date || hop.with || hop.raw}</div>
                   </li>
                 ))}
@@ -69,11 +73,8 @@ export function EmailHeaderAnalyzer() {
             )}
           </section>
           <div className="flex flex-wrap gap-2">
-            <CopyButton
-              text={[parsed.from, parsed.to, parsed.subject, parsed.date].filter(Boolean).join("\n")}
-              label="Copy summary"
-            />
-            <ResetButton onClick={() => setRaw("")} />
+            <CopyButton text={[parsed.from, parsed.to, parsed.subject, parsed.date].filter(Boolean).join("\n")} label="Copy summary" />
+            <ResetButton label="Clear" onClick={() => setRaw("")} />
           </div>
         </div>
       )}
@@ -91,7 +92,12 @@ function Item({ label, value }: { label: string; value?: string }) {
 }
 
 function Chip({ label, value }: { label: string; value?: string }) {
-  const tone = value === "pass" ? "border-emerald-600/40 text-emerald-800" : value === "fail" ? "border-destructive/40 text-destructive" : "border-border text-[var(--nb-secondary)]"
+  const tone =
+    value === "pass"
+      ? "border-emerald-600/40 text-emerald-800 dark:text-emerald-400"
+      : value === "fail"
+        ? "border-destructive/40 text-destructive"
+        : "border-border text-[var(--nb-secondary)]"
   return (
     <span className={`rounded-full border px-3 py-1 text-[13px] ${tone}`}>
       {label}: {value || "not present"}

@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { downloadText } from "@/lib/tools/download"
 import { cn } from "@/lib/utils"
 import { Check, Copy } from "lucide-react"
 import { useCallback, useEffect, useState, type ReactNode } from "react"
@@ -68,12 +69,16 @@ export function TextArea({
   onChange,
   placeholder,
   rows = 8,
+  mono = false,
+  invalid = false,
 }: {
   label: string
   value: string
   onChange: (value: string) => void
   placeholder?: string
   rows?: number
+  mono?: boolean
+  invalid?: boolean
 }) {
   return (
     <Field label={label}>
@@ -81,8 +86,13 @@ export function TextArea({
         value={value}
         rows={rows}
         placeholder={placeholder}
+        aria-invalid={invalid || undefined}
+        spellCheck={mono ? false : undefined}
         onChange={(event) => onChange(event.target.value)}
-        className="min-h-36 w-full resize-y rounded-lg border border-input bg-transparent px-3 py-2 text-sm leading-relaxed outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        className={cn(
+          "min-h-36 w-full resize-y overflow-x-auto rounded-lg border border-input bg-transparent px-3 py-2 text-sm leading-relaxed outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+          mono && "min-h-48 bg-[var(--nb-accent)]/35 font-mono text-[13px]",
+        )}
       />
     </Field>
   )
@@ -99,14 +109,16 @@ export function Stat({ label, value }: { label: string; value: string }) {
   )
 }
 
-export function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) {
+export function CopyButton({ text, label = "Copy", compact = false }: { text: string; label?: string; compact?: boolean }) {
   const [state, setState] = useState<"idle" | "copied" | "failed">("idle")
+  const shown = state === "copied" ? "Copied" : state === "failed" ? "Could not copy" : label
 
   return (
     <Button
       type="button"
       variant="outline"
-      className="h-10 px-3"
+      aria-live="polite"
+      className={compact ? "h-8 px-2 text-[13px]" : "h-10 px-3"}
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(text)
@@ -118,7 +130,7 @@ export function CopyButton({ text, label = "Copy" }: { text: string; label?: str
       }}
     >
       {state === "copied" ? <Check /> : <Copy />}
-      {state === "copied" ? "Copied" : state === "failed" ? "Could not copy" : label}
+      {shown}
     </Button>
   )
 }
@@ -229,6 +241,24 @@ export function ToolNote({ children }: { children: ReactNode }) {
 
 export function ErrorNote({ children }: { children: ReactNode }) {
   return <p className="text-sm text-destructive">{children}</p>
+}
+
+export function DownloadButton({
+  text,
+  filename,
+  mime,
+  label = "Download",
+}: {
+  text: string
+  filename: string
+  mime?: string
+  label?: string
+}) {
+  return (
+    <Button type="button" variant="outline" className="h-10 px-3" onClick={() => downloadText(text, filename, mime)}>
+      {label}
+    </Button>
+  )
 }
 
 export function ResetButton({ onClick, label = "Reset" }: { onClick: () => void; label?: string }) {

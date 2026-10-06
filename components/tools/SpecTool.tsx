@@ -1,7 +1,7 @@
 "use client"
 
 import { CalculatorExample, CalculatorPrivacy, CalculatorResult } from "@/components/calculators/CalculatorResult"
-import { CopyButton, NumberField, TextArea } from "@/components/tools/ui"
+import { CopyButton, DownloadButton, NumberField, TextArea } from "@/components/tools/ui"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toolSpecs, type SpecField, type SpecResult, type ToolSpec } from "@/lib/tools/specs"
@@ -82,7 +82,14 @@ export function SpecTool({ spec }: { spec: ToolSpec }) {
       {spec.action || dirty ? (
         <div className="flex flex-wrap gap-2">
           {spec.action ? (
-            <Button type="button" className="h-10" onClick={() => setNonce((current) => current + 1)}>
+            <Button
+              type="button"
+              className="h-10"
+              onClick={() => setNonce((current) => current + 1)}
+              onKeyDown={(event) => {
+                if ((event.metaKey || event.ctrlKey) && event.key === "Enter") setNonce((current) => current + 1)
+              }}
+            >
               {spec.action}
             </Button>
           ) : null}
@@ -128,15 +135,49 @@ export function SpecTool({ spec }: { spec: ToolSpec }) {
           ) : null}
           {shown?.formula ? <p className="font-mono text-[13px] text-[var(--nb-secondary)]">{shown.formula}</p> : null}
           {shown?.text ? (
-            <pre className="overflow-x-auto rounded-xl border border-border bg-[var(--nb-accent)] p-4 text-sm leading-relaxed whitespace-pre-wrap text-[var(--nb-primary)]">
+            <pre className="max-h-[28rem] overflow-auto rounded-xl border border-border bg-[var(--nb-accent)] p-4 text-sm leading-relaxed whitespace-pre-wrap break-all text-[var(--nb-primary)]">
               {shown.text}
             </pre>
           ) : null}
-          {shown?.note ? <p className="max-w-xl text-sm leading-relaxed text-[var(--nb-secondary)]">{shown.note}</p> : null}
+          {shown?.note ? (
+            <p
+              role={shown.ok === false ? "alert" : "status"}
+              className={cn(
+                "max-w-xl text-sm leading-relaxed",
+                shown.ok === false ? "text-destructive" : "text-[var(--nb-secondary)]",
+              )}
+            >
+              {shown.note}
+            </p>
+          ) : null}
           {!shown && !spec.random && !spec.runAsync ? (
             <p className="text-sm text-[var(--nb-secondary)]">Enter the figures to see a result.</p>
           ) : null}
-          {copyText ? <CopyButton text={copyText} label="Copy result" /> : null}
+          {copyText || spec.download || spec.swap ? (
+            <div className="flex flex-wrap gap-2">
+              {copyText ? <CopyButton text={copyText} label="Copy result" /> : null}
+              {shown?.text && spec.download ? <DownloadButton text={shown.text} filename={spec.download} /> : null}
+              {shown?.text && spec.swap ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10"
+                  onClick={() => {
+                    setValues((current) => {
+                      const next = { ...current, [spec.swap!.input]: shown.text ?? "" }
+                      if (spec.swap?.toggle) {
+                        const key = spec.swap.toggle
+                        next[key] = current[key] === "encode" ? "decode" : "encode"
+                      }
+                      return next
+                    })
+                  }}
+                >
+                  {spec.swap.toggle ? "Swap" : "Use as input"}
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       )}
       {spec.privacy ? <CalculatorPrivacy /> : null}
@@ -161,7 +202,7 @@ function SpecControl({ field, value, onChange }: { field: SpecField; value: stri
   if (field.kind === "textarea") {
     return (
       <div className="sm:col-span-full">
-        <TextArea label={field.label} value={value} onChange={onChange} placeholder={field.placeholder} rows={field.rows} />
+        <TextArea label={field.label} value={value} onChange={onChange} placeholder={field.placeholder} rows={field.rows} mono={field.mono} />
       </div>
     )
   }

@@ -417,6 +417,7 @@ export const addedSpecs: Record<string, ToolSpec> = {
     },
   },
   "rate-limit-calculator": {
+    privacy: true,
     intro:
       "Compare the cap in one window with the calls you expect from every concurrent user. If demand is under the cap, the limit holds for that window. Reset is the length of the window itself: when it elapses, the count starts again.",
     columns: 2,
@@ -442,7 +443,10 @@ export const addedSpecs: Record<string, ToolSpec> = {
           ["Until reset", `${num(window, 0)} sec`],
           ["Users the cap holds", num(capacity, 0)],
         ],
-        { note: room >= 0 ? `${num(room, 0)} requests of headroom in this window.` : `Short by ${num(-room, 0)} requests. Raise the cap or lower calls per user.` },
+        {
+          note: room >= 0 ? `${num(room, 0)} requests of headroom in this window.` : `Short by ${num(-room, 0)} requests. Raise the cap or lower calls per user.`,
+          copy: room >= 0 ? `Enough — demand ${num(demand, 0)} of ${num(limit, 0)}.` : `Short — demand ${num(demand, 0)} of ${num(limit, 0)}.`,
+        },
       )
     },
   },
@@ -492,6 +496,8 @@ export const addedSpecs: Record<string, ToolSpec> = {
     },
   },
   "commit-message-generator": {
+    privacy: true,
+    download: "commit.txt",
     intro:
       "Describe the change and pick a conventional type. The page formats `type(scope): subject` and an optional body. It does not call a model and it does not look at your git history.",
     columns: 2,
@@ -515,7 +521,8 @@ export const addedSpecs: Record<string, ToolSpec> = {
       const scope = values.scope.trim()
       const header = `${values.type}${scope ? `(${scope})` : ""}: ${subject}`
       const body = values.body.trim()
-      return { text: body ? `${header}\n\n${body}` : header }
+      const text = body ? `${header}\n\n${body}` : header
+      return { text, copy: text }
     },
   },
 }

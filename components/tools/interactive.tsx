@@ -559,9 +559,12 @@ export function AiToolFitQuiz() {
         <p className="text-xs font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">A light read</p>
         <h2 className="text-4xl font-semibold tracking-[-0.03em]">{result.title}</h2>
         <p className="text-sm leading-relaxed text-[var(--nb-secondary)]">{result.copy}</p>
-        <Button type="button" variant="outline" className="w-fit" onClick={() => { setAnswers([]); setStep(0) }}>
-          Start again
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <CopyButton text={`${result.title}\n${result.copy}`} label="Copy result" />
+          <Button type="button" variant="outline" className="w-fit" onClick={() => { setAnswers([]); setStep(0) }}>
+            Start again
+          </Button>
+        </div>
       </div>
     )
   }

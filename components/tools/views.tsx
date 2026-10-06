@@ -101,7 +101,7 @@ function specView(slug: string): ComponentType {
 export const toolViews: Record<string, { View: ComponentType; width?: "narrow" | "tool" | "wide" }> = {
   "tip-calculator": { View: TipCalculator },
   "json-formatter": { View: JsonFormatter, width: "tool" },
-  "uuid-generator": { View: UuidGenerator },
+  "uuid-generator": { View: UuidGenerator, width: "tool" },
   "regex-tester": { View: RegexTester, width: "tool" },
   "image-compressor": { View: ImageCompressor },
   "exif-stripper": { View: ExifStripper },

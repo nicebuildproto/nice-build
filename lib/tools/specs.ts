@@ -1,4 +1,5 @@
 import { addedSpecs } from "@/lib/tools/added-specs"
+import { parseJsonSource } from "@/lib/developer/json"
 import { money, num, percent } from "@/lib/tools/format"
 import {
   activityFactor,
@@ -60,6 +61,7 @@ export type SpecField = {
   options?: { value: string; label: string; group?: string }[]
   rows?: number
   placeholder?: string
+  mono?: boolean
 }
 
 export type SpecStat = {
@@ -74,6 +76,7 @@ export type SpecResult = {
   note?: string
   formula?: string
   copy?: string
+  ok?: boolean
   demo?: { background?: string; boxShadow?: string; borderRadius?: string }
 }
 
@@ -84,6 +87,8 @@ export type ToolSpec = {
   random?: boolean
   columns?: 2 | 3
   privacy?: boolean
+  download?: string
+  swap?: { input: string; toggle?: string }
   example?: { label: string; values: Record<string, string> }
   fields: SpecField[]
   run: (values: Record<string, string>) => SpecResult | null
@@ -109,6 +114,9 @@ const select = (key: string, label: string, value: string, pairs: [string, strin
   field(key, label, "select", value, { options: options(pairs) })
 
 const area = (key: string, label: string, value: string, rows = 8) => field(key, label, "textarea", value, { rows })
+
+const codeArea = (key: string, label: string, value: string, rows = 10) =>
+  field(key, label, "textarea", value, { rows, mono: true })
 
 const check = (key: string, label: string, on = false) => field(key, label, "check", on ? "yes" : "")
 
@@ -651,24 +659,65 @@ export const toolSpecs: Record<string, ToolSpec> = {
     random: true,
     action: "Generate",
     columns: 3,
+    privacy: true,
+    intro: "A random password, drawn in this browser. Copy it into a password manager yourself.",
     fields: [number("length", "Length", "16", undefined, 4), check("numbers", "Numbers", true), check("symbols", "Symbols", true)],
     run: (values) => {
       const length = Math.min(64, Math.max(4, Math.round(read(values, "length") ?? 16)))
       const text = password(length, values.numbers === "yes", values.symbols === "yes")
-      return { text, stats: [{ label: "Password", value: text }] }
+      return { stats: [{ label: "Password", value: text }], copy: text }
     },
   },
   "base64-encoder": {
     wide: true,
-    fields: [select("mode", "Mode", "encode", [["encode", "Encode"], ["decode", "Decode"]]), area("text", "Text", "Nice Build")],
-    run: (values) => ({ text: values.mode === "decode" ? decodeBase64(values.text) : encodeBase64(values.text) }),
+    privacy: true,
+    download: "base64.txt",
+    swap: { input: "text", toggle: "mode" },
+    intro: "Encode text as Base64, or decode it back. UTF-8, in this browser.",
+    fields: [
+      select("mode", "Direction", "encode", [
+        ["encode", "Encode →"],
+        ["decode", "← Decode"],
+      ]),
+      codeArea("text", "Text", "Nice Build", 8),
+    ],
+    run: (values) => {
+      try {
+        const text = values.mode === "decode" ? decodeBase64(values.text) : encodeBase64(values.text)
+        return { text, copy: text }
+      } catch {
+        return {
+          ok: false,
+          note: values.mode === "decode" ? "That is not valid Base64. Padding and alphabet need to be complete." : "That text could not be encoded.",
+        }
+      }
+    },
   },
   "url-encoder": {
     wide: true,
-    fields: [select("mode", "Mode", "encode", [["encode", "Encode"], ["decode", "Decode"]]), area("text", "Text", "a b&c=d")],
-    run: (values) => ({ text: values.mode === "decode" ? decodeURIComponent(values.text) : encodeURIComponent(values.text) }),
+    privacy: true,
+    download: "url-encoded.txt",
+    swap: { input: "text", toggle: "mode" },
+    intro: "encodeURIComponent for a query value — spaces, &, and = are escaped.",
+    fields: [
+      select("mode", "Direction", "encode", [
+        ["encode", "Encode →"],
+        ["decode", "← Decode"],
+      ]),
+      codeArea("text", "Text", "a b&c=d", 8),
+    ],
+    run: (values) => {
+      try {
+        const text = values.mode === "decode" ? decodeURIComponent(values.text) : encodeURIComponent(values.text)
+        return { text, copy: text }
+      } catch {
+        return { ok: false, note: "That is not a valid percent-encoded string. Each % needs two hex digits." }
+      }
+    },
   },
   "timestamp-converter": {
+    privacy: true,
+    intro: "Unix seconds or milliseconds, or a date the browser can parse.",
     fields: [
       field("unix", "Unix timestamp", "text", "1760000000", { placeholder: "Seconds or milliseconds" }),
       field("date", "Or a date", "text", "", { placeholder: "2026-10-03T09:00" }),
@@ -676,69 +725,121 @@ export const toolSpecs: Record<string, ToolSpec> = {
     run: (values) => {
       if (values.unix.trim()) {
         const raw = Number(values.unix)
-        if (!Number.isFinite(raw)) return { note: "That timestamp is not a number." }
+        if (!Number.isFinite(raw)) return { ok: false, note: "That timestamp is not a number." }
         const ms = Math.abs(raw) > 10_000_000_000 ? raw : raw * 1000
         const date = new Date(ms)
-        if (Number.isNaN(date.getTime())) return { note: "That timestamp is out of range." }
-        return stats([
-          ["Local", date.toLocaleString("en-AU")],
-          ["UTC", date.toISOString()],
-        ])
+        if (Number.isNaN(date.getTime())) return { ok: false, note: "That timestamp is out of range." }
+        return stats(
+          [
+            ["Local", date.toLocaleString("en-AU")],
+            ["UTC", date.toISOString()],
+          ],
+          { copy: `${date.toISOString()}\n${Math.floor(date.getTime() / 1000)}` },
+        )
       }
-      if (!values.date.trim()) return null
+      if (!values.date.trim()) return { note: "Paste a Unix timestamp, or a date such as 2026-10-03T09:00." }
       const date = new Date(values.date)
-      if (Number.isNaN(date.getTime())) return { note: "Use a date such as 2026-10-03T09:00." }
-      return stats([
-        ["Unix seconds", String(Math.floor(date.getTime() / 1000))],
-        ["Unix milliseconds", String(date.getTime())],
-      ])
+      if (Number.isNaN(date.getTime())) return { ok: false, note: "Use a date such as 2026-10-03T09:00." }
+      return stats(
+        [
+          ["Unix seconds", String(Math.floor(date.getTime() / 1000))],
+          ["Unix milliseconds", String(date.getTime())],
+        ],
+        { copy: `${Math.floor(date.getTime() / 1000)}\n${date.getTime()}` },
+      )
     },
   },
   "hash-generator": {
     wide: true,
+    privacy: true,
+    intro: "SHA hashes of text, calculated with Web Crypto in this browser. These are not password hashes.",
     fields: [
-      select("algo", "Algorithm", "SHA-256", [["SHA-1", "SHA-1"], ["SHA-256", "SHA-256"], ["SHA-384", "SHA-384"], ["SHA-512", "SHA-512"]]),
-      area("text", "Text", "Nice Build"),
+      select("algo", "Algorithm", "SHA-256", [
+        ["SHA-1", "SHA-1"],
+        ["SHA-256", "SHA-256"],
+        ["SHA-384", "SHA-384"],
+        ["SHA-512", "SHA-512"],
+      ]),
+      codeArea("text", "Text", "Nice Build", 8),
     ],
     run: () => null,
     runAsync: async (values) => {
       const digest = await crypto.subtle.digest(values.algo, new TextEncoder().encode(values.text))
       const text = [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("")
-      return { text, stats: [{ label: values.algo, value: text }] }
+      return { stats: [{ label: values.algo, value: text }], copy: text }
     },
   },
   "jwt-decoder": {
     wide: true,
-    intro: "This only reads the header and payload. It doesn't check the signature.",
-    fields: [area("token", "Token", "eyJhbGciOiJub25lIn0.eyJzdWIiOiJkZW1vIn0.")],
+    privacy: true,
+    intro: "This only reads the header and payload. It does not check the signature.",
+    fields: [codeArea("token", "Token", "eyJhbGciOiJub25lIn0.eyJzdWIiOiJkZW1vIn0.", 8)],
     run: (values) => {
-      const parts = values.token.trim().split(".")
-      if (parts.length < 2) return { note: "A JWT has three parts, separated by dots." }
-      const header = prettyJson(decodeBase64Url(parts[0]))
-      const payload = prettyJson(decodeBase64Url(parts[1]))
-      return { text: `Header\n${header}\n\nPayload\n${payload}` }
+      const token = values.token.trim()
+      if (!token) return { note: "Paste a JWT to read the header and payload." }
+      const parts = token.split(".")
+      if (parts.length < 2) return { ok: false, note: "A JWT has two or three parts, separated by dots." }
+      try {
+        const header = prettyJson(decodeBase64Url(parts[0]))
+        const payload = prettyJson(decodeBase64Url(parts[1]))
+        const text = `Header\n${header}\n\nPayload\n${payload}`
+        return { text, copy: text }
+      } catch {
+        return { ok: false, note: "The header and payload need to be Base64url-encoded JSON." }
+      }
     },
   },
   "json-validator": {
     wide: true,
-    fields: [area("text", "JSON", '{\n  "ok": true\n}')],
+    privacy: true,
+    intro: "Check that a document parses as JSON. Use JSON Formatter when you also want to pretty-print it.",
+    fields: [codeArea("text", "JSON", '{\n  "ok": true\n}')],
     run: (values) => {
-      JSON.parse(values.text)
-      return { note: "Valid JSON." }
+      const parsed = parseJsonSource(values.text)
+      if (!parsed.ok) return { ok: false, note: parsed.error.message }
+      const statsResult = { type: Array.isArray(parsed.value) ? "array" : parsed.value === null ? "null" : typeof parsed.value }
+      return {
+        ok: true,
+        note: "Valid JSON.",
+        stats: [{ label: "Status", value: "Valid" }, { label: "Root", value: statsResult.type }],
+        copy: "Valid JSON.",
+      }
     },
   },
   "sql-formatter": {
     wide: true,
-    fields: [area("text", "SQL", "select id, name from tools where status = 'live' order by name")],
-    run: (values) => ({ text: formatSql(values.text) }),
+    privacy: true,
+    download: "query.sql",
+    swap: { input: "text" },
+    intro: "Break major SQL clauses onto their own lines. A readability pass, not a full parser.",
+    fields: [codeArea("text", "SQL", "select id, name from tools where status = 'live' order by name")],
+    run: (values) => {
+      if (!values.text.trim()) return { note: "Paste a SQL statement to format it." }
+      const text = formatSql(values.text)
+      return { text, copy: text }
+    },
   },
   "xml-formatter": {
     wide: true,
-    fields: [area("text", "XML", "<tools><tool id=\"1\">Nice</tool></tools>")],
-    run: (values) => ({ text: formatXml(values.text) }),
+    privacy: true,
+    download: "document.xml",
+    swap: { input: "text" },
+    intro: "Indent well-formed XML in this browser.",
+    fields: [codeArea("text", "XML", "<tools><tool id=\"1\">Nice</tool></tools>")],
+    run: (values) => {
+      if (!values.text.trim()) return { note: "Paste XML to indent it." }
+      try {
+        const text = formatXml(values.text)
+        return { text, copy: text }
+      } catch (error) {
+        return { ok: false, note: error instanceof Error ? error.message : "That XML could not be parsed." }
+      }
+    },
   },
   "cron-expression-generator": {
     columns: 3,
+    privacy: true,
+    intro: "Five-field Unix cron: minute, hour, day of month, month, day of week.",
     fields: [
       select("minute", "Minute", "0", [["*", "Every"], ["*/5", "Every 5"], ["*/15", "Every 15"], ["0", "0"], ["15", "15"], ["30", "30"]]),
       select("hour", "Hour", "9", [["*", "Every"], ["0", "0"], ["9", "9"], ["12", "12"], ["18", "18"]]),
@@ -746,49 +847,113 @@ export const toolSpecs: Record<string, ToolSpec> = {
     ],
     run: (values) => {
       const result = describeCron(values.minute, values.hour, "*", "*", values.weekday)
-      return { text: result.expression, note: result.sentence, stats: [{ label: "Expression", value: result.expression }] }
+      return { stats: [{ label: "Expression", value: result.expression }], note: result.sentence, copy: result.expression }
     },
   },
   "html-encoder": {
     wide: true,
-    fields: [select("mode", "Mode", "encode", [["encode", "Encode"], ["decode", "Decode"]]), area("text", "Text", "<p class=\"hi\">Hello</p>")],
-    run: (values) => ({ text: values.mode === "decode" ? htmlDecode(values.text) : htmlEncode(values.text) }),
+    privacy: true,
+    download: "html.txt",
+    swap: { input: "text", toggle: "mode" },
+    intro: "Escape markup as text, or turn the escapes back. Not a sanitiser for innerHTML.",
+    fields: [
+      select("mode", "Direction", "encode", [
+        ["encode", "Encode →"],
+        ["decode", "← Decode"],
+      ]),
+      codeArea("text", "Text", "<p class=\"hi\">Hello</p>", 8),
+    ],
+    run: (values) => {
+      const text = values.mode === "decode" ? htmlDecode(values.text) : htmlEncode(values.text)
+      return { text, copy: text }
+    },
   },
   "code-beautifier": {
     wide: true,
-    fields: [area("text", "Code", '{"name":"Nice","tools":[1,2]}')],
-    run: (values) => ({ text: formatCode(values.text) }),
+    privacy: true,
+    download: "formatted.txt",
+    swap: { input: "text" },
+    intro: "Pretty-print JSON when it parses. Anything else gets a simple brace indent.",
+    fields: [codeArea("text", "Code", '{"name":"Nice","tools":[1,2]}')],
+    run: (values) => {
+      if (!values.text.trim()) return { note: "Paste JSON or a brace-style snippet." }
+      const text = formatCode(values.text)
+      return { text, copy: text }
+    },
   },
   "json-to-csv": {
     wide: true,
-    fields: [area("text", "JSON", '[{"name":"Ada","role":"Design"},{"name":"Lin","role":"Build"}]')],
-    run: (values) => ({ text: csvFromObjects(JSON.parse(values.text)) }),
+    privacy: true,
+    download: "data.csv",
+    intro: "An array of objects becomes a CSV table. Nested objects are stringified.",
+    fields: [codeArea("text", "JSON", '[{"name":"Ada","role":"Design"},{"name":"Lin","role":"Build"}]')],
+    run: (values) => {
+      const parsed = parseJsonSource(values.text)
+      if (!parsed.ok) return { ok: false, note: parsed.error.message }
+      try {
+        const text = csvFromObjects(parsed.value)
+        return { text, copy: text }
+      } catch (error) {
+        return { ok: false, note: error instanceof Error ? error.message : "JSON should be an array of objects." }
+      }
+    },
   },
   "csv-to-json": {
     wide: true,
-    fields: [area("text", "CSV", "name,role\nAda,Design\nLin,Build")],
-    run: (values) => ({ text: JSON.stringify(objectsFromCsv(values.text), null, 2) }),
+    privacy: true,
+    download: "data.json",
+    intro: "The first row is the header. Later rows become objects.",
+    fields: [codeArea("text", "CSV", "name,role\nAda,Design\nLin,Build")],
+    run: (values) => {
+      if (!values.text.trim()) return { note: "Paste a CSV table with a header row." }
+      try {
+        const text = JSON.stringify(objectsFromCsv(values.text), null, 2)
+        return { text, copy: text }
+      } catch (error) {
+        return { ok: false, note: error instanceof Error ? error.message : "That CSV could not be parsed." }
+      }
+    },
   },
   "yaml-validator": {
     wide: true,
+    privacy: true,
     intro: "Straightforward YAML: maps, lists, and plain values. Tabs and multi-line blocks are rejected.",
-    fields: [area("text", "YAML", "name: Ada\nrole: Design\ntags:\n  - a\n  - b")],
+    fields: [codeArea("text", "YAML", "name: Ada\nrole: Design\ntags:\n  - a\n  - b")],
     run: (values) => {
-      parseYaml(values.text)
-      return { note: "Valid YAML." }
+      if (!values.text.trim()) return { note: "Paste YAML to check it." }
+      try {
+        parseYaml(values.text)
+        return { ok: true, note: "Valid YAML.", stats: [{ label: "Status", value: "Valid" }], copy: "Valid YAML." }
+      } catch (error) {
+        return { ok: false, note: error instanceof Error ? error.message : "That YAML could not be parsed." }
+      }
     },
   },
   "yaml-to-json": {
     wide: true,
-    fields: [area("text", "YAML", "name: Ada\nrole: Design\ntags:\n  - a\n  - b")],
-    run: (values) => ({ text: JSON.stringify(parseYaml(values.text), null, 2) }),
+    privacy: true,
+    download: "data.json",
+    intro: "Convert straightforward YAML into JSON in this browser.",
+    fields: [codeArea("text", "YAML", "name: Ada\nrole: Design\ntags:\n  - a\n  - b")],
+    run: (values) => {
+      if (!values.text.trim()) return { note: "Paste YAML to convert it." }
+      try {
+        const text = JSON.stringify(parseYaml(values.text), null, 2)
+        return { text, copy: text }
+      } catch (error) {
+        return { ok: false, note: error instanceof Error ? error.message : "That YAML could not be parsed." }
+      }
+    },
   },
   "robots-txt-generator": {
     wide: true,
+    privacy: true,
+    download: "robots.txt",
+    intro: "Write a robots.txt from the paths you allow and block. Save it at the site root yourself.",
     fields: [
       field("agent", "User agent", "text", "*"),
-      area("allow", "Allow", "/"),
-      area("disallow", "Disallow", "/private"),
+      area("allow", "Allow", "/", 4),
+      area("disallow", "Disallow", "/private", 4),
       field("sitemap", "Sitemap", "text", "https://example.com/sitemap.xml"),
     ],
     run: (values) => {
@@ -796,11 +961,13 @@ export const toolSpecs: Record<string, ToolSpec> = {
       for (const path of splitLines(values.allow)) lines.push(`Allow: ${path}`)
       for (const path of splitLines(values.disallow)) lines.push(`Disallow: ${path}`)
       if (values.sitemap.trim()) lines.push("", `Sitemap: ${values.sitemap.trim()}`)
-      return { text: lines.join("\n") }
+      const text = lines.join("\n")
+      return { text, copy: text }
     },
   },
   "chmod-calculator": {
     intro: "Owner, group, then everyone else.",
+    privacy: true,
     columns: 3,
     fields: [
       check("or", "Owner read", true), check("ow", "Owner write", true), check("ox", "Owner execute", true),
@@ -810,17 +977,24 @@ export const toolSpecs: Record<string, ToolSpec> = {
     run: (values) => {
       const flags = ["or", "ow", "ox", "gr", "gw", "gx", "pr", "pw", "px"].map((key) => values[key] === "yes")
       const result = chmodMode(flags)
-      return stats([
-        ["Octal", result.octal],
-        ["Symbol", result.symbol],
-      ])
+      return stats(
+        [
+          ["Octal", result.octal],
+          ["Symbol", result.symbol],
+        ],
+        { copy: `${result.octal}\n${result.symbol}` },
+      )
     },
   },
   "subnet-calculator": {
+    privacy: true,
+    intro: "IPv4 network, broadcast, mask, and usable hosts for a prefix.",
     fields: [field("ip", "IPv4 address", "text", "192.168.1.40"), number("prefix", "Prefix", "24", "/", 0)],
     run: (values) => networkStats(values.ip, read(values, "prefix")),
   },
   "cidr-calculator": {
+    privacy: true,
+    intro: "Same arithmetic as the subnet calculator, from a single address/prefix field.",
     fields: [field("cidr", "CIDR", "text", "10.0.0.8/22", { placeholder: "10.0.0.8/22" })],
     run: (values) => {
       const [ip, prefix] = values.cidr.split("/")
@@ -829,15 +1003,31 @@ export const toolSpecs: Record<string, ToolSpec> = {
   },
   "jsonpath-tester": {
     wide: true,
-    intro: "Supports $.key, [index], [*], and ..key.",
+    privacy: true,
+    download: "matches.json",
+    intro: "JavaScript-side JSONPath: $.key, [index], [*], and ..key. Filters are not supported.",
     fields: [
       field("path", "Path", "text", "$.tools[*].name"),
-      area("text", "JSON", '{\n  "tools": [{ "name": "Tip" }, { "name": "Dice" }]\n}'),
+      codeArea("text", "JSON", '{\n  "tools": [{ "name": "Tip" }, { "name": "Dice" }]\n}'),
     ],
-    run: (values) => ({ text: JSON.stringify(queryJsonPath(JSON.parse(values.text), values.path), null, 2) }),
+    run: (values) => {
+      if (!values.path.trim()) return { note: "A path starts with $." }
+      const parsed = parseJsonSource(values.text)
+      if (!parsed.ok) return { ok: false, note: parsed.error.message }
+      try {
+        const matches = queryJsonPath(parsed.value, values.path)
+        const text = JSON.stringify(matches, null, 2)
+        return { text, copy: text, stats: [{ label: "Matches", value: String(matches.length) }] }
+      } catch (error) {
+        return { ok: false, note: error instanceof Error ? error.message : "That path is not valid." }
+      }
+    },
   },
   "csp-header-generator": {
     wide: true,
+    privacy: true,
+    download: "csp.txt",
+    intro: "Assemble a Content-Security-Policy header value from the sources you allow.",
     fields: [
       field("default", "default-src", "text", "'self'"),
       field("script", "script-src", "text", "'self'"),
@@ -853,11 +1043,13 @@ export const toolSpecs: Record<string, ToolSpec> = {
         `img-src ${values.img}`,
         `connect-src ${values.connect}`,
       ].join("; ")
-      return { text, stats: [{ label: "Header", value: text }] }
+      return { text, copy: text, stats: [{ label: "Header", value: text }] }
     },
   },
   "utm-link-builder": {
     wide: true,
+    privacy: true,
+    intro: "Add campaign parameters to a URL. Empty fields are left off.",
     fields: [
       field("url", "URL", "text", "https://example.com/tools"),
       field("source", "Source", "text", "newsletter"),
@@ -867,16 +1059,21 @@ export const toolSpecs: Record<string, ToolSpec> = {
       field("content", "Content", "text", ""),
     ],
     run: (values) => {
-      const url = new URL(values.url)
-      const pairs: [string, string][] = [
-        ["utm_source", values.source],
-        ["utm_medium", values.medium],
-        ["utm_campaign", values.campaign],
-        ["utm_term", values.term],
-        ["utm_content", values.content],
-      ]
-      for (const [key, value] of pairs) if (value.trim()) url.searchParams.set(key, value.trim())
-      return { text: url.toString() }
+      try {
+        const url = new URL(values.url)
+        const pairs: [string, string][] = [
+          ["utm_source", values.source],
+          ["utm_medium", values.medium],
+          ["utm_campaign", values.campaign],
+          ["utm_term", values.term],
+          ["utm_content", values.content],
+        ]
+        for (const [key, value] of pairs) if (value.trim()) url.searchParams.set(key, value.trim())
+        const text = url.toString()
+        return { text, copy: text }
+      } catch {
+        return { ok: false, note: "Use a full URL, including https://." }
+      }
     },
   },
   "colour-picker": {
@@ -1759,14 +1956,17 @@ function networkStats(ipText: string, prefix: number | null) {
   if (ip === null || prefix === null) return { note: "Use an IPv4 address and a prefix from 0 to 32." }
   const info = subnetInfo(ip, prefix)
   if (!info) return { note: "Use a prefix from 0 to 32." }
-  return stats([
-    ["Network", info.network],
-    ["Broadcast", info.broadcast],
-    ["First host", info.first],
-    ["Last host", info.last],
-    ["Usable hosts", num(info.hosts, 0)],
-    ["Mask", info.mask],
-  ])
+  return stats(
+    [
+      ["Network", info.network],
+      ["Broadcast", info.broadcast],
+      ["First host", info.first],
+      ["Last host", info.last],
+      ["Usable hosts", num(info.hosts, 0)],
+      ["Mask", info.mask],
+    ],
+    { copy: `${info.network}/${prefix}\n${info.mask}\n${info.first} - ${info.last}` },
+  )
 }
 
 function splitLines(value: string) {
@@ -1826,13 +2026,17 @@ function gcd(a: number, b: number): number {
 function formatXml(source: string) {
   if (typeof DOMParser === "undefined") return ""
   const doc = new DOMParser().parseFromString(source, "application/xml")
-  if (doc.querySelector("parsererror")) throw new Error("That XML could not be parsed.")
+  const failed = doc.querySelector("parsererror")
+  if (failed) {
+    const detail = failed.textContent?.replace(/\s+/g, " ").trim()
+    throw new Error(detail || "That XML could not be parsed. Tags need to match, and there should be a single root.")
+  }
   return serializeXml(doc.documentElement, 0)
 }
 
 function serializeXml(node: Element, depth: number): string {
   const pad = "  ".repeat(depth)
-  const attrs = [...node.attributes].map((attr) => ` ${attr.name}="${attr.value}"`).join("")
+  const attrs = [...node.attributes].map((attr) => ` ${attr.name}="${htmlEncode(attr.value)}"`).join("")
   const children = [...node.children]
   if (!children.length) {
     const text = node.textContent?.trim() ?? ""

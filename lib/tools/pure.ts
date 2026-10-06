@@ -555,9 +555,14 @@ export function encodeBase64(text: string) {
 }
 
 export function decodeBase64(text: string) {
-  const binary = atob(text.trim())
-  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
-  return new TextDecoder().decode(bytes)
+  const cleaned = text.trim().replace(/\s+/g, "")
+  try {
+    const binary = atob(cleaned)
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
+    return new TextDecoder().decode(bytes)
+  } catch {
+    throw new Error("That is not valid Base64.")
+  }
 }
 
 export function slugify(text: string) {

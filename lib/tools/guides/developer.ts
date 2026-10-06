@@ -2,22 +2,22 @@ import { guide, type ToolGuideCopy } from "@/lib/tools/guides/types"
 
 export const developerGuides: Record<string, ToolGuideCopy> = {
   "json-formatter": guide(
-    "Paste {\"name\":\"Ada\",\"ok\":true}. Pretty-print turns it into an indented document. Minify puts it back on one line. An extra comma is reported as invalid JSON.",
-    ["Does formatting change the data?", "Nope — it only changes whitespace. Keys, strings, and numbers stay the same."],
-    ["Is my JSON uploaded?", "Nope — parsing and formatting happen in your browser."],
+    "Paste {\"name\":\"Nice Tools\",\"tools\":[\"JSON\",\"Regex\"]}. Format indents it. Minify puts it on one line. An extra comma is reported with a line and column so you can jump to it.",
+    ["Does formatting change the data?", "Nope — it only changes whitespace, unless you turn on Sort keys."],
+    ["Is my JSON uploaded?", "Nope — parsing and formatting happen in your browser. It is not put in the URL."],
     ["Why was valid-looking JSON rejected?", "JSON needs double quotes around keys and strings, and it doesn't allow trailing commas or comments."],
   ),
   "uuid-generator": guide(
-    "Ask for 3 identifiers and you'll get three UUID version 4 strings, each with the version nibble set to 4. Copy one, or copy the whole list.",
-    ["What version of UUID is this?", "Version 4, from the browser’s crypto.randomUUID. The values are random, not time-based."],
-    ["Are these safe to use as database keys?", "Yes for the usual unique-id job. They’re not a secret, and they’re not sortable by time."],
-    ["Can I generate more than one?", "Yes. Set a count from 1 to 20 and copy the list."],
+    "Generate 1 gives a UUID v4. Switch to v7 for time-ordered ids. 10, 50, or 100 fills a list you can copy or download.",
+    ["What versions are these?", "v4 is random, from crypto.randomUUID. v7 encodes the Unix time in the first 48 bits so values sort by time."],
+    ["Are these safe to use as database keys?", "Yes for the usual unique-id job. They’re not a secret. v7 is a better default when you want ids in insert order."],
+    ["How many can I generate?", "Up to 500 at once. Use the 1 / 10 / 50 / 100 buttons for the usual counts."],
   ),
   "regex-tester": guide(
-    "The pattern \\d+ against “Order 14 and 2” with the g flag finds 14 and 2. Without g, you'll only see the first match. An unclosed bracket shows the browser’s syntax error.",
+    "The pattern \\d+ against “Order 14 and 2” with the g flag finds 14 and 2. Without g, you only see the first match. Capture groups and positions are listed, and matches are marked in the sample.",
     ["Which regex flavour is this?", "JavaScript. Lookbehind and named groups work when your browser supports them. Some other languages differ."],
-    ["What do the flags do?", "g finds every match, i ignores case, m changes how ^ and $ treat lines, s lets a dot match a newline, u turns on Unicode mode."],
-    ["Does a match include the groups?", "Yes. Each match lists the full text and any capturing groups."],
+    ["What do the flags do?", "g finds every match, i ignores case, m changes how ^ and $ treat lines, s lets a dot match a newline, u turns on Unicode, y is sticky."],
+    ["Why did a pattern time out?", "Some expressions can run for a long time on certain text. The tester stops after a short limit so the page stays responsive."],
   ),
   "password-generator": guide(
     "A length of 16 with numbers and symbols might produce something like kP7n-wQ2mX!a4Rde. Each click of Generate draws a new password. Nothing is stored.",
