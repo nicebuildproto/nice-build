@@ -1,6 +1,7 @@
 "use client"
 
 import { NiceLogo } from "@/components/NiceLogo"
+import { CategoryPill } from "@/components/ToolCard"
 import { siteContainer, catalogGrid } from "@/components/site/frame"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { categories, getCategory, getLiveTools, type ToolEntry } from "@/lib/registry"
@@ -527,7 +528,7 @@ export function Workspace({ onClose }: { onClose: () => void }) {
                         <Card className={pinCardClass}>
                           <CardHeader>
                             <div className="flex flex-col gap-2 pr-8">
-                              <p className="text-[12px] text-[var(--nb-secondary)]">{category?.label}</p>
+                              {category ? <CategoryPill label={category.label} /> : null}
                               <CardTitle className="text-[15px] font-medium tracking-[-0.01em] text-[var(--nb-primary)]">
                                 {tool.title}
                               </CardTitle>

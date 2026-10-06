@@ -1,7 +1,7 @@
 import { catalogGrid } from "@/components/site/frame"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import type { ToolEntry } from "@/lib/registry"
+import { getCategory, type ToolEntry } from "@/lib/registry"
 import { cn } from "@/lib/utils"
 import { ArrowUpRight } from "lucide-react"
 import Link from "next/link"
@@ -15,6 +15,14 @@ const liveCardClass =
 const soonCardClass =
   "h-full min-h-36 justify-between [--card-spacing:--spacing(6)] bg-transparent opacity-55 shadow-none ring-foreground/[0.06] grayscale"
 
+export function CategoryPill({ label }: { label: string }) {
+  return (
+    <span className="inline-flex w-fit max-w-full items-center rounded-full bg-[var(--nb-yellow)]/10 px-2 py-0.5 text-[11px] leading-4 font-medium tracking-[-0.01em] text-[var(--nb-yellow)]">
+      {label}
+    </span>
+  )
+}
+
 export function CatalogCard({
   title,
   description,
@@ -22,6 +30,7 @@ export function CatalogCard({
   icon,
   trailing,
   detail,
+  eyebrow,
 }: {
   title: string
   description: string
@@ -29,10 +38,12 @@ export function CatalogCard({
   icon?: ReactNode
   trailing?: ReactNode
   detail?: ReactNode
+  eyebrow?: ReactNode
 }) {
   const content = (
     <Card className={cn(href ? liveCardClass : soonCardClass)}>
       <CardHeader className="gap-2">
+        {eyebrow}
         <div className="flex items-start justify-between gap-3">
           <CardTitle className="flex items-center gap-2 text-[15px] font-medium tracking-[-0.01em] text-[var(--nb-primary)]">
             {icon}
@@ -68,12 +79,14 @@ export function CatalogCard({
 
 export function ToolCard({ tool }: { tool: ToolEntry }) {
   const isLive = tool.status === "live"
+  const category = getCategory(tool.category)
 
   return (
     <CatalogCard
       title={tool.title}
       description={tool.description}
       href={isLive ? tool.route : undefined}
+      eyebrow={category ? <CategoryPill label={category.label} /> : null}
       trailing={
         isLive ? (
           <ArrowUpRight
