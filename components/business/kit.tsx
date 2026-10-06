@@ -285,7 +285,7 @@ export function TotalsPanel({
   total: string
 }) {
   return (
-    <div className="ml-auto w-full max-w-xs" aria-live="polite">
+    <div className="ml-auto w-full" aria-live="polite">
       <dl className="flex flex-col gap-2 text-sm">
         {rows.map((row) => (
           <div key={row.label} className="flex items-baseline justify-between gap-6">
@@ -295,7 +295,7 @@ export function TotalsPanel({
         ))}
         <div className="mt-2 flex items-baseline justify-between gap-6 border-t border-border pt-3">
           <dt className="text-[13px] font-medium text-[var(--nb-primary)]">{totalLabel}</dt>
-          <dd className="text-2xl font-semibold tracking-[-0.03em] text-[var(--nb-primary)] tabular-nums">{total}</dd>
+          <dd className="text-2xl font-semibold tracking-[-0.03em] text-[var(--nb-primary)] tabular-nums whitespace-nowrap">{total}</dd>
         </div>
       </dl>
     </div>

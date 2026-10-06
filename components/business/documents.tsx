@@ -175,7 +175,7 @@ function DocumentTool({ kind }: { kind: DocKind }) {
           : "A quote is an offer — not a request for payment. When it’s accepted, turn it into an invoice."}
       </p>
 
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)]">
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)]">
         <div className="flex flex-col gap-8">
           <Section title="Your business" hint="Saved on this device if you choose to remember it. Never uploaded.">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -275,6 +275,7 @@ function DocumentTool({ kind }: { kind: DocKind }) {
                     <Input
                       value={line.description}
                       placeholder="What you’re billing"
+                      aria-label="Description"
                       onChange={(event) => patchLine(line.id, "description", event.target.value)}
                       className="h-10"
                     />
@@ -284,6 +285,7 @@ function DocumentTool({ kind }: { kind: DocKind }) {
                     <Input
                       inputMode="decimal"
                       value={line.qty}
+                      aria-label="Quantity"
                       aria-invalid={line.error?.includes("quantity") || undefined}
                       onChange={(event) => patchLine(line.id, "qty", event.target.value)}
                       className="h-10 tabular-nums"
@@ -294,6 +296,7 @@ function DocumentTool({ kind }: { kind: DocKind }) {
                     <Input
                       inputMode="decimal"
                       value={line.rate}
+                      aria-label="Unit price"
                       aria-invalid={line.error?.includes("price") || undefined}
                       onChange={(event) => patchLine(line.id, "rate", event.target.value)}
                       className="h-10 tabular-nums"
