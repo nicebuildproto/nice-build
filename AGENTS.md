@@ -7,3 +7,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Development
+
+Open the dev server at http://localhost:3000. Next.js 16 blocks dev resources when the page origin is 127.0.0.1, so the UI stays server-rendered and inputs do not update. `ANTHROPIC_API_KEY` is optional and is only read by `POST /api/ai`.
