@@ -237,7 +237,7 @@ export function HomeCatalog() {
                 </h2>
                 <div className={catalogGrid}>
                   {homeFeatured.map((tool) => (
-                    <ToolCard key={tool.slug} tool={tool} />
+                    <ToolCard key={tool.slug} tool={tool} showCategory />
                   ))}
                 </div>
               </section>
