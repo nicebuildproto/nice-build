@@ -153,12 +153,12 @@ export const addedGuides: Record<string, ToolGuideCopy> = {
   ),
   "social-battery-checkin": guide(
     "Answer that you want an early night, that tonight feels like too much, and that the week has been stacked. The page says you are probably due for some downtime.",
-    ["Is there a score?", "No. Two or three “need a break” answers point to downtime, one is a quieter evening, and none is a read that you still have some charge."],
+    ["Is there a score?", "No. Two or three rest-leaning answers point to downtime, one is a quieter evening, and none is a read that you still have some charge."],
     ["Is this the work style quiz?", "No. That quiz is about how you work with other people. This one is three questions about social energy."],
     ["Should I cancel plans because of it?", "Not on this alone. It is a light prompt, not advice."],
   ),
   "screen-time-audit": guide(
-    "1.5 hours of social, 1 hour of video, 0.5 of games, 6 of work, and 0.5 of other is 9.5 hours a day. That’s 66.5 hours a week and 3,468 hours a year — the yearly number is the one that usually lands.",
+    "1.5 hours of social, 1 hour of video, 0.5 of games, 6 of work, and 0.5 of other is 9.5 hours a day. That’s 66.5 hours a week and 3,468 hours a year — about 144 twenty-four-hour days.",
     ["Where does the year come from?", "The daily total times 365. The week is the day times 7. There is no screen-time permission and no device reading."],
     ["Should work hours be included?", "Only if you want them in the total. Set work to 0 if you are auditing leisure screens."],
     ["What if the day is not typical?", "The page treats the hours as every day. Use a typical day, or average a heavy day and a light one before you type."],

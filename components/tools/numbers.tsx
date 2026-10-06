@@ -7,10 +7,9 @@ import {
   CalculatorResult,
 } from "@/components/calculators/CalculatorResult"
 import { CopyButton, NumberField, Stat, parseAmount } from "@/components/tools/ui"
-import { Input } from "@/components/ui/input"
 import { tipSplit } from "@/lib/calculators/math"
 import { useQueryFields } from "@/lib/calculators/query"
-import { exactAge, money, num, percent } from "@/lib/tools/format"
+import { money, num, percent } from "@/lib/tools/format"
 import { useMemo, useState } from "react"
 
 const tipDefaults = { bill: "86", tip: "10", people: "2" }
@@ -121,35 +120,6 @@ export function MarginCalculator() {
 }
 
 export { MeetingCost } from "@/components/people/views"
+export { AgeCalculator } from "@/components/everyday/views"
 
-export function AgeCalculator() {
-  const [dob, setDob] = useState("1994-06-12")
-  const [asOf, setAsOf] = useState(() => new Date().toISOString().slice(0, 10))
-  const result = exactAge(new Date(`${dob}T00:00:00`), new Date(`${asOf}T00:00:00`))
-
-  return (
-    <div className="flex flex-col gap-10">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="flex flex-col gap-2 text-[13px]">
-          Date of birth
-          <Input type="date" value={dob} onChange={(event) => setDob(event.target.value)} className="h-10" />
-        </label>
-        <label className="flex flex-col gap-2 text-[13px]">
-          As of
-          <Input type="date" value={asOf} onChange={(event) => setAsOf(event.target.value)} className="h-10" />
-        </label>
-      </div>
-      <div className="flex flex-col gap-4" aria-live="polite">
-        <div className="flex flex-wrap gap-10">
-          <Stat label="Years" value={result ? String(result.years) : "—"} />
-          <Stat label="Months" value={result ? String(result.months) : "—"} />
-          <Stat label="Days" value={result ? String(result.days) : "—"} />
-        </div>
-        {result ? (
-          <CopyButton label="Copy result" text={`${result.years} years, ${result.months} months, ${result.days} days`} />
-        ) : null}
-      </div>
-    </div>
-  )
-}
 

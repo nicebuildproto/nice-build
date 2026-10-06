@@ -6,7 +6,7 @@ import { titleSuffix } from "@/lib/site"
 import type { Metadata } from "next"
 
 const title = "Dice Roller"
-const description = "Roll a handful of dice — tap one to throw it again, or roll the lot."
+const description = "Roll dice in the browser — pick the sides, throw one or the lot, and copy the total."
 
 export const metadata: Metadata = {
   title: `${title}${titleSuffix}`,

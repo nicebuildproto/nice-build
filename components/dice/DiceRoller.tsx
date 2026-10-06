@@ -1,7 +1,18 @@
 "use client"
 
+import {
+  ActionBar,
+  CopyButton,
+  History,
+  Note,
+  PresetPicker,
+  PrimaryAction,
+  ResetButton,
+  ShareButton,
+  useReducedMotion,
+} from "@/components/everyday/kit"
 import { Button } from "@/components/ui/button"
-import { diceCountMax, rollD6 } from "@/lib/dice/roll"
+import { clampCount, clampSides, diceCountMax, diceSidePresets, formatRoll, rollDie } from "@/lib/dice/roll"
 import { cn } from "@/lib/utils"
 import { Minus, Plus } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
@@ -18,21 +29,26 @@ const pipSets: Record<number, number[]> = {
 }
 
 export function DiceRoller() {
+  const [sides, setSides] = useState(6)
   const [dice, setDice] = useState<Die[]>([
     { id: 1, face: 5 },
     { id: 2, face: 3 },
   ])
   const [rollingIds, setRollingIds] = useState<number[]>([])
   const [total, setTotal] = useState<number | null>(null)
+  const [history, setHistory] = useState<string[]>([])
   const reducedMotion = useReducedMotion()
   const diceRef = useRef(dice)
   const rollingRef = useRef(rollingIds)
+  const sidesRef = useRef(sides)
   const rollRef = useRef<(ids: number[]) => void>(() => {})
   const timer = useRef(0)
 
   diceRef.current = dice
   rollingRef.current = rollingIds
+  sidesRef.current = sides
   const busy = rollingIds.length > 0
+  const copy = total === null ? "" : formatRoll(dice.map((die) => die.face), sides)
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -50,17 +66,17 @@ export function DiceRoller() {
   }, [])
 
   function settle(faces: Map<number, number>) {
-    const next = diceRef.current.map((die) =>
-      faces.has(die.id) ? { ...die, face: faces.get(die.id)! } : die
-    )
+    const next = diceRef.current.map((die) => (faces.has(die.id) ? { ...die, face: faces.get(die.id)! } : die))
     setDice(next)
     setRollingIds([])
-    setTotal(next.reduce((sum, die) => sum + die.face, 0))
+    const sum = next.reduce((value, die) => value + die.face, 0)
+    setTotal(sum)
+    setHistory((current) => [formatRoll(next.map((die) => die.face), sidesRef.current), ...current].slice(0, 12))
   }
 
   function roll(ids: number[]) {
     if (ids.length === 0 || rollingRef.current.length > 0) return
-    const faces = new Map(ids.map((id) => [id, rollD6()]))
+    const faces = new Map(ids.map((id) => [id, rollDie(sidesRef.current)]))
     if (reducedMotion) {
       settle(faces)
       return
@@ -74,13 +90,14 @@ export function DiceRoller() {
   rollRef.current = roll
 
   function setCount(next: number) {
-    if (busy || next === dice.length || next < 1 || next > diceCountMax) return
+    const count = clampCount(next)
+    if (busy || count === dice.length) return
     const updated =
-      next < dice.length
-        ? dice.slice(0, next)
+      count < dice.length
+        ? dice.slice(0, count)
         : [
             ...dice,
-            ...Array.from({ length: next - dice.length }, (_, index) => ({
+            ...Array.from({ length: count - dice.length }, (_, index) => ({
               id: Math.max(...dice.map((die) => die.id)) + index + 1,
               face: 1,
             })),
@@ -89,29 +106,45 @@ export function DiceRoller() {
     setTotal(null)
   }
 
+  function changeSides(next: number) {
+    if (busy) return
+    const value = clampSides(next)
+    setSides(value)
+    setDice((current) => current.map((die) => ({ ...die, face: Math.min(die.face, value) })))
+    setTotal(null)
+  }
+
   return (
     <div className="flex flex-col">
-      <header className="mb-14 flex flex-col gap-3">
+      <header className="mb-10 flex flex-col gap-3">
         <h1 className="text-3xl leading-[1.1] font-semibold tracking-[-0.03em] text-[var(--nb-primary)] sm:text-4xl">
           Dice Roller
         </h1>
         <p className="max-w-xl text-sm text-[var(--nb-secondary)]">
-          Roll a handful of dice. Tap one to throw it again.
+          Roll a handful of dice. Tap one to throw it again. R rolls the lot when you’re not typing.
         </p>
       </header>
 
-      <div className="flex flex-wrap items-center justify-center gap-4 py-6">
+      <PresetPicker
+        label="Sides"
+        options={diceSidePresets.map((value) => ({ label: `d${value}`, value: String(value) }))}
+        value={String(sides)}
+        onChange={(value) => changeSides(Number(value))}
+      />
+
+      <div className="flex flex-wrap items-center justify-center gap-4 py-8">
         {dice.map((die) => (
           <DieFace
             key={die.id}
             face={die.face}
+            sides={sides}
             rolling={rollingIds.includes(die.id)}
             onRoll={() => roll([die.id])}
           />
         ))}
       </div>
 
-      <div className="mt-14 flex flex-wrap items-end justify-between gap-8">
+      <div className="flex flex-wrap items-end justify-between gap-8">
         <div className="flex items-center gap-3">
           <span className="text-[13px] text-[var(--nb-secondary)]">Dice</span>
           <Button
@@ -144,16 +177,40 @@ export function DiceRoller() {
               aria-live="polite"
               className={cn(
                 "mt-1 text-5xl leading-none font-semibold tracking-[-0.04em] tabular-nums",
-                total === null ? "text-foreground/20" : "text-[var(--nb-primary)]"
+                total === null ? "text-foreground/20" : "text-[var(--nb-primary)]",
               )}
             >
               {total ?? "—"}
             </p>
           </div>
-          <Button type="button" size="lg" className="h-11 px-5" disabled={busy} onClick={() => roll(dice.map((die) => die.id))}>
+          <PrimaryAction disabled={busy} onClick={() => roll(dice.map((die) => die.id))}>
             Roll
-          </Button>
+          </PrimaryAction>
         </div>
+      </div>
+
+      <div className="mt-8 flex flex-col gap-4">
+        <ActionBar>
+          <CopyButton text={copy} />
+          <ShareButton text={copy} title="Dice roll" />
+          <ResetButton
+            onClick={() => {
+              window.clearTimeout(timer.current)
+              setSides(6)
+              setDice([
+                { id: 1, face: 1 },
+                { id: 2, face: 1 },
+              ])
+              setRollingIds([])
+              setTotal(null)
+              setHistory([])
+            }}
+          />
+        </ActionBar>
+        <Note>
+          Each face is equally likely. Rolls use the browser’s cryptographic random source, not a fake shuffle.
+        </Note>
+        <History items={history} label="Recent rolls" />
       </div>
     </div>
   )
@@ -161,44 +218,40 @@ export function DiceRoller() {
 
 function DieFace({
   face,
+  sides,
   rolling,
   onRoll,
 }: {
   face: number
+  sides: number
   rolling: boolean
   onRoll: () => void
 }) {
-  const on = new Set(pipSets[face] ?? [])
+  const pips = sides === 6 ? new Set(pipSets[face] ?? []) : null
   return (
     <button
       type="button"
       onClick={onRoll}
       disabled={rolling}
-      aria-label={rolling ? "Die rolling" : `Die showing ${face}. Roll this die again.`}
+      aria-label={rolling ? "Die rolling" : `Die showing ${face} on a d${sides}. Roll this die again.`}
       className={cn(
-        "grid size-24 place-items-center rounded-2xl border border-black/[0.08] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-[opacity,transform] duration-150 ease-out disabled:cursor-default",
-        rolling ? "scale-[0.98] opacity-0" : "hover:border-black/20"
+        "grid size-24 place-items-center rounded-2xl border border-black/[0.08] bg-white text-[#111] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-[opacity,transform] duration-150 ease-out disabled:cursor-default dark:border-white/15",
+        rolling ? "scale-[0.98] opacity-0" : "hover:border-black/20 dark:hover:border-white/40",
       )}
     >
-      <span className="grid size-14 grid-cols-3 grid-rows-3 text-[var(--nb-primary)]" aria-hidden>
-        {Array.from({ length: 9 }, (_, index) => (
-          <span key={index} className="flex items-center justify-center">
-            {on.has(index) ? <span className="size-2 rounded-full bg-current" /> : null}
-          </span>
-        ))}
-      </span>
+      {pips ? (
+        <span className="grid size-14 grid-cols-3 grid-rows-3" aria-hidden>
+          {Array.from({ length: 9 }, (_, index) => (
+            <span key={index} className="flex items-center justify-center">
+              {pips.has(index) ? <span className="size-2 rounded-full bg-current" /> : null}
+            </span>
+          ))}
+        </span>
+      ) : (
+        <span className="text-3xl font-semibold tabular-nums" aria-hidden>
+          {face}
+        </span>
+      )}
     </button>
   )
-}
-
-function useReducedMotion() {
-  const [reduced, setReduced] = useState(false)
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)")
-    const update = () => setReduced(query.matches)
-    update()
-    query.addEventListener("change", update)
-    return () => query.removeEventListener("change", update)
-  }, [])
-  return reduced
 }

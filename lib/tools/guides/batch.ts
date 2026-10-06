@@ -132,5 +132,6 @@ export const batchGuides: Record<string, ToolGuideCopy> = {
     ["Whose clock is the header?", "The first city in the list is the grid. Other rows show the matching local hour."],
     ["What counts as a working hour?", "9:00 inclusive to 17:00 exclusive, in that city’s local time, including daylight saving from the browser’s timezone data."],
     ["Can I add any timezone?", "The list is a set of common cities. There is no free-text IANA field in this version."],
+    ["Does copy include the date?", "Yes. Copy overlap starts with the date, then each city’s overlapping local hours."],
   ),
 }

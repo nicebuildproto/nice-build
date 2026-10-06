@@ -167,15 +167,15 @@ export const libraryTools: ToolEntry[] = [
   tool("text-tools", "number-to-words", "Number to Words Converter", "Write a number out in words — Australian/British style, with “and” after the hundreds.", "live", { seoTitle: "Number to Words Converter", tags: ["number to words", "numbers in words"], related: ["word-counter", "case-converter"] }),
   tool("text-tools", "text-cleaner", "Text Cleaner", "Trim lines, collapse spaces, straighten quotes, drop empty lines, sort, or deduplicate.", "live", { seoTitle: "Text Cleaner", tags: ["clean text", "trim whitespace", "remove extra spaces"], related: ["remove-duplicate-lines", "case-converter", "diff-checker"] }),
 
-  tool("everyday-fun", "coin-flip", "Coin Flip", "Flip a coin — even odds, a fresh flip every time."),
-  tool("everyday-fun", "random-number", "Random Number Generator", "Draw a whole number between two bounds, including both ends."),
-  tool("everyday-fun", "random-choice", "Random Choice Picker", "Pick one line from a list, at random."),
-  tool("everyday-fun", "wheel-spinner", "Wheel Spinner", "Spin a wheel of names or options and see who lands at the top."),
-  tool("everyday-fun", "stopwatch", "Stopwatch", "Start, stop, and lap a stopwatch."),
-  tool("everyday-fun", "cooking-timer", "Cooking Timer", "Count down a kitchen timer — minutes, and a beep if the browser allows it."),
-  tool("everyday-fun", "recipe-scaler", "Recipe Scaler", "Scale ingredient quantities to a new number of serves."),
-  tool("everyday-fun", "world-clock", "World Clock", "The time in a handful of cities, including daylight saving."),
-  tool("everyday-fun", "time-zone-meeting-planner", "Time Zone Meeting Planner", "Line up a few cities, see local times, and find hours that sit inside a working day."),
+  tool("everyday-fun", "coin-flip", "Coin Flip", "Flip a fair coin — heads or tails, with a short history of flips.", "live", { seoTitle: "Coin Flip", tags: ["coin flip", "heads or tails", "flip a coin"], related: ["dice-roller", "random-number", "name-picker"] }),
+  tool("everyday-fun", "random-number", "Random Number Generator", "Draw a whole number between two bounds, including both ends.", "live", { seoTitle: "Random Number Generator", tags: ["random number", "number generator", "rng"], related: ["dice-roller", "coin-flip", "random-choice"] }),
+  tool("everyday-fun", "random-choice", "Random Choice Picker", "Paste a list, one item a line, and pick one at random. The list stays put.", "live", { seoTitle: "Random Choice Picker", tags: ["random picker", "pick a name", "random choice"], related: ["name-picker", "wheel-spinner", "random-number"] }),
+  tool("everyday-fun", "wheel-spinner", "Wheel Spinner", "Spin a wheel of names or options. The pointer at the top is the winner.", "live", { seoTitle: "Wheel Spinner", tags: ["spin the wheel", "wheel of names", "random wheel"], related: ["name-picker", "random-choice", "dice-roller"] }),
+  tool("everyday-fun", "stopwatch", "Stopwatch", "Start, pause, resume, and lap a stopwatch. Time is counted from the clock, not the animation.", "live", { seoTitle: "Online Stopwatch", tags: ["stopwatch", "online stopwatch", "lap timer"], related: ["cooking-timer", "countdown"] }),
+  tool("everyday-fun", "cooking-timer", "Cooking Timer", "A kitchen countdown with pause, presets, and a beep — plus a clear Time’s up when it finishes.", "live", { seoTitle: "Cooking Timer", tags: ["cooking timer", "kitchen timer", "countdown timer"], related: ["stopwatch", "countdown", "recipe-scaler"] }),
+  tool("everyday-fun", "recipe-scaler", "Recipe Scaler", "Scale ingredient quantities to a new number of serves. Fractions at the start of a line are read.", "live", { seoTitle: "Recipe Scaler", tags: ["recipe scaler", "scale a recipe", "servings calculator"], related: ["cooking-timer"] }),
+  tool("everyday-fun", "world-clock", "World Clock", "The time in Sydney, Tokyo, London, New York, Los Angeles, and UTC — including daylight saving.", "live", { seoTitle: "World Clock", tags: ["world clock", "time zones", "current time"], related: ["time-zone-meeting-planner", "countdown"] }),
+  tool("everyday-fun", "time-zone-meeting-planner", "Time Zone Meeting Planner", "Line up a few cities, see local times, and find hours that sit inside a working day.", "live", { seoTitle: "Time Zone Meeting Planner", tags: ["time zone meeting", "world meeting planner", "overlap hours"], related: ["world-clock", "countdown"] }),
 
   tool("gaming-hardware", "gamepad-tester", "Online Gamepad Tester", "See buttons and sticks from a connected controller."),
   tool("gaming-hardware", "keyboard-tester", "Keyboard Tester", "See which keys are down — and the last key you pressed."),
@@ -239,9 +239,9 @@ export const libraryTools: ToolEntry[] = [
 
   tool("business", "resale-profit-calculator", "Resale Profit Calculator", "Net profit after a marketplace fee, shipping, and what the item cost."),
 
-  tool("everyday-fun", "social-battery-checkin", "Social Battery Check-in", "A few short questions and a light read on whether you need downtime."),
-  tool("everyday-fun", "screen-time-audit", "Screen Time Audit", "Hours a day by category, then the week and the year. You type the hours."),
-  tool("everyday-fun", "carbon-footprint-estimator", "Carbon Footprint Estimator", "A rough streaming and AI estimate from published factors — illustrative, not a meter."),
+  tool("everyday-fun", "social-battery-checkin", "Social Battery Check-in", "Three short questions and a light read on whether you need downtime. Not a score.", "live", { seoTitle: "Social Battery Check-in", tags: ["social battery", "downtime", "social energy"], related: ["screen-time-audit"] }),
+  tool("everyday-fun", "screen-time-audit", "Screen Time Audit", "Hours a day by category, then the week and the year. You type the hours — nothing is read from the device.", "live", { seoTitle: "Screen Time Calculator", tags: ["screen time", "screen time calculator", "hours on screens"], related: ["social-battery-checkin", "carbon-footprint-estimator"] }),
+  tool("everyday-fun", "carbon-footprint-estimator", "Carbon Footprint Estimator", "A rough streaming and AI estimate from published factors — illustrative, not a meter.", "live", { seoTitle: "Carbon Footprint Estimator", tags: ["carbon footprint", "streaming co2", "ai carbon"], related: ["screen-time-audit"] }),
 
   tool("developer", "commit-message-generator", "Git Commit Message Generator", "Turn a short description into a conventional commit.", "live", { cluster: "ops", tags: ["git", "commit"] }),
   tool("developer", "rate-limit-calculator", "API Rate-Limit Calculator", "Whether a request limit covers the users you expect.", "live", { cluster: "network", tags: ["rate limit", "api"] }),

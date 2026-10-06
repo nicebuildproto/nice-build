@@ -15,7 +15,23 @@ import { BreakEvenCalculator, CommissionCalculator } from "@/components/business
 import { InvoiceGenerator, QuoteBuilder } from "@/components/business/documents"
 import { MarginCalculator } from "@/components/business/margin"
 import { ReceiptGenerator } from "@/components/business/receipt"
-import { Countdown, NamePicker } from "@/components/tools/everyday"
+import {
+  AgeCalculator,
+  CarbonFootprintEstimator,
+  CoinFlip,
+  CookingTimer,
+  Countdown,
+  NamePicker,
+  RandomChoice,
+  RandomNumber,
+  RecipeScaler,
+  ScreenTimeAudit,
+  SocialBatteryCheckin,
+  StopwatchTool,
+  TimeZoneMeetingPlanner,
+  WheelSpinner,
+  WorldClock,
+} from "@/components/everyday/views"
 import {
   ExifStripper,
   ImageCompressor,
@@ -28,7 +44,7 @@ import {
   WebpToJpg,
 } from "@/components/files/images"
 import { FaviconGenerator } from "@/components/tools/media"
-import { AgeCalculator, TipCalculator } from "@/components/tools/numbers"
+import { TipCalculator } from "@/components/tools/numbers"
 import { MaterialEstimator } from "@/components/trade/estimator"
 import { PaintCalculator } from "@/components/trade/paint"
 import {
@@ -62,7 +78,6 @@ import {
 } from "@/components/people/views"
 import {
   BitcoinHalvingCountdown,
-  CookingTimer,
   CpsTest,
   DeadZoneTester,
   GamepadTester,
@@ -72,9 +87,6 @@ import {
   ReactionTimeTest,
   RefreshRateTester,
   ScreenPpiCalculator,
-  StopwatchTool,
-  WheelSpinner,
-  WorldClock,
 } from "@/components/tools/play"
 import { CryptoDcaBacktest } from "@/components/tools/dca-backtest"
 import {
@@ -82,7 +94,6 @@ import {
   BioLinkBuilder,
   BracketGenerator,
   PromptLibrary,
-  SocialBatteryCheckin,
   ThreadFormatter,
   ThumbnailPreview,
   TokenCounter,
@@ -127,7 +138,6 @@ import { DebtPayoffCalculator } from "@/components/tools/debt-payoff"
 import { AiContextWindowCalculator, PromptCostCalculator } from "@/components/tools/ai-cost"
 import { FovCalculator } from "@/components/tools/fov"
 import { GamingSensitivityCalculator } from "@/components/tools/sensitivity"
-import { TimeZoneMeetingPlanner } from "@/components/tools/meeting-planner"
 import { CryptoMomentumScanner } from "@/components/tools/crypto-momentum"
 import { toolSpecs } from "@/lib/tools/specs"
 import type { ComponentType } from "react"
@@ -203,7 +213,13 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "text-cleaner": { View: TextCleaner, width: "tool" },
   "age-calculator": { View: AgeCalculator },
   countdown: { View: Countdown },
-  "name-picker": { View: NamePicker },
+  "name-picker": { View: NamePicker, width: "tool" },
+  "coin-flip": { View: CoinFlip },
+  "random-number": { View: RandomNumber },
+  "random-choice": { View: RandomChoice, width: "tool" },
+  "recipe-scaler": { View: RecipeScaler, width: "tool" },
+  "screen-time-audit": { View: ScreenTimeAudit, width: "tool" },
+  "carbon-footprint-estimator": { View: CarbonFootprintEstimator },
   "image-resizer": { View: ImageResizer, width: "tool" },
   "image-cropper": { View: ImageCropper, width: "tool" },
   "jpg-to-png": { View: JpgToPng, width: "tool" },
@@ -226,7 +242,7 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "wheel-spinner": { View: WheelSpinner },
   stopwatch: { View: StopwatchTool },
   "cooking-timer": { View: CookingTimer },
-  "world-clock": { View: WorldClock },
+  "world-clock": { View: WorldClock, width: "tool" },
   "gamepad-tester": { View: GamepadTester, width: "tool" },
   "keyboard-tester": { View: KeyboardTester, width: "tool" },
   "mouse-tester": { View: MouseTester, width: "tool" },
