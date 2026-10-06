@@ -1,5 +1,6 @@
 "use client"
 
+import { ActionRow, ColourInput, CreativeShell, PresetRow, PreviewCanvas } from "@/components/design/kit"
 import { ErrorNote, FileDrop, ResetButton, ToolNote } from "@/components/tools/ui"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,11 +10,21 @@ import { useEffect, useRef, useState } from "react"
 
 const WIDTH = 1200
 const HEIGHT = 630
+const defaultTitle = "A quieter way to share a tool"
+const defaultSubtitle = "Nice Tools"
+
+const ogPresets = [
+  { id: "ink", label: "Ink", background: "#111111", ink: "#fffdf8" },
+  { id: "paper", label: "Paper", background: "#fffdf8", ink: "#111111" },
+  { id: "forest", label: "Forest", background: "#1f6f5b", ink: "#fffdf8" },
+  { id: "ocean", label: "Ocean", background: "#0b3d5c", ink: "#e8f4fc" },
+  { id: "bloom", label: "Bloom", background: "#c43b6f", ink: "#fff1f5" },
+] as const
 
 export function OpenGraphImageGenerator() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [title, setTitle] = useState("A quieter way to share a tool")
-  const [subtitle, setSubtitle] = useState("Nice Tools")
+  const [title, setTitle] = useState(defaultTitle)
+  const [subtitle, setSubtitle] = useState(defaultSubtitle)
   const [background, setBackground] = useState("#111111")
   const [ink, setInk] = useState("#fffdf8")
   const [logo, setLogo] = useState<HTMLImageElement | null>(null)
@@ -48,8 +59,11 @@ export function OpenGraphImageGenerator() {
   }, [title, subtitle, background, ink, logo])
 
   return (
-    <div className="flex flex-col gap-6">
+    <CreativeShell>
       <ToolNote>A 1200 × 630 image for social cards. Keep the title short; the preview is the file you download.</ToolNote>
+      <PreviewCanvas label="Open Graph preview">
+        <canvas ref={canvasRef} className="w-full" style={{ aspectRatio: "1200 / 630" }} />
+      </PreviewCanvas>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-2 text-[13px]">
           Title
@@ -59,15 +73,25 @@ export function OpenGraphImageGenerator() {
           Subtitle
           <Input value={subtitle} onChange={(event) => setSubtitle(event.target.value)} className="h-10" />
         </label>
-        <label className="flex flex-col gap-2 text-[13px]">
-          Background
-          <input type="color" value={background} onChange={(event) => setBackground(event.target.value)} className="h-10 w-full rounded-lg border border-border p-1" />
-        </label>
-        <label className="flex flex-col gap-2 text-[13px]">
-          Text
-          <input type="color" value={ink} onChange={(event) => setInk(event.target.value)} className="h-10 w-full rounded-lg border border-border p-1" />
-        </label>
+        <ColourInput label="Background" value={background} onChange={setBackground} />
+        <ColourInput label="Text" value={ink} onChange={setInk} />
       </div>
+      <PresetRow label="Colour presets">
+        {ogPresets.map((preset) => (
+          <Button
+            key={preset.id}
+            type="button"
+            variant="outline"
+            className="h-10"
+            onClick={() => {
+              setBackground(preset.background)
+              setInk(preset.ink)
+            }}
+          >
+            {preset.label}
+          </Button>
+        ))}
+      </PresetRow>
       <FileDrop
         accept="image/*"
         onFile={async (file) => {
@@ -81,8 +105,7 @@ export function OpenGraphImageGenerator() {
         idle="Optional logo"
       />
       {error ? <ErrorNote>{error}</ErrorNote> : null}
-      <canvas ref={canvasRef} className="w-full max-w-3xl rounded-xl border border-border" style={{ aspectRatio: "1200 / 630" }} />
-      <div className="flex flex-wrap gap-2">
+      <ActionRow>
         <Button
           type="button"
           className="h-10"
@@ -95,13 +118,15 @@ export function OpenGraphImageGenerator() {
         </Button>
         <ResetButton
           onClick={() => {
-            setTitle("")
-            setSubtitle("")
+            setTitle(defaultTitle)
+            setSubtitle(defaultSubtitle)
+            setBackground("#111111")
+            setInk("#fffdf8")
             setLogo(null)
           }}
         />
-      </div>
-    </div>
+      </ActionRow>
+    </CreativeShell>
   )
 }
 

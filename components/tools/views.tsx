@@ -8,7 +8,8 @@ import {
   TimelineGenerator,
   WaterfallChartGenerator,
 } from "@/components/tools/charts"
-import { ColourPalette, ContrastChecker, GradientGenerator } from "@/components/tools/colour"
+import { ColourPalette, ContrastChecker, GradientGenerator, ColourPicker, HexToRgb, RgbToHex } from "@/components/tools/colour"
+import { AspectRatioCalculator, BorderRadiusGenerator, BoxShadowGenerator, PxToRem } from "@/components/tools/css-preview"
 import { JsonFormatter, RegexTester, UuidGenerator } from "@/components/tools/developer"
 import { InvoiceGenerator, QuoteBuilder } from "@/components/tools/documents"
 import { Countdown, NamePicker } from "@/components/tools/everyday"
@@ -108,6 +109,13 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "colour-palette-generator": { View: ColourPalette, width: "tool" },
   "contrast-checker": { View: ContrastChecker, width: "tool" },
   "gradient-generator": { View: GradientGenerator, width: "tool" },
+  "colour-picker": { View: ColourPicker, width: "tool" },
+  "hex-to-rgb": { View: HexToRgb, width: "tool" },
+  "rgb-to-hex": { View: RgbToHex, width: "tool" },
+  "box-shadow-generator": { View: BoxShadowGenerator, width: "tool" },
+  "border-radius-generator": { View: BorderRadiusGenerator, width: "tool" },
+  "aspect-ratio-calculator": { View: AspectRatioCalculator, width: "tool" },
+  "px-to-rem": { View: PxToRem, width: "tool" },
   "funnel-chart": { View: FunnelChart, width: "wide" },
   "gantt-chart": { View: GanttChart, width: "wide" },
   "invoice-generator": { View: InvoiceGenerator, width: "tool" },
@@ -131,7 +139,7 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "webp-to-jpg": { View: WebpToJpg, width: "tool" },
   "svg-to-png": { View: SvgToPng, width: "tool" },
   "image-to-base64": { View: ImageToBase64, width: "tool" },
-  "favicon-generator": { View: FaviconGenerator },
+  "favicon-generator": { View: FaviconGenerator, width: "tool" },
   "qr-code-generator": { View: QrCodeGenerator },
   "flowchart-generator": { View: FlowchartGenerator, width: "wide" },
   "bar-chart-generator": { View: BarChartGenerator, width: "wide" },

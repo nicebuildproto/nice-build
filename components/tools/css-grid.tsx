@@ -1,5 +1,6 @@
 "use client"
 
+import { ActionRow, CreativeShell, CssBlock, PresetRow, PreviewCanvas } from "@/components/design/kit"
 import { CopyButton, NumberField, ResetButton, ToolNote, selectClass } from "@/components/tools/ui"
 import { Button } from "@/components/ui/button"
 import { cellCount, defaultGrid, gridCss, gridPresets, type GridAlign, type GridConfig, type GridJustify } from "@/lib/tools/css-grid"
@@ -18,15 +19,37 @@ export function CssGridGenerator() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <CreativeShell>
       <ToolNote>Dial in columns, rows, and gaps, then copy the CSS. The preview uses the same grid.</ToolNote>
-      <div className="flex flex-wrap gap-2">
+      <PresetRow>
         {gridPresets.map((preset) => (
           <Button key={preset.id} type="button" variant="outline" className="h-10" onClick={() => setConfig({ ...defaultGrid, ...preset.config })}>
             {preset.label}
           </Button>
         ))}
-      </div>
+      </PresetRow>
+      <PreviewCanvas label="CSS grid preview">
+        <div
+          className="min-h-56 p-4"
+          style={{
+            display: "grid",
+            gridTemplateColumns: config.templateColumns.trim() || `repeat(${config.columns}, minmax(0, 1fr))`,
+            gridTemplateRows: config.templateRows.trim() || `repeat(${config.rows}, minmax(72px, auto))`,
+            gap: `${config.rowGap}px ${config.columnGap}px`,
+            justifyItems: config.justifyItems,
+            alignItems: config.alignItems,
+            justifyContent: config.justifyContent,
+            alignContent: config.alignContent,
+            gridTemplateAreas: config.useAreas && config.areas.trim() ? config.areas : undefined,
+          }}
+        >
+          {Array.from({ length: Math.min(cells, 24) }, (_, index) => (
+            <div key={index} className="flex min-h-12 items-center justify-center rounded-lg bg-[var(--nb-accent)] text-[12px] text-[var(--nb-secondary)]">
+              {index + 1}
+            </div>
+          ))}
+        </div>
+      </PreviewCanvas>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <NumberField label="Columns" value={String(config.columns)} onChange={(value) => patch({ columns: Math.max(1, Math.min(12, Number(value) || 1)) })} min={1} step="1" />
         <NumberField label="Rows" value={String(config.rows)} onChange={(value) => patch({ rows: Math.max(1, Math.min(8, Number(value) || 1)) })} min={1} step="1" />
@@ -50,32 +73,12 @@ export function CssGridGenerator() {
           placeholder={`"header header"\n"nav main"`}
         />
       ) : null}
-      <div
-        className="min-h-56 rounded-2xl border border-border p-4"
-        style={{
-          display: "grid",
-          gridTemplateColumns: config.templateColumns.trim() || `repeat(${config.columns}, minmax(0, 1fr))`,
-          gridTemplateRows: config.templateRows.trim() || `repeat(${config.rows}, minmax(72px, auto))`,
-          gap: `${config.rowGap}px ${config.columnGap}px`,
-          justifyItems: config.justifyItems,
-          alignItems: config.alignItems,
-          justifyContent: config.justifyContent,
-          alignContent: config.alignContent,
-          gridTemplateAreas: config.useAreas && config.areas.trim() ? config.areas : undefined,
-        }}
-      >
-        {Array.from({ length: Math.min(cells, 24) }, (_, index) => (
-          <div key={index} className="flex items-center justify-center rounded-lg bg-[var(--nb-accent)] text-[12px] text-[var(--nb-secondary)]">
-            {index + 1}
-          </div>
-        ))}
-      </div>
-      <pre className="overflow-auto rounded-xl border border-border bg-[var(--nb-accent)]/40 p-4 font-mono text-[13px]">{css}</pre>
-      <div className="flex flex-wrap gap-2">
+      <CssBlock code={css} />
+      <ActionRow>
         <CopyButton text={css} label="Copy CSS" />
         <ResetButton onClick={() => setConfig(defaultGrid)} />
-      </div>
-    </div>
+      </ActionRow>
+    </CreativeShell>
   )
 }
 
