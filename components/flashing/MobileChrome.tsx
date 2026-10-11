@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { ArrowLeft, ChevronDown, Info, LayoutTemplate, LocateFixed, MoreVertical, Redo2, SlidersHorizontal, Trash2, Undo2 } from "lucide-react"
+import { ArrowLeft, ChevronDown, Info, LayoutTemplate, LocateFixed, Redo2, SlidersHorizontal, Trash2, Undo2 } from "lucide-react"
 import { distance, segmentAngle } from "@/lib/flashing/geometry"
 import { useCallback, useEffect, useRef, useState, type ReactNode, type RefObject } from "react"
 import { BottomSheet, type SheetSnap } from "./BottomSheet"
@@ -56,7 +56,6 @@ export function MobileChrome({
   const action = useElementSize(actionRef)
 
   const [stepsOpen, setStepsOpen] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
   const [userSheet, setUserSheet] = useState<SheetState<UserSheetId>>(null)
   const [controlsSheet, setControlsSheet] = useState<{ step: number; snap: SheetSnap } | null>(null)
   const [userVisible, setUserVisible] = useState(0)
@@ -92,19 +91,17 @@ export function MobileChrome({
   const title = stepMeta[m.currentStep].title
   const each = eachLabel(m.price, m.quantity)
 
-  // Close the step list and menu on outside taps and Escape. Dialogs opened from the menu are left alone.
+  // Close the step list on outside taps and Escape. Dialogs are left alone.
   useEffect(() => {
-    if (!stepsOpen && !menuOpen) return
+    if (!stepsOpen) return
     const onDown = (event: PointerEvent) => {
       const target = event.target as HTMLElement
       if (target.closest("[data-mobile-popover]") || target.closest('[role="dialog"], [data-slot="dialog-overlay"]')) return
       setStepsOpen(false)
-      setMenuOpen(false)
     }
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setStepsOpen(false)
-        setMenuOpen(false)
       }
     }
     document.addEventListener("pointerdown", onDown)
@@ -113,7 +110,7 @@ export function MobileChrome({
       document.removeEventListener("pointerdown", onDown)
       document.removeEventListener("keydown", onKey)
     }
-  }, [stepsOpen, menuOpen])
+  }, [stepsOpen])
 
   return (
     <div ref={rootRef} className="pointer-events-none absolute inset-0">
@@ -123,8 +120,8 @@ export function MobileChrome({
         className={cn("pointer-events-auto absolute inset-x-0 top-0 border-b border-border bg-card", layer.chrome)}
         style={{ paddingTop: "env(safe-area-inset-top)", paddingLeft: safeLeft, paddingRight: safeRight }}
       >
-        <div className="flex items-center gap-2" style={{ height: barH }}>
-          <div className="flex shrink-0 items-center [&_img]:h-6 [&_img]:w-auto [&_img]:max-w-24 [&_img]:object-contain">
+        <div className="flex items-center gap-1" style={{ height: barH }}>
+          <div className="flex shrink-0 items-center [&_img]:h-6 [&_img]:w-auto [&_img]:max-w-[72px] [&_img]:object-contain min-[400px]:[&_img]:max-w-24">
             {m.logo}
           </div>
           <button
@@ -133,8 +130,7 @@ export function MobileChrome({
             aria-haspopup="dialog"
             data-mobile-popover
             onClick={() => {
-              setMenuOpen(false)
-              setStepsOpen((value) => !value)
+                      setStepsOpen((value) => !value)
             }}
             className="flex h-11 min-w-0 flex-1 items-center gap-1 rounded-lg px-2 text-left outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 active:bg-muted"
           >
@@ -162,20 +158,10 @@ export function MobileChrome({
               <Info className="size-5" aria-hidden />
             </button>
           ) : null}
-          <button
-            type="button"
-            aria-label="Menu"
-            aria-expanded={menuOpen}
-            aria-haspopup="menu"
-            data-mobile-popover
-            onClick={() => {
-              setStepsOpen(false)
-              setMenuOpen((value) => !value)
-            }}
-            className="flex size-11 shrink-0 items-center justify-center rounded-xl outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 active:bg-muted"
-          >
-            <MoreVertical className="size-5" aria-hidden />
-          </button>
+          <div className="flex shrink-0 items-center [&_button]:h-11 [&_button]:px-2 [&_button]:text-sm">
+            {m.startOver}
+            {m.actions}
+          </div>
         </div>
 
         <ol className="flex gap-1 pb-0.5" aria-label="Steps">
@@ -230,20 +216,6 @@ export function MobileChrome({
             className={cn("absolute inset-x-2 top-full mt-1 rounded-xl border border-border bg-card p-2 shadow-lg", layer.popover)}
           >
             <StepList m={m} size="lg" onPick={() => setStepsOpen(false)} />
-          </div>
-        ) : null}
-        {menuOpen ? (
-          <div
-            data-mobile-popover
-            role="menu"
-            aria-label="Menu"
-            className={cn(
-              "absolute top-full right-2 mt-1 w-60 rounded-xl border border-border bg-card p-1.5 shadow-lg [&_button]:h-12 [&_button]:w-full [&_button]:justify-start [&_button]:px-3 [&_button]:text-base",
-              layer.popover
-            )}
-          >
-            <div onClickCapture={(event) => (event.target as HTMLElement).closest("button") && setMenuOpen(false)}>{m.startOver}</div>
-            <div>{m.actions}</div>
           </div>
         ) : null}
       </div>
