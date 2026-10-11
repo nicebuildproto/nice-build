@@ -32,13 +32,15 @@ export function B2BContactButton({ label = "Contact", appearance = "solid" }: { 
       <DialogTrigger
         className={
           appearance === "ghost"
-            ? "inline-flex h-8 items-center justify-center rounded-lg px-2.5 text-sm font-medium text-foreground transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+            ? "inline-flex h-9 items-center justify-center rounded-lg px-2.5 text-sm font-medium text-foreground transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
             : "inline-flex h-7 items-center justify-center rounded-[min(var(--radius-md),12px)] border border-border bg-background px-2.5 text-[0.8rem] font-medium text-[var(--nb-primary)] transition-colors outline-none hover:bg-[var(--nb-accent)] focus-visible:ring-3 focus-visible:ring-ring/50"
         }
       >
         {label}
       </DialogTrigger>
-      <DialogContent className="w-[min(100%-2rem,28rem)] bg-background">
+      <DialogContent
+        className="w-[min(100%-2rem,28rem)] bg-background max-sm:top-0 max-sm:left-0 max-sm:h-dvh max-sm:w-full max-sm:translate-x-0 max-sm:translate-y-0 max-sm:overflow-y-auto max-sm:overscroll-contain max-sm:rounded-none max-sm:px-4 max-sm:pt-[max(1.5rem,env(safe-area-inset-top))] max-sm:pb-0"
+      >
         {sent ? (
           <DialogHeader>
             <DialogTitle>Thanks — we’ll come back to you directly.</DialogTitle>
@@ -63,7 +65,7 @@ export function B2BContactButton({ label = "Contact", appearance = "solid" }: { 
             <div className="mt-6 flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <Label htmlFor={nameId}>Name</Label>
-                <Input id={nameId} name="name" autoComplete="name" required className="h-10" />
+                <Input id={nameId} name="name" autoComplete="name" enterKeyHint="next" required className="h-12 sm:h-10" />
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor={emailId}>Email</Label>
@@ -71,9 +73,11 @@ export function B2BContactButton({ label = "Contact", appearance = "solid" }: { 
                   id={emailId}
                   name="email"
                   type="email"
+                  inputMode="email"
                   autoComplete="email"
+                  enterKeyHint="next"
                   required
-                  className="h-10"
+                  className="h-12 sm:h-10"
                 />
               </div>
               <div className="flex flex-col gap-2">
@@ -82,9 +86,11 @@ export function B2BContactButton({ label = "Contact", appearance = "solid" }: { 
                   id={phoneId}
                   name="phone"
                   type="tel"
+                  inputMode="tel"
                   autoComplete="tel"
+                  enterKeyHint="next"
                   required
-                  className="h-10"
+                  className="h-12 sm:h-10"
                 />
               </div>
               <div className="flex flex-col gap-2">
@@ -94,16 +100,19 @@ export function B2BContactButton({ label = "Contact", appearance = "solid" }: { 
                   name="message"
                   rows={4}
                   placeholder="Anything specific you'd like to know?"
-                  className="w-full resize-y rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm leading-relaxed outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                  enterKeyHint="done"
+                  className="w-full resize-y rounded-lg border border-input bg-transparent px-2.5 py-2 text-base leading-relaxed sm:text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                 />
               </div>
             </div>
-            <Button type="submit" className="mt-6 h-10 w-full">
-              Start the conversation
-            </Button>
-            <p className="mt-3 text-center text-xs text-[var(--nb-secondary)]">
-              We’ll come back to you directly — no mailing lists, no spam.
-            </p>
+            <div className="sticky bottom-0 mt-6 bg-background pt-2 pb-[max(1rem,env(safe-area-inset-bottom))] sm:static sm:pb-0">
+              <Button type="submit" className="h-12 w-full sm:h-10">
+                Start the conversation
+              </Button>
+              <p className="mt-3 text-center text-xs text-[var(--nb-secondary)]">
+                We’ll come back to you directly — no mailing lists, no spam.
+              </p>
+            </div>
           </form>
         )}
       </DialogContent>

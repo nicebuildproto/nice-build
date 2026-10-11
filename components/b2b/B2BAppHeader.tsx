@@ -68,7 +68,7 @@ export function B2BAppHeader({
           className="h-7 w-auto max-w-[42vw] object-contain object-left sm:h-8 sm:max-w-56"
         />
       </Link>
-      <span className="min-w-0 truncate text-sm font-medium text-[var(--nb-primary)]">{productName}</span>
+      <span className="hidden min-w-0 truncate text-sm font-medium text-[var(--nb-primary)] min-[420px]:inline">{productName}</span>
       <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
         {trailing}
         {actions}

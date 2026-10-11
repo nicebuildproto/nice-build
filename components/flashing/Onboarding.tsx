@@ -41,22 +41,23 @@ export function LengthStep({
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center px-6 py-16">
+    <div className="flex min-h-0 flex-1 items-stretch justify-center sm:items-center sm:px-6 sm:py-16">
       <form
-        className="flex w-full max-w-sm flex-col gap-6"
+        className="flex min-h-0 w-full flex-1 flex-col gap-6 sm:max-w-sm sm:flex-none"
         onSubmit={(event) => {
           event.preventDefault()
           submit()
         }}
       >
+        <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-5 pt-6 sm:flex-none sm:overflow-visible sm:p-0">
         <div className="flex flex-col gap-2">
           {onBack ? (
             <button
               type="button"
               onClick={onBack}
-              className="flex w-fit items-center gap-1 text-sm text-[var(--nb-secondary)] transition-colors hover:text-[var(--nb-primary)]"
+              className="flex h-11 w-fit items-center gap-1 text-sm text-[var(--nb-secondary)] transition-colors hover:text-[var(--nb-primary)]"
             >
-              <ArrowLeft className="size-3.5" /> Back
+              <ArrowLeft className="size-4" /> Back
             </button>
           ) : null}
           <h1 className="text-2xl font-semibold tracking-tight">How long is this piece?</h1>
@@ -74,6 +75,8 @@ export function LengthStep({
               id="flashing-piece-length"
               type="text"
               inputMode="numeric"
+              enterKeyHint="next"
+              autoComplete="off"
               autoFocus
               placeholder="2400"
               aria-invalid={error !== null}
@@ -82,7 +85,7 @@ export function LengthStep({
                 setText(event.target.value)
                 setError(null)
               }}
-              className="h-12 pr-14 text-lg tabular-nums"
+              className="h-12 pr-14 text-base tabular-nums"
             />
             <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-sm text-[var(--nb-secondary)]">
               mm
@@ -95,18 +98,23 @@ export function LengthStep({
           <Input
             type="text"
             inputMode="numeric"
+            enterKeyHint="done"
+            autoComplete="off"
             aria-label="Quantity"
             value={quantityText}
             onChange={(event) => {
               setQuantityText(event.target.value)
               setError(null)
             }}
-            className="h-12 w-24 text-lg tabular-nums"
+            className="h-12 w-28 text-base tabular-nums"
           />
         </label>
-        <Button type="submit" size="lg" className="h-11">
-          {submitLabel}
-        </Button>
+        </div>
+        <div className="sticky bottom-0 border-t border-border bg-background px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:static sm:border-0 sm:bg-transparent sm:p-0">
+          <Button type="submit" size="lg" className="h-12 w-full text-base sm:h-11">
+            {submitLabel}
+          </Button>
+        </div>
       </form>
     </div>
   )
@@ -120,25 +128,25 @@ export function TemplateStep({
   onChoose: (templateId: string | null) => void
 }) {
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-6 py-12">
+    <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-4 py-6 sm:gap-8 sm:px-6 sm:py-12">
       <div className="flex flex-col gap-2">
         <button
           type="button"
           onClick={onBack}
-          className="flex w-fit items-center gap-1 text-sm text-[var(--nb-secondary)] transition-colors hover:text-[var(--nb-primary)]"
+          className="flex h-11 w-fit items-center gap-1 text-sm text-[var(--nb-secondary)] transition-colors hover:text-[var(--nb-primary)]"
         >
-          <ArrowLeft className="size-3.5" /> Piece length
+          <ArrowLeft className="size-4" /> Piece length
         </button>
         <h1 className="text-2xl font-semibold tracking-tight">Start from a shape</h1>
         <p className="text-sm text-[var(--nb-secondary)]">
           Every point stays editable. Pick the closest match, or start blank.
         </p>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <button
           type="button"
           onClick={() => onChoose(null)}
-          className="flex min-h-48 flex-col justify-between gap-4 rounded-2xl border border-dashed border-black/15 p-5 text-left transition-colors hover:border-black/40 hover:bg-[var(--nb-accent)] focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+          className="flex min-h-44 flex-col justify-between gap-4 rounded-2xl border border-dashed border-border p-4 sm:min-h-48 sm:p-5 text-left transition-colors hover:border-foreground/40 hover:bg-[var(--nb-accent)] focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
         >
           <span className="flex h-11 items-center">
             <Plus className="size-6 text-[var(--nb-primary)]" strokeWidth={1.5} />
@@ -159,11 +167,11 @@ export function TemplateStep({
 function TemplateCard({ template, onChoose }: { template: FlashingTemplate; onChoose: () => void }) {
   const [expanded, setExpanded] = useState(false)
   return (
-    <div className="group flex min-h-48 flex-col rounded-2xl border border-black/[0.08] transition-colors hover:border-black/30">
+    <div className="group flex min-h-44 flex-col rounded-2xl sm:min-h-48 border border-border transition-colors hover:border-foreground/30">
       <button
         type="button"
         onClick={onChoose}
-        className="flex flex-1 flex-col justify-between gap-4 rounded-t-2xl p-5 pb-3 text-left focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+        className="flex flex-1 flex-col justify-between gap-4 rounded-t-2xl p-4 pb-3 text-left sm:p-5 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
       >
         <ProfileIcon points={template.points} className="h-11 w-[72px] text-[var(--nb-primary)]" />
         <span className="flex flex-col gap-1">
@@ -183,7 +191,7 @@ function TemplateCard({ template, onChoose }: { template: FlashingTemplate; onCh
         aria-expanded={expanded}
         onClick={() => setExpanded((value) => !value)}
         className={cn(
-          "mx-5 mb-4 w-fit text-xs text-[var(--nb-secondary)] underline-offset-4 transition-colors hover:text-[var(--nb-primary)] hover:underline"
+          "mx-4 mb-2 flex h-11 w-fit items-center text-sm text-[var(--nb-secondary)] underline-offset-4 sm:mx-5 transition-colors hover:text-[var(--nb-primary)] hover:underline"
         )}
       >
         {expanded ? "Show less" : "Learn more"}
@@ -201,91 +209,3 @@ export const editSteps = [
 ] as const
 
 export type EditStepId = (typeof editSteps)[number]["id"]
-
-export function StepIndicator({
-  current,
-  reached,
-  onSelect,
-  orientation = "horizontal",
-}: {
-  current: number
-  reached: number
-  onSelect: (index: number) => void
-  orientation?: "horizontal" | "vertical"
-}) {
-  if (orientation === "vertical") {
-    return (
-      <ol className="flex flex-col">
-        {editSteps.map((step, index) => {
-          const active = index === current
-          const available = index <= reached
-          return (
-            <li key={step.id}>
-              <button
-                type="button"
-                disabled={!available}
-                aria-current={active ? "step" : undefined}
-                onClick={() => onSelect(index)}
-                className={cn(
-                  "flex h-9 w-full items-center gap-2.5 rounded-lg px-2 text-left text-sm",
-                  active && "bg-zinc-950 text-white",
-                  !active && available && "text-zinc-800 hover:bg-zinc-100",
-                  !available && "cursor-default text-zinc-400"
-                )}
-              >
-                <span
-                  className={cn(
-                    "flex size-5 items-center justify-center rounded-full text-[11px] tabular-nums",
-                    active ? "bg-white/15" : "bg-zinc-100 text-zinc-700",
-                    !available && "bg-zinc-50 text-zinc-400"
-                  )}
-                >
-                  {index + 1}
-                </span>
-                {step.label}
-              </button>
-            </li>
-          )
-        })}
-      </ol>
-    )
-  }
-
-  return (
-    <ol className="flex items-center gap-1 overflow-x-auto">
-      {editSteps.map((step, index) => {
-        const active = index === current
-        const available = index <= reached
-        return (
-          <li key={step.id} className="flex items-center gap-1">
-            {index > 0 ? (
-              <span className={cn("h-px w-4 sm:w-6", index <= reached ? "bg-foreground/30" : "bg-foreground/10")} />
-            ) : null}
-            <button
-              type="button"
-              disabled={!available}
-              aria-current={active ? "step" : undefined}
-              onClick={() => onSelect(index)}
-              className={cn(
-                "flex items-center gap-2 rounded-full px-2.5 py-1 text-sm transition-colors",
-                active && "bg-[var(--nb-primary)] text-[var(--background)]",
-                !active && available && "text-[var(--nb-primary)] hover:bg-[var(--nb-accent)]",
-                !available && "cursor-default text-muted-foreground"
-              )}
-            >
-              <span
-                className={cn(
-                  "flex size-5 items-center justify-center rounded-full text-[11px] tabular-nums",
-                  active ? "bg-background/20" : available ? "bg-foreground/[0.06]" : "bg-foreground/[0.04]"
-                )}
-              >
-                {index + 1}
-              </span>
-              <span className="hidden sm:inline">{step.label}</span>
-            </button>
-          </li>
-        )
-      })}
-    </ol>
-  )
-}

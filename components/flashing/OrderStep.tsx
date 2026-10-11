@@ -55,7 +55,7 @@ export function OrderStep({
   return (
     <div className="flex-1">
       <form
-        className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-5 py-10 sm:px-8"
+        className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-5 pt-6 sm:gap-10 sm:px-8 sm:pt-10"
         onSubmit={(event) => {
           event.preventDefault()
           const data = new FormData(event.currentTarget)
@@ -92,8 +92,8 @@ export function OrderStep({
                 onClick={() => setFulfillment(option)}
                 className={
                   fulfillment === option
-                    ? "h-11 rounded-xl border border-[var(--nb-primary)] text-sm"
-                    : "h-11 rounded-xl border border-black/[0.08] text-sm text-[var(--nb-secondary)] hover:border-black/20"
+                    ? "h-12 rounded-xl border border-[var(--nb-primary)] text-base sm:h-11 sm:text-sm"
+                    : "h-12 rounded-xl border border-border text-base text-[var(--nb-secondary)] hover:border-foreground/30 sm:h-11 sm:text-sm"
                 }
               >
                 {option === "delivery" ? "Delivery" : "Pickup"}
@@ -105,10 +105,10 @@ export function OrderStep({
         <section className="flex flex-col gap-4">
           <h2 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">Your details</h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field id={nameId} name="name" label="Name" autoComplete="name" required />
-            <Field id={companyId} name="company" label="Company" autoComplete="organization" />
-            <Field id={emailId} name="email" label="Email" type="email" autoComplete="email" required />
-            <Field id={phoneId} name="phone" label="Phone" type="tel" autoComplete="tel" required />
+            <Field id={nameId} name="name" label="Name" autoComplete="name" enterKeyHint="next" required />
+            <Field id={companyId} name="company" label="Company" autoComplete="organization" enterKeyHint="next" />
+            <Field id={emailId} name="email" label="Email" type="email" inputMode="email" autoComplete="email" enterKeyHint="next" required />
+            <Field id={phoneId} name="phone" label="Phone" type="tel" inputMode="tel" autoComplete="tel" enterKeyHint="next" required />
           </div>
         </section>
 
@@ -117,19 +117,19 @@ export function OrderStep({
             <h2 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
               Delivery details
             </h2>
-            <Field id={addressId} name="address" label="Address" autoComplete="street-address" required />
+            <Field id={addressId} name="address" label="Address" autoComplete="street-address" enterKeyHint="next" required />
             <div className="grid gap-4 sm:grid-cols-3">
-              <Field id={suburbId} name="suburb" label="Suburb" autoComplete="address-level2" required />
-              <Field id={stateId} name="state" label="State" autoComplete="address-level1" required />
-              <Field id={postcodeId} name="postcode" label="Postcode" autoComplete="postal-code" required />
+              <Field id={suburbId} name="suburb" label="Suburb" autoComplete="address-level2" enterKeyHint="next" required />
+              <Field id={stateId} name="state" label="State" autoComplete="address-level1" enterKeyHint="next" required />
+              <Field id={postcodeId} name="postcode" label="Postcode" autoComplete="postal-code" inputMode="numeric" enterKeyHint="done" required />
             </div>
           </section>
         ) : null}
 
         <section className="flex flex-col gap-4">
           <h2 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">Order summary</h2>
-          <div className="overflow-hidden rounded-xl border border-black/[0.08]">
-            <div className="max-h-56 overflow-hidden border-b border-black/[0.06] bg-white">
+          <div className="overflow-hidden rounded-xl border border-border">
+            <div className="max-h-56 overflow-hidden border-b border-border bg-white">
               <TechnicalDrawing points={points} taper={taper} taperLengths={taperLengths} info={info} />
             </div>
             <div className="flex flex-col gap-1 px-5 py-4">
@@ -145,14 +145,14 @@ export function OrderStep({
 
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
-          <Button type="button" variant="ghost" className="h-10" onClick={onBack}>
+        <div className="sticky bottom-0 -mx-5 flex flex-col-reverse gap-2 border-t border-border bg-background px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:static sm:mx-0 sm:flex-row sm:items-center sm:border-0 sm:bg-transparent sm:p-0 sm:pb-10">
+          <Button type="button" variant="ghost" className="h-12 text-base sm:h-10 sm:text-sm" onClick={onBack}>
             Back
           </Button>
-          <Button type="button" variant="outline" className="h-10" onClick={() => downloadDrawing()}>
+          <Button type="button" variant="outline" className="h-12 text-base sm:h-10 sm:text-sm" onClick={() => downloadDrawing()}>
             Download drawing
           </Button>
-          <Button type="submit" className="h-10 sm:ml-auto">
+          <Button type="submit" className="h-12 text-base sm:ml-auto sm:h-10 sm:text-sm">
             Place order
           </Button>
         </div>
@@ -177,7 +177,7 @@ export function ConfirmationStep({
   onBack: () => void
 }) {
   return (
-    <div className="flex flex-1 items-center justify-center px-6 py-16">
+    <div className="flex flex-1 items-center justify-center px-5 py-10 sm:px-6 sm:py-16">
       <div className="sr-only" aria-hidden>
         <TechnicalDrawing points={points} taper={taper} taperLengths={taperLengths} info={info} />
       </div>
@@ -212,6 +212,8 @@ function Field({
   label,
   type = "text",
   autoComplete,
+  inputMode,
+  enterKeyHint,
   required,
 }: {
   id: string
@@ -219,12 +221,14 @@ function Field({
   label: string
   type?: string
   autoComplete?: string
+  inputMode?: "email" | "tel" | "numeric" | "text"
+  enterKeyHint?: "next" | "done" | "go"
   required?: boolean
 }) {
   return (
     <div className="flex flex-col gap-2">
       <Label htmlFor={id}>{label}</Label>
-      <Input id={id} name={name} type={type} autoComplete={autoComplete} required={required} className="h-10" />
+      <Input id={id} name={name} type={type} autoComplete={autoComplete} inputMode={inputMode} enterKeyHint={enterKeyHint} required={required} className="h-12 sm:h-10" />
     </div>
   )
 }

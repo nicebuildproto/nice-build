@@ -83,6 +83,28 @@ export function MaterialControls({
     <div className="flex flex-col divide-y divide-border">
       <section className="flex flex-col gap-3 pb-4">
         <h3 className={flashingLabel}>Material</h3>
+        {touch ? (
+          <div className="grid grid-cols-3 gap-1 rounded-xl bg-muted p-1" role="radiogroup" aria-label="Material">
+            {materials.map((option) => {
+              const selected = option.id === material
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  onClick={() => onMaterialChange(option.id)}
+                  className={cn(
+                    "flex h-12 items-center justify-center rounded-lg px-1 text-sm transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                    selected ? "bg-card font-medium shadow-sm ring-1 ring-border" : "text-muted-foreground active:bg-card/60"
+                  )}
+                >
+                  {option.label.replace(" steel", "")}
+                </button>
+              )
+            })}
+          </div>
+        ) : (
         <div className="flex flex-col gap-2" role="radiogroup" aria-label="Material">
           {materials.map((option) => {
             const selected = option.id === material
@@ -118,6 +140,7 @@ export function MaterialControls({
             )
           })}
         </div>
+        )}
       </section>
 
       {isColour ? (

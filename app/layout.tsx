@@ -1,7 +1,7 @@
 import { siteName } from "@/lib/site"
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Contentsquare } from "./contentsquare"
 import "./globals.css"
@@ -15,6 +15,15 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 })
+
+// viewportFit "cover" lets fixed bars pad themselves with env(safe-area-inset-*);
+// "resizes-content" shrinks the layout when the on-screen keyboard opens, so fixed bars stay above it.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  interactiveWidget: "resizes-content",
+}
 
 export const metadata: Metadata = {
   title: siteName,
