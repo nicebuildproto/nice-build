@@ -1,13 +1,12 @@
 "use client"
 
 import { Input } from "@/components/ui/input"
-import { Switch } from "@/components/ui/switch"
 import { centroid, distance, formatMm, midpoint, normalOf, taperedPoints, type Point } from "@/lib/flashing/geometry"
 import { cn } from "@/lib/utils"
-import { useState } from "react"
-import { ToolbarGroup } from "./IconButton"
+import { useState, type RefObject } from "react"
+import { flashingFloat } from "./chrome"
 import { toPath } from "./ProfileShape"
-import { Viewport } from "./Viewport"
+import { Viewport, type ViewportControls, type ViewportInset } from "./Viewport"
 
 export function outwardNormal(a: Point, b: Point, center: Point): Point {
   const n = normalOf(a, b)
@@ -18,16 +17,16 @@ export function outwardNormal(a: Point, b: Point, center: Point): Point {
 
 export function TaperLegend() {
   return (
-    <span className="flex items-center gap-4">
+    <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
       <span className="flex items-center gap-1.5">
         <svg width="22" height="6" aria-hidden>
-          <line x1="0" y1="3" x2="22" y2="3" stroke="#6B7280" strokeWidth="1.75" />
+          <line x1="0" y1="3" x2="22" y2="3" stroke="var(--nb-secondary)" strokeWidth="1.75" />
         </svg>
         Square end
       </span>
       <span className="flex items-center gap-1.5">
         <svg width="22" height="6" aria-hidden>
-          <line x1="0" y1="3" x2="22" y2="3" stroke="#111111" strokeWidth="2" strokeDasharray="5 3" />
+          <line x1="0" y1="3" x2="22" y2="3" stroke="var(--nb-primary)" strokeWidth="2" strokeDasharray="5 3" />
         </svg>
         Tapered end
       </span>
@@ -52,7 +51,8 @@ export function TaperLines({
               y1={point.y}
               x2={taper[i].x}
               y2={taper[i].y}
-              stroke="#D1D5DB"
+              stroke="var(--nb-secondary)"
+              strokeOpacity={0.45}
               strokeWidth={1}
               strokeDasharray="2 3"
             />
@@ -61,21 +61,21 @@ export function TaperLines({
       <path
         d={toPath(base)}
         fill="none"
-        stroke={taper ? "#6B7280" : "var(--nb-primary)"}
+        stroke={taper ? "var(--nb-secondary)" : "var(--nb-primary)"}
         strokeWidth={taper ? 1.75 : 2}
         strokeLinejoin="round"
         strokeLinecap="round"
       />
       {taper ? (
-      <path
-        d={toPath(taper)}
-        fill="none"
-        stroke="var(--nb-primary)"
-        strokeWidth={2}
-        strokeDasharray="7 5"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
+        <path
+          d={toPath(taper)}
+          fill="none"
+          stroke="var(--nb-primary)"
+          strokeWidth={2}
+          strokeDasharray="7 5"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
       ) : null}
     </g>
   )
@@ -84,21 +84,23 @@ export function TaperLines({
 export function TaperStep({
   points,
   enabled,
-  onEnabledChange,
   lengths,
   onLengthChange,
   anchor,
   showGrid,
-  onToggleGrid,
+  controlsRef,
+  onPanModeChange,
+  fitInset,
 }: {
   points: Point[]
   enabled: boolean
-  onEnabledChange: (value: boolean) => void
   lengths: (number | null)[]
   onLengthChange: (index: number, value: number | null) => void
   anchor: number
   showGrid: boolean
-  onToggleGrid: () => void
+  controlsRef?: RefObject<ViewportControls | null>
+  onPanModeChange?: (on: boolean) => void
+  fitInset?: ViewportInset
 }) {
   const [editing, setEditing] = useState<number | null>(null)
   const taper = enabled ? taperedPoints(points, lengths, anchor) : null
@@ -108,33 +110,10 @@ export function TaperStep({
       fitPoints={taper ? [...points, ...taper] : points}
       fitKey={enabled ? "taper-on" : "taper-off"}
       showGrid={showGrid}
-      onToggleGrid={onToggleGrid}
+      controlsRef={controlsRef}
+      onPanModeChange={onPanModeChange}
+      fitInset={fitInset}
       onBackgroundClick={() => setEditing(null)}
-      topLeft={
-        <ToolbarGroup className="max-w-xs items-start gap-3 px-3.5 py-3">
-          <label className="flex cursor-pointer items-start gap-3">
-            <Switch
-              checked={enabled}
-              onCheckedChange={(value) => {
-                onEnabledChange(value)
-                setEditing(null)
-              }}
-              className="mt-0.5"
-            />
-            <span>
-              <span className="block text-sm text-[var(--nb-primary)]">
-                This flashing has a tapered edge
-              </span>
-              <span className="block text-xs text-[var(--nb-secondary)]">
-                {enabled
-                  ? "Click a length to set its size at the tapered end. Angles stay as designed."
-                  : "Most flashings are the same width end to end. Skip this if yours is."}
-              </span>
-            </span>
-          </label>
-        </ToolbarGroup>
-      }
-      bottomLeft={enabled ? <TaperLegend /> : null}
     >
       {(api) => {
         const screen = points.map(api.toScreen)
@@ -146,8 +125,8 @@ export function TaperStep({
               const b = screen[i + 1]
               const n = outwardNormal(a, b, center)
               const mid = midpoint(a, b)
-              const left = mid.x + n.x * 22
-              const top = mid.y + n.y * 22
+              const left = mid.x + n.x * 28
+              const top = mid.y + n.y * 28
               const base = distance(points[i], points[i + 1])
               const tapered = lengths[i]
               const changed = tapered != null && Math.abs(tapered - base) > 0.5
@@ -157,8 +136,8 @@ export function TaperStep({
                 return (
                   <TaperInput
                     key={`edit-${i}`}
-                    left={left}
-                    top={top}
+                    left={Math.min(Math.max(left, 110), api.size.w - 110)}
+                    top={Math.min(Math.max(top, 70), api.size.h - 70)}
                     base={base}
                     value={tapered ?? base}
                     onCommit={(value) => {
@@ -177,10 +156,11 @@ export function TaperStep({
                   onPointerDown={(event) => event.stopPropagation()}
                   onClick={() => setEditing(i)}
                   className={cn(
-                    "absolute -translate-x-1/2 -translate-y-1/2 rounded-md border px-1.5 py-0.5 text-xs whitespace-nowrap tabular-nums shadow-sm transition-colors",
+                    "absolute -translate-x-1/2 -translate-y-1/2 rounded-md border px-2 text-xs whitespace-nowrap tabular-nums transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                    api.coarse ? "min-h-11 min-w-11" : "min-h-7",
                     changed
-                      ? "border-[var(--nb-primary)] bg-[var(--nb-primary)] text-white"
-                      : "border-black/10 bg-white text-[var(--nb-primary)] hover:border-black/30"
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-card text-foreground hover:border-foreground/30"
                   )}
                   style={{ left, top }}
                 >
@@ -189,7 +169,7 @@ export function TaperStep({
               ) : (
                 <span
                   key={`label-${i}`}
-                  className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 text-xs text-[var(--nb-secondary)] tabular-nums"
+                  className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-md border border-border bg-card/90 px-1.5 py-0.5 text-xs text-muted-foreground tabular-nums"
                   style={{ left, top }}
                 >
                   {label}
@@ -227,18 +207,19 @@ function TaperInput({
   }
   return (
     <div
-      className="absolute flex -translate-x-1/2 -translate-y-1/2 items-end gap-2 rounded-xl border border-black/[0.06] bg-white p-2.5 shadow-[0_8px_24px_rgba(0,0,0,0.08)]"
+      className={cn(flashingFloat, "absolute flex -translate-x-1/2 -translate-y-1/2 items-end gap-2 rounded-xl p-3")}
       style={{ left, top }}
       onPointerDown={(event) => event.stopPropagation()}
     >
       <label className="flex flex-col gap-1">
-        <span className="text-[11px] text-[var(--nb-secondary)]">
-          Tapered length <span className="text-[#9CA3AF]">· was {formatMm(base)}</span>
+        <span className="text-xs text-muted-foreground">
+          Tapered length · was {formatMm(base)}
         </span>
         <span className="relative">
           <Input
             type="text"
             inputMode="decimal"
+            enterKeyHint="done"
             autoFocus
             value={text}
             onFocus={(event) => event.currentTarget.select()}
@@ -248,9 +229,9 @@ function TaperInput({
               if (event.key === "Enter") commit()
               if (event.key === "Escape") onCancel()
             }}
-            className="h-8 w-28 pr-9 tabular-nums"
+            className="h-10 w-32 pr-10 text-base tabular-nums md:text-sm"
           />
-          <span className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2 text-xs text-[var(--nb-secondary)]">
+          <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs text-muted-foreground">
             mm
           </span>
         </span>

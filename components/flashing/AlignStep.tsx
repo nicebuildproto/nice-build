@@ -1,30 +1,30 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
 import { taperedPoints, type Point } from "@/lib/flashing/geometry"
-import { useState } from "react"
-import { ToolbarGroup } from "./IconButton"
-import { TaperLegend, TaperLines } from "./TaperStep"
-import { Viewport } from "./Viewport"
+import { useState, type RefObject } from "react"
+import { TaperLines } from "./TaperStep"
+import { Viewport, type ViewportControls, type ViewportInset } from "./Viewport"
 
 export function AlignStep({
   points,
   taperEnabled,
   lengths,
   anchor,
-  isOverride,
   onAnchorChange,
   showGrid,
-  onToggleGrid,
+  controlsRef,
+  onPanModeChange,
+  fitInset,
 }: {
   points: Point[]
   taperEnabled: boolean
   lengths: (number | null)[]
   anchor: number
-  isOverride: boolean
   onAnchorChange: (index: number | null) => void
   showGrid: boolean
-  onToggleGrid: () => void
+  controlsRef?: RefObject<ViewportControls | null>
+  onPanModeChange?: (on: boolean) => void
+  fitInset?: ViewportInset
 }) {
   const [hovered, setHovered] = useState<number | null>(null)
   const taper = taperEnabled ? taperedPoints(points, lengths, anchor) : null
@@ -34,35 +34,9 @@ export function AlignStep({
       fitPoints={taper ? [...points, ...taper] : points}
       fitKey="align"
       showGrid={showGrid}
-      onToggleGrid={onToggleGrid}
-      topLeft={
-        <ToolbarGroup className="max-w-xs flex-col items-start gap-2 px-3.5 py-3">
-          {taperEnabled ? (
-            <>
-              <span className="text-sm text-[var(--nb-primary)]">
-                {isOverride ? "Square edge set by you" : "Square edge found automatically"}
-              </span>
-              <span className="text-xs text-[var(--nb-secondary)]">
-                The marked point keeps a square edge; the taper runs away from it. Click another
-                point to change it.
-              </span>
-              {isOverride ? (
-                <Button variant="outline" size="xs" onClick={() => onAnchorChange(null)}>
-                  Use automatic
-                </Button>
-              ) : null}
-            </>
-          ) : (
-            <>
-              <span className="text-sm text-[var(--nb-primary)]">Nothing to align</span>
-              <span className="text-xs text-[var(--nb-secondary)]">
-                Without a taper, every edge is already square. You can continue.
-              </span>
-            </>
-          )}
-        </ToolbarGroup>
-      }
-      bottomLeft={taperEnabled ? <TaperLegend /> : null}
+      controlsRef={controlsRef}
+      onPanModeChange={onPanModeChange}
+      fitInset={fitInset}
     >
       {(api) => {
         const screen = points.map(api.toScreen)
@@ -93,16 +67,16 @@ export function AlignStep({
                           cx={point.x}
                           cy={point.y}
                           r={isHovered ? 6 : 4.5}
-                          fill="white"
-                          stroke={isHovered ? "var(--nb-primary)" : "#9CA3AF"}
+                          fill="var(--background)"
+                          stroke={isHovered ? "var(--nb-primary)" : "var(--nb-secondary)"}
                           strokeWidth={1.5}
-                          className="pointer-events-none transition-all"
+                          className="pointer-events-none"
                         />
                       )}
                       <circle
                         cx={point.x}
                         cy={point.y}
-                        r={14}
+                        r={api.coarse ? 24 : 16}
                         fill="transparent"
                         style={{ cursor: "pointer", pointerEvents: api.panning ? "none" : "all" }}
                         onPointerEnter={() => setHovered(index)}
@@ -122,8 +96,8 @@ export function AlignStep({
         const overlay =
           taperEnabled && anchorPoint ? (
             <span
-              className="pointer-events-none absolute -translate-x-1/2 -translate-y-full rounded-full bg-[var(--nb-primary)] px-2 py-0.5 text-[11px] whitespace-nowrap text-white"
-              style={{ left: anchorPoint.x, top: anchorPoint.y - 12 }}
+              className="pointer-events-none absolute -translate-x-1/2 -translate-y-full rounded-full bg-primary px-2.5 py-0.5 text-xs whitespace-nowrap text-primary-foreground"
+              style={{ left: anchorPoint.x, top: anchorPoint.y - 14 }}
             >
               Square edge
             </span>

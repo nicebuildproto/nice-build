@@ -40,16 +40,13 @@ import {
 import { templateById } from "@/lib/flashing/templates"
 import { cn } from "@/lib/utils"
 import { useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react"
-import { AlignStep } from "./AlignStep"
-import { DesignStep } from "./DesignStep"
 import { useDebouncedValue } from "./hooks"
 import { IntroStep } from "./IntroStep"
-import { MaterialStep } from "./MaterialStep"
+import { materialShort } from "./labels"
+import type { FlashingModel } from "./model"
 import { ConfirmationStep, OrderStep } from "./OrderStep"
-import { editSteps, LengthStep, StepIndicator, TemplateStep } from "./Onboarding"
-import { PriceBar } from "./PriceBar"
-import { ReviewStep } from "./ReviewStep"
-import { TaperStep } from "./TaperStep"
+import { editSteps, LengthStep, TemplateStep } from "./Onboarding"
+import { FlashingWorkspace } from "./Workspace"
 
 const reviewIndex = editSteps.findIndex((step) => step.id === "review")
 const materialIndex = editSteps.findIndex((step) => step.id === "material")
@@ -57,8 +54,12 @@ const designIndex = editSteps.findIndex((step) => step.id === "design")
 
 export function FlashingDesigner({
   chrome,
+  mark,
+  actions,
 }: {
   chrome?: (slots: { startOver: ReactNode }) => ReactNode
+  mark?: ReactNode
+  actions?: ReactNode
 } = {}) {
   const [hydrated, setHydrated] = useState(false)
   const [stage, setStage] = useState<FlashingStage>("intro")
@@ -82,7 +83,7 @@ export function FlashingDesigner({
   const [material, setMaterial] = useState<MaterialId>("colour")
   const [colourId, setColourId] = useState("monument")
   const [side, setSide] = useState<ColourSide>("out")
-  const [toast, setToast] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ message: string; action?: { label: string; onClick: () => void } } | null>(null)
   const [orderRef, setOrderRef] = useState<string | null>(null)
   const [returnToReview, setReturnToReview] = useState(false)
   const [confirmReset, setConfirmReset] = useState(false)
@@ -220,10 +221,12 @@ export function FlashingDesigner({
         : `Keep the profile girth to ${MAX_GIRTH_MM} mm or less.`
       : null
 
-  const showToast = (message: string) => {
-    setToast(message)
-    window.setTimeout(() => setToast((current) => (current === message ? null : current)), 2600)
-  }
+  const showToast = (message: string, action?: { label: string; onClick: () => void }) => setToast({ message, action })
+  useEffect(() => {
+    if (!toast) return
+    const timer = window.setTimeout(() => setToast(null), toast.action ? 7000 : 2600)
+    return () => window.clearTimeout(timer)
+  }, [toast])
 
   const tapered = taperEnabled ? taperedPoints(points, taperLengths, anchor) : null
   const drawingInfo = {
@@ -297,6 +300,22 @@ export function FlashingDesigner({
     setFitCount((count) => count + 1)
   }
 
+  const clearCanvas = () => {
+    const previous = { templateId, storedTaper, anchorOverride }
+    loadTemplate(null, true)
+    showToast("Canvas cleared", {
+      label: "Undo",
+      onClick: () => {
+        dispatch({ type: "undo" })
+        setTemplateId(previous.templateId)
+        setStoredTaper(previous.storedTaper)
+        setAnchorOverride(previous.anchorOverride)
+        setFitCount((count) => count + 1)
+        setToast(null)
+      },
+    })
+  }
+
   const hasWork =
     pieceLengthMm !== null || points.length > 0 || stage === "order" || stage === "done" || stage === "edit"
 
@@ -307,8 +326,113 @@ export function FlashingDesigner({
         ? "Skip"
         : "Continue"
 
-  const showConfigureChrome = stage === "edit" && currentStep !== "review"
-  const showStepper = stage === "edit"
+  const canvas = stage === "edit" && pieceLengthMm !== null
+  const startOver =
+    stage !== "intro" ? (
+      <Button
+        type="button"
+        variant="ghost"
+        className="h-9 px-2.5 text-muted-foreground"
+        onClick={() => (hasWork ? setConfirmReset(true) : resetAll())}
+      >
+        Start over
+      </Button>
+    ) : null
+  const canvasLogo = mark ?? <BrandLink logoClassName="h-7" />
+  const canvasActions_ = actions ?? <HeaderActions variant="stage" />
+
+  const model: FlashingModel | null =
+    canvas && pieceLengthMm !== null
+      ? {
+          logo: canvasLogo,
+          actions: canvasActions_,
+          startOver,
+          step,
+          reached,
+          currentStep,
+          goTo,
+          onBack: () => (step === 0 ? setStage("template") : goTo(step - 1)),
+          onContinue: () => goTo(step + 1),
+          blocked,
+          continueLabel,
+          stepSummaries: [
+            `${foldCount(points)} ${foldCount(points) === 1 ? "fold" : "folds"}, ${Math.round(liveGirth)} mm`,
+            taperEnabled ? "Tapered" : "No taper",
+            !taperEnabled ? "Not needed" : anchorOverride !== null ? "Set by you" : "Automatic",
+            materialShort({ material, colourId, side }),
+            "Check and order",
+          ],
+          editor,
+          dispatch,
+          points,
+          templateId,
+          profileName,
+          snap,
+          onSnapChange: setSnap,
+          showDims,
+          onShowDimsChange: setShowDims,
+          showGrid,
+          onToggleGrid: () => setShowGrid((value) => !value),
+          canUndo: editor.past.length > 0,
+          canRedo: editor.future.length > 0,
+          onUndo: () => dispatch({ type: "undo" }),
+          onRedo: () => dispatch({ type: "redo" }),
+          canRotate: points.length >= 2,
+          onRotate: (degrees) => {
+            dispatch({ type: "rotate", degrees })
+            setFitCount((count) => count + 1)
+          },
+          onClear: clearCanvas,
+          onLoadTemplate: (id) => loadTemplate(id, true),
+          fitKey: `design-${fitCount}`,
+          taperEnabled,
+          onTaperEnabled: setTaperEnabled,
+          taperLengths,
+          onTaperLength: (index, value) => {
+            const next = [...taperLengths]
+            next[index] = value
+            setStoredTaper(next)
+          },
+          anchor,
+          anchorIsOverride: anchorOverride !== null,
+          onAnchorChange: setAnchorOverride,
+          material,
+          onMaterialChange: setMaterial,
+          colourId,
+          onColourChange: setColourId,
+          side,
+          onSideChange: setSide,
+          pieceLengthMm,
+          onPieceLengthChange: setPieceLengthMm,
+          quantity,
+          onQuantityChange: setQuantity,
+          girthMm: liveGirth,
+          folds: foldCount(points),
+          price,
+          pending: pricePending,
+          materialLabel,
+          materialSummary,
+          review: {
+            info: drawingInfo,
+            tapered,
+            colourLabel,
+            onEdit: (target) => {
+              if (target === "length") {
+                setReturnToReview(true)
+                setStage("length")
+                return
+              }
+              goTo(target === "material" ? materialIndex : designIndex)
+            },
+            onRequestQuote: requestQuote,
+            onAddToCart: addToCart,
+            onOrderNow: () => {
+              window.scrollTo({ top: 0, left: 0, behavior: "auto" })
+              setStage("order")
+            },
+          },
+        }
+      : null
 
   if (!hydrated) {
     return <main className="min-h-[100dvh] flex-1 bg-background" />
@@ -320,27 +444,18 @@ export function FlashingDesigner({
         ref={mainRef}
         className={cn(
           "flex flex-1 flex-col",
-          stage === "order" || stage === "done"
-            ? "min-h-[100dvh]"
-            : "min-h-[100dvh] lg:h-[100dvh] lg:overflow-hidden"
+          canvas
+            ? "h-dvh overflow-hidden"
+            : stage === "order" || stage === "done"
+              ? "min-h-[100dvh]"
+              : "min-h-[100dvh] lg:h-[100dvh] lg:overflow-hidden"
         )}
         style={{ overflowAnchor: "none" }}
       >
+        {!canvas ? (
         <header className="sticky top-0 z-20 shrink-0 border-b border-border bg-background text-sm">
           {chrome ? (
-            chrome({
-              startOver:
-                stage !== "intro" ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="h-8 px-2 text-[var(--nb-secondary)]"
-                    onClick={() => (hasWork ? setConfirmReset(true) : resetAll())}
-                  >
-                    Start over
-                  </Button>
-                ) : null,
-            })
+            chrome({ startOver })
           ) : (
             <div className="flex h-14 items-center gap-2 px-4 sm:px-6">
               <BrandLink logoClassName="h-6" />
@@ -361,22 +476,8 @@ export function FlashingDesigner({
               </div>
             </div>
           )}
-          {showConfigureChrome && pieceLengthMm !== null ? (
-            <div className="border-t border-black/[0.04] px-4 py-3 sm:px-6">
-              <PriceBar
-                pieceLengthMm={pieceLengthMm}
-                onPieceLengthChange={setPieceLengthMm}
-                quantity={quantity}
-                onQuantityChange={setQuantity}
-                girthMm={liveGirth}
-                folds={foldCount(points)}
-                materialSummary={materialSummary}
-                price={price}
-                pending={pricePending}
-              />
-            </div>
-          ) : null}
         </header>
+        ) : null}
 
         {stage === "intro" ? <IntroStep onStart={() => setStage("length")} /> : null}
 
@@ -420,132 +521,7 @@ export function FlashingDesigner({
           />
         ) : null}
 
-        {stage === "edit" ? (
-          <div className="flex min-h-0 flex-1 flex-col">
-            {showStepper ? (
-              <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
-                <StepIndicator current={step} reached={reached} onSelect={goTo} />
-                {currentStep !== "review" ? (
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    {blocked ? (
-                      <span className={tooLong ? "text-xs text-red-600" : "text-xs text-[var(--nb-secondary)]"}>
-                        {blocked}
-                      </span>
-                    ) : null}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="h-10"
-                      onClick={() => (step === 0 ? setStage("template") : goTo(step - 1))}
-                    >
-                      Back
-                    </Button>
-                    <Button type="button" className="h-10" disabled={blocked !== null} onClick={() => goTo(step + 1)}>
-                      {continueLabel}
-                    </Button>
-                  </div>
-                ) : (
-                  <Button type="button" variant="ghost" className="h-10" onClick={() => goTo(materialIndex)}>
-                    Back
-                  </Button>
-                )}
-              </div>
-            ) : null}
-
-            {currentStep === "review" ? (
-              <ReviewStep
-                points={points}
-                taper={tapered}
-                taperLengths={taperLengths}
-                info={drawingInfo}
-                profileName={profileName}
-                pieceLengthMm={pieceLengthMm ?? 0}
-                quantity={quantity}
-                girthMm={price.girthMm}
-                materialLabel={materialLabel}
-                colourLabel={colourLabel}
-                price={price}
-                pending={pricePending}
-                onEdit={(target) => {
-                  if (target === "length") {
-                    setReturnToReview(true)
-                    setStage("length")
-                    return
-                  }
-                  goTo(target === "material" ? materialIndex : designIndex)
-                }}
-                onRequestQuote={requestQuote}
-                onAddToCart={addToCart}
-                onOrderNow={() => {
-                  window.scrollTo({ top: 0, left: 0, behavior: "auto" })
-                  setStage("order")
-                }}
-              />
-            ) : (
-              <div className="relative mx-4 mb-4 min-h-[min(70dvh,560px)] flex-1 overflow-hidden rounded-2xl border border-black/[0.08] bg-white sm:mx-6">
-                <div className="absolute inset-0">
-                  {currentStep === "design" ? (
-                    <DesignStep
-                      editor={editor}
-                      dispatch={dispatch}
-                      snap={snap}
-                      onSnapChange={setSnap}
-                      showDims={showDims}
-                      onShowDimsChange={setShowDims}
-                      showGrid={showGrid}
-                      onToggleGrid={() => setShowGrid((value) => !value)}
-                      onLoadTemplate={(id) => loadTemplate(id, true)}
-                      onFit={() => setFitCount((count) => count + 1)}
-                      fitKey={`design-${fitCount}`}
-                    />
-                  ) : null}
-
-                  {currentStep === "taper" ? (
-                    <TaperStep
-                      points={points}
-                      enabled={taperEnabled}
-                      onEnabledChange={setTaperEnabled}
-                      lengths={taperLengths}
-                      onLengthChange={(index, value) => {
-                        const next = [...taperLengths]
-                        next[index] = value
-                        setStoredTaper(next)
-                      }}
-                      anchor={anchor}
-                      showGrid={showGrid}
-                      onToggleGrid={() => setShowGrid((value) => !value)}
-                    />
-                  ) : null}
-
-                  {currentStep === "align" ? (
-                    <AlignStep
-                      points={points}
-                      taperEnabled={taperEnabled}
-                      lengths={taperLengths}
-                      anchor={anchor}
-                      isOverride={anchorOverride !== null}
-                      onAnchorChange={setAnchorOverride}
-                      showGrid={showGrid}
-                      onToggleGrid={() => setShowGrid((value) => !value)}
-                    />
-                  ) : null}
-
-                  {currentStep === "material" ? (
-                    <MaterialStep
-                      points={points}
-                      material={material}
-                      onMaterialChange={setMaterial}
-                      colourId={colourId}
-                      onColourChange={setColourId}
-                      side={side}
-                      onSideChange={setSide}
-                    />
-                  ) : null}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : null}
+        {model ? <FlashingWorkspace m={model} /> : null}
 
         {stage === "order" && pieceLengthMm !== null ? (
           <OrderStep
@@ -624,12 +600,22 @@ export function FlashingDesigner({
 
         <div
           role="status"
-          className={
-            "pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-[var(--nb-primary)] px-4 py-2 text-sm text-white shadow-lg transition-all duration-200 motion-reduce:transition-none " +
-            (toast ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0")
-          }
+          className={cn(
+            "fixed left-1/2 z-50 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 rounded-xl bg-foreground py-1.5 pr-1.5 pl-4 text-sm text-background shadow-lg transition-[transform,opacity] duration-200 ease-out motion-reduce:transition-none top-[calc(env(safe-area-inset-top)+6.5rem)]",
+            toast ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-2 opacity-0"
+          )}
         >
-          {toast}
+          <span>{toast?.message}</span>
+          {toast?.action ? (
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-9 px-3 text-background underline underline-offset-4 hover:bg-background/15 hover:text-background"
+              onClick={toast.action.onClick}
+            >
+              {toast.action.label}
+            </Button>
+          ) : null}
         </div>
       </main>
     </TooltipProvider>

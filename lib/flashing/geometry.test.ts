@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import test from "node:test"
-import { directionStrokes, LENGTH_DIRECTION, liveExtendAngle, rotatePoints, type Point } from "./geometry.ts"
+import { convexFaceSign, directionStrokes, LENGTH_DIRECTION, liveExtendAngle, rotatePoints, type Point } from "./geometry.ts"
 
 function unit(stroke: { a: Point; b: Point }) {
   const dx = stroke.b.x - stroke.a.x
@@ -63,4 +63,15 @@ test("live extend angle shows the fold while placing the next segment", () => {
   const first = liveExtendAngle([{ x: 0, y: 0 }], 0, { x: 100, y: 0 })
   assert.ok(first !== null)
   assert.ok(Math.abs(first) < 1e-6)
+})
+
+test("colour facing out is the outside of the bend, whichever way the profile is drawn", () => {
+  const l: Point[] = [{ x: 0, y: 0 }, { x: 0, y: 100 }, { x: 100, y: 100 }]
+  for (const points of [l, [...l].reverse()]) {
+    const sign = convexFaceSign(points)
+    // Painted-face direction of the vertical leg (normalOf is (dy, -dx) over length).
+    const [a, b] = points[0].x === points[1].x ? [points[0], points[1]] : [points[1], points[2]]
+    const painted = ((b.y - a.y) / Math.hypot(b.x - a.x, b.y - a.y)) * sign
+    assert.ok(painted < 0, "the vertical leg is painted on its left (outer) face")
+  }
 })

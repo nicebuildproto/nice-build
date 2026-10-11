@@ -20,6 +20,7 @@ export function PriceBar({
   materialSummary,
   price,
   pending,
+  stacked = false,
 }: {
   pieceLengthMm: number
   onPieceLengthChange: (value: number) => void
@@ -30,14 +31,15 @@ export function PriceBar({
   materialSummary: string
   price: PriceResult
   pending: boolean
+  stacked?: boolean
 }) {
   const metres = pieceLengthMm / 1000
   const perMetre = metres > 0 ? price.perPiece / metres : null
   const shown = useAnimatedNumber(price.total)
 
   return (
-    <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-      <div className="order-2 flex flex-wrap items-end gap-x-5 gap-y-2 lg:order-1">
+    <div className={cn("flex flex-col gap-4", !stacked && "lg:flex-row lg:items-end lg:justify-between")}>
+      <div className={cn("order-2 flex flex-wrap items-end gap-x-5 gap-y-3", !stacked && "lg:order-1")}>
         <NumberField
           label="Piece length"
           suffix="mm"
@@ -54,12 +56,12 @@ export function PriceBar({
           <span className="text-[13px] tabular-nums">{folds}</span>
         </Stat>
         <Stat label="Material" className="min-w-0">
-          <span className="block max-w-44 truncate text-[13px]" title={materialSummary}>
+          <span className={cn("block truncate text-[13px]", stacked ? "max-w-full" : "max-w-44")} title={materialSummary}>
             {materialSummary}
           </span>
         </Stat>
       </div>
-      <div className="order-1 flex flex-col lg:order-2 lg:items-end">
+      <div className={cn("order-1 flex flex-col", !stacked && "lg:order-2 lg:items-end")}>
         <span className="text-xs text-[var(--nb-secondary)]">Estimated total</span>
         <span
           className={cn(
@@ -89,7 +91,7 @@ function Stat({ label, className, children }: { label: string; className?: strin
   )
 }
 
-function NumberField({
+export function NumberField({
   label,
   suffix,
   value,

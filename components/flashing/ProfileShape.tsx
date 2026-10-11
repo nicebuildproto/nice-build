@@ -1,4 +1,4 @@
-import { boundsOf, offsetPolyline, outwardSign, type Point } from "@/lib/flashing/geometry"
+import { boundsOf, convexFaceSign, offsetPolyline, type Point } from "@/lib/flashing/geometry"
 
 export function fitTransform(
   points: Point[],
@@ -59,7 +59,7 @@ export function ProfileSection({
   const map = fitTransform(points, { x: 0, y: 0, width, height }, thickness * 3 + 6)
   const mapped = points.map(map)
   const base = toPath(mapped)
-  const sign = outwardSign(mapped) * (colourSide === "out" ? 1 : -1)
+  const sign = convexFaceSign(mapped) * (colourSide === "out" ? 1 : -1)
   const face = toPath(offsetPolyline(mapped, (sign * thickness) / 4))
   const transition = { transition: "stroke 220ms ease" }
 

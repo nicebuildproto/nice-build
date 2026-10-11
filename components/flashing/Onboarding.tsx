@@ -206,11 +206,51 @@ export function StepIndicator({
   current,
   reached,
   onSelect,
+  orientation = "horizontal",
 }: {
   current: number
   reached: number
   onSelect: (index: number) => void
+  orientation?: "horizontal" | "vertical"
 }) {
+  if (orientation === "vertical") {
+    return (
+      <ol className="flex flex-col">
+        {editSteps.map((step, index) => {
+          const active = index === current
+          const available = index <= reached
+          return (
+            <li key={step.id}>
+              <button
+                type="button"
+                disabled={!available}
+                aria-current={active ? "step" : undefined}
+                onClick={() => onSelect(index)}
+                className={cn(
+                  "flex h-9 w-full items-center gap-2.5 rounded-lg px-2 text-left text-sm",
+                  active && "bg-zinc-950 text-white",
+                  !active && available && "text-zinc-800 hover:bg-zinc-100",
+                  !available && "cursor-default text-zinc-400"
+                )}
+              >
+                <span
+                  className={cn(
+                    "flex size-5 items-center justify-center rounded-full text-[11px] tabular-nums",
+                    active ? "bg-white/15" : "bg-zinc-100 text-zinc-700",
+                    !available && "bg-zinc-50 text-zinc-400"
+                  )}
+                >
+                  {index + 1}
+                </span>
+                {step.label}
+              </button>
+            </li>
+          )
+        })}
+      </ol>
+    )
+  }
+
   return (
     <ol className="flex items-center gap-1 overflow-x-auto">
       {editSteps.map((step, index) => {
@@ -219,7 +259,7 @@ export function StepIndicator({
         return (
           <li key={step.id} className="flex items-center gap-1">
             {index > 0 ? (
-              <span className={cn("h-px w-4 sm:w-6", index <= reached ? "bg-black/30" : "bg-black/10")} />
+              <span className={cn("h-px w-4 sm:w-6", index <= reached ? "bg-foreground/30" : "bg-foreground/10")} />
             ) : null}
             <button
               type="button"
@@ -228,15 +268,15 @@ export function StepIndicator({
               onClick={() => onSelect(index)}
               className={cn(
                 "flex items-center gap-2 rounded-full px-2.5 py-1 text-sm transition-colors",
-                active && "bg-[var(--nb-primary)] text-white",
+                active && "bg-[var(--nb-primary)] text-[var(--background)]",
                 !active && available && "text-[var(--nb-primary)] hover:bg-[var(--nb-accent)]",
-                !available && "cursor-default text-black/30"
+                !available && "cursor-default text-muted-foreground"
               )}
             >
               <span
                 className={cn(
                   "flex size-5 items-center justify-center rounded-full text-[11px] tabular-nums",
-                  active ? "bg-white/15" : available ? "bg-black/[0.06]" : "bg-black/[0.03]"
+                  active ? "bg-background/20" : available ? "bg-foreground/[0.06]" : "bg-foreground/[0.04]"
                 )}
               >
                 {index + 1}

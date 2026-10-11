@@ -194,6 +194,22 @@ export function outwardSign(points: Point[]): 1 | -1 {
   return sideways >= 0 ? 1 : -1
 }
 
+// Sign to apply to normalOf() so the offset lands on the face that points away
+// from the middle of the profile (the outside of its bends). "Colour facing out"
+// paints this face; "in" paints the opposite one. Straight runs fall back to
+// outwardSign().
+export function convexFaceSign(points: Point[]): 1 | -1 {
+  const center = centroid(points)
+  let away = 0
+  for (let i = 0; i < points.length - 1; i++) {
+    const n = normalOf(points[i], points[i + 1])
+    const mid = midpoint(points[i], points[i + 1])
+    away += ((mid.x - center.x) * n.x + (mid.y - center.y) * n.y) * distance(points[i], points[i + 1])
+  }
+  if (Math.abs(away) > 1e-6) return away > 0 ? 1 : -1
+  return outwardSign(points)
+}
+
 export type Stroke = { a: Point; b: Point }
 
 // Piece length recedes up-right at 45° in drawing space, so every facing mark
