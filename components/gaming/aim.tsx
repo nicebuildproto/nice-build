@@ -30,7 +30,6 @@ export function FovCalculator() {
     if (d === null || w === null) return null
     return fovFromScreen(d, w)
   }, [distance, width])
-  const horPlus = horPlusFrom43(90, aspect)
   const sourceStyle = preset === "cs2" || preset === "source"
 
   function applyPreset(id: string) {
@@ -83,24 +82,18 @@ export function FovCalculator() {
         </label>
         {aspectId === "custom" ? <NumberField label="Width / height" value={customAspect} onChange={setCustomAspect} min={0.1} /> : null}
       </div>
+      {sourceStyle && input !== null && mode === "horizontal" ? (
+        <MetricCard
+          label="16:9 horizontal, Source hor+"
+          value={`${num(horPlusFrom43(input, 16 / 9), 1)}°`}
+          note={`Community convention. Keeps the vertical FOV of ${num(input, 1)}° on 4:3 and widens the view. On 21:9 that is ${num(horPlusFrom43(input, 21 / 9), 1)}°. Typing the same number as horizontal on 16:9 is a narrower picture — that narrower picture is in the cards below when 16:9 is selected.`}
+        />
+      ) : null}
       <div className="flex flex-wrap gap-10" aria-live="polite">
-        <MetricCard label="Horizontal" value={triple ? `${num(triple.h, 1)}°` : "—"} />
+        <MetricCard label="Horizontal" value={triple ? `${num(triple.h, 1)}°` : "—"} note="At the aspect selected above." />
         <MetricCard label="Vertical" value={triple ? `${num(triple.v, 1)}°` : "—"} />
         <MetricCard label="Diagonal" value={triple ? `${num(triple.d, 1)}°` : "—"} />
       </div>
-      {sourceStyle ? (
-        <Note>
-          Advertised 90° is a 4:3 figure. Source hor+ keeps that vertical FOV: about {num(horPlusFrom43(90, 16 / 9), 1)}°
-          horizontal on 16:9, and {num(horPlusFrom43(90, 21 / 9), 1)}° on 21:9. That is a community convention, not a
-          photographed camera. Typing 90° as horizontal on 16:9 is a narrower view.
-        </Note>
-      ) : Math.abs(aspect - 4 / 3) > 0.01 ? (
-        <MetricCard
-          label="If this were Source hor+ from 90° 4:3"
-          value={`${num(horPlus, 1)}° H`}
-          note="Convention, not a second camera. Only applies to Source-style games."
-        />
-      ) : null}
       {triple ? <FovPreview horizontal={triple.h} aspect={aspect} /> : null}
       <div className="grid max-w-lg gap-4 sm:grid-cols-2">
         <NumberField label="Viewing distance (optional)" value={distance} onChange={setDistance} suffix="cm" min={0} />
@@ -110,7 +103,11 @@ export function FovCalculator() {
         <Note>A screen that wide at that distance subtends about {num(fromScreen, 1)}° horizontally — the angle your eyes see, not the game’s FOV setting.</Note>
       ) : null}
       <CopyReset
-        text={triple ? `HFOV ${num(triple.h, 1)}° · VFOV ${num(triple.v, 1)}° · DFOV ${num(triple.d, 1)}° · aspect ${num(aspect, 3)}` : ""}
+        text={
+          triple
+            ? `${sourceStyle && input !== null && mode === "horizontal" ? `16:9 hor+ ${num(horPlusFrom43(input, 16 / 9), 1)}°. ` : ""}HFOV ${num(triple.h, 1)}° · VFOV ${num(triple.v, 1)}° · DFOV ${num(triple.d, 1)}° · aspect ${num(aspect, 3)}`
+            : ""
+        }
         onReset={() => {
           setFov("103")
           setMode("horizontal")
@@ -123,10 +120,13 @@ export function FovCalculator() {
 }
 
 function FovPreview({ horizontal, aspect }: { horizontal: number; aspect: number }) {
-  const half = (horizontal * Math.PI) / 360
+  const half = (Math.min(horizontal, 170) * Math.PI) / 360
   const depth = 90
-  const halfW = Math.tan(half) * depth
-  const halfH = halfW / aspect
+  const rawW = Math.tan(half) * depth
+  const rawH = rawW / aspect
+  const scale = Math.min(1, 120 / Math.max(rawW, rawH, 1))
+  const halfW = rawW * scale
+  const halfH = rawH * scale
   const cx = 160
   const cy = 90
   return (
@@ -199,7 +199,11 @@ export function SensitivityConverter() {
       <MetricCard
         label={`Use this in ${dest.name}`}
         value={result ? num(result.destSens, 3) : "—"}
-        note={result ? `Keeps ${num(result.sourceCm, 2)} cm / 360° at ${dpi} DPI. Yaw ${source.yaw} → ${dest.yaw} (documented).` : "Enter DPI and sensitivity."}
+        note={
+          result
+            ? `Keeps ${num(result.sourceCm, 2)} cm / 360° at ${dpi} DPI. ${source.name} yaw ${source.yaw} (${source.basis}) → ${dest.name} yaw ${dest.yaw} (${dest.basis}). Exact for those yaw numbers. FOV and aim-down-sights are not in this conversion.`
+            : "Enter DPI and sensitivity."
+        }
       />
       <div className="flex flex-wrap gap-10">
         <MetricCard label={`${source.name} cm/360`} value={result ? num(result.sourceCm, 2) : "—"} />
@@ -266,7 +270,7 @@ export function EdpiCalculator() {
       <MetricCard
         label={`${game.name} cm / 360`}
         value={result ? num(result.cm, 2) : "—"}
-        note={`Yaw ${game.yaw} (documented). Exact for that yaw.`}
+        note={`Yaw ${game.yaw} (${game.basis}). The centimetres are exact for that yaw number.`}
       />
       <CopyReset
         text={result ? `eDPI ${num(result.edpi, 1)} · ${game.name} ${num(result.cm, 2)} cm/360 @ ${dpi} DPI, sens ${sensitivity}` : ""}

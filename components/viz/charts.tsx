@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ChartFrame } from "@/components/viz/chart-frame"
 import { Segmented, ToggleField } from "@/components/viz/fields"
+import { dashOf, markTarget, MarkPopover, useMarks } from "@/components/viz/mark-editor"
 import { VizCustomize } from "@/components/viz/customize"
+import { badNumber, cellInput, DataError, DataLead } from "@/components/viz/data-entry"
 import { EmptyViz, ExampleList, VizStudio } from "@/components/viz/studio"
 import {
   barExamples,
@@ -16,6 +18,7 @@ import {
 import { vizId } from "@/lib/viz/id"
 import { inferTable, parseNumber, rowsToCsv, tableToSeries } from "@/lib/viz/parse"
 import { formatPercent, formatValue, niceExtent, ticks as axisTicks } from "@/lib/viz/scale"
+import { cn } from "@/lib/utils"
 import { defaultVizStyle, emptyMeta, resolveTheme, type VizMeta, type VizStyle } from "@/lib/viz/style"
 import { seriesColor } from "@/lib/viz/themes"
 import { Plus, Trash2 } from "lucide-react"
@@ -31,17 +34,17 @@ const catalogs = {
   pie: pieExamples,
 }
 
-export function BarChartGenerator() {
-  return <CartesianChart kind="bar" />
+export function BarChartGenerator({ title = "Bar Chart Generator" }: { title?: string }) {
+  return <CartesianChart kind="bar" title={title} />
 }
-export function LineChartGenerator() {
-  return <CartesianChart kind="line" />
+export function LineChartGenerator({ title = "Line Chart Generator" }: { title?: string }) {
+  return <CartesianChart kind="line" title={title} />
 }
-export function PieChartGenerator() {
-  return <CartesianChart kind="pie" />
+export function PieChartGenerator({ title = "Pie Chart Generator" }: { title?: string }) {
+  return <CartesianChart kind="pie" title={title} />
 }
 
-function CartesianChart({ kind }: { kind: Kind }) {
+function CartesianChart({ kind, title }: { kind: Kind; title: string }) {
   const examples = catalogs[kind]
   const first = examples[0]
   const svgRef = useRef<SVGSVGElement>(null)
@@ -56,6 +59,7 @@ function CartesianChart({ kind }: { kind: Kind }) {
   const [area, setArea] = useState(false)
   const [donut, setDonut] = useState(false)
   const [hover, setHover] = useState<string | null>(null)
+  const marks = useMarks()
   const [pasteNote, setPasteNote] = useState<string | null>(null)
   const [fileNote, setFileNote] = useState<string | null>(null)
   const theme = resolveTheme(style)
@@ -131,9 +135,13 @@ function CartesianChart({ kind }: { kind: Kind }) {
   )
   const yTicks = axisTicks(extent.min, extent.max)
 
+  const invalidValue = rows.some((row) => row.values.some((value) => badNumber(value)))
+
   const data = (
     <div className="flex flex-col gap-4" onPaste={onPaste}>
-      <ExampleList examples={examples} onLoad={load} />
+      <DataLead hint="Each row is a label and one number per series. You can paste a table or upload a CSV.">
+        <ExampleList examples={examples} onLoad={load} />
+      </DataLead>
       <div className="flex flex-wrap gap-2">
         {series.map((name, index) => (
           <Input
@@ -147,7 +155,7 @@ function CartesianChart({ kind }: { kind: Kind }) {
           />
         ))}
         {kind !== "pie" ? (
-          <Button type="button" variant="outline" size="xs" onClick={() => {
+          <Button type="button" variant="outline" className="h-8" onClick={() => {
             setSeries((current) => [...current, `Series ${current.length + 1}`])
             setRows((current) => current.map((row) => ({ ...row, values: [...row.values, "0"] })))
           }}>
@@ -176,7 +184,7 @@ function CartesianChart({ kind }: { kind: Kind }) {
                     onChange={(event) =>
                       setRows((current) => current.map((item) => (item.id === row.id ? { ...item, label: event.target.value } : item)))
                     }
-                    className="h-9 rounded-none border-0"
+                    className={cellInput}
                   />
                 </td>
                 {series.map((_, index) => (
@@ -184,6 +192,7 @@ function CartesianChart({ kind }: { kind: Kind }) {
                     <Input
                       value={row.values[index] ?? ""}
                       inputMode="decimal"
+                      aria-invalid={badNumber(row.values[index] ?? "") || undefined}
                       aria-label={`${row.label || "Row"} ${series[index]}`}
                       onChange={(event) =>
                         setRows((current) =>
@@ -197,12 +206,12 @@ function CartesianChart({ kind }: { kind: Kind }) {
                           )
                         )
                       }
-                      className="h-9 rounded-none border-0 tabular-nums"
+                      className={cn(cellInput, "tabular-nums", badNumber(row.values[index] ?? "") && "text-red-600")}
                     />
                   </td>
                 ))}
                 <td className="border-l border-black/[0.06]">
-                  <Button type="button" variant="ghost" size="icon-xs" aria-label="Delete row" onClick={() => setRows((current) => current.filter((item) => item.id !== row.id || current.length === 1))}>
+                  <Button type="button" variant="ghost" size="icon" aria-label="Delete row" onClick={() => setRows((current) => current.filter((item) => item.id !== row.id || current.length === 1))}>
                     <Trash2 />
                   </Button>
                 </td>
@@ -212,10 +221,10 @@ function CartesianChart({ kind }: { kind: Kind }) {
         </table>
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="outline" size="sm" onClick={() => setRows((current) => [...current, seriesRow("", series.map(() => "0"))])}>
+        <Button type="button" variant="outline" className="h-8" onClick={() => setRows((current) => [...current, seriesRow("", series.map(() => "0"))])}>
           <Plus /> Add row
         </Button>
-        <Button type="button" variant="ghost" size="xs" onClick={() => setRows([seriesRow("", series.map(() => ""))])}>
+        <Button type="button" variant="ghost" className="h-8" onClick={() => setRows([seriesRow("", series.map(() => ""))])}>
           Clear
         </Button>
         <label className="text-[12px] text-[var(--nb-secondary)]">
@@ -232,8 +241,8 @@ function CartesianChart({ kind }: { kind: Kind }) {
           <span className="cursor-pointer underline-offset-4 hover:underline">Upload CSV</span>
         </label>
       </div>
-      {fileNote ? <p className="text-[12px] text-red-600">{fileNote}</p> : null}
-      <p className="text-[12px] text-[var(--nb-secondary)]">Paste from Excel or Sheets. The first column is the label; other numeric columns become series.</p>
+      {fileNote ? <p className="text-[13px] text-red-600">{fileNote}</p> : null}
+      <DataError show={invalidValue} />
     </div>
   )
 
@@ -273,7 +282,10 @@ function CartesianChart({ kind }: { kind: Kind }) {
               : row.nums[s]
             const base = mode === "stacked" ? row.nums.slice(0, s).reduce((sum, n) => sum + Math.max(0, n), 0) : 0
             const scale = (n: number) => ((n - extent.min) / (extent.max - extent.min || 1))
-            const fill = seriesColor(theme, s)
+            const id = `bar:${row.id}:${s}`
+            const mark = marks.of(id)
+            const fill = mark.color ?? seriesColor(theme, s)
+            const selected = marks.selected?.id === id
             if (layout === "vertical") {
               const x = pad.l + index * band + (mode === "grouped" ? (s * band * 0.7) / inner + band * 0.15 : band * 0.18)
               const barW = mode === "grouped" ? (band * 0.7) / inner : band * 0.64
@@ -288,13 +300,18 @@ function CartesianChart({ kind }: { kind: Kind }) {
                     width={barW}
                     height={mode === "stacked" ? h : pad.t + plotH - y}
                     fill={fill}
-                    opacity={hover && hover !== `${row.id}-${s}` ? 0.35 : 1}
-                    onPointerEnter={() => setHover(`${row.id}-${s}`)}
+                    opacity={mark.opacity ?? (hover && hover !== id ? 0.45 : 1)}
+                    stroke={selected ? theme.selected : "transparent"}
+                    strokeWidth={selected ? 2 : 0}
+                    className="cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                    {...markTarget(id, `${row.label} · ${series[s] || "Bar"}`, selected, marks.select)}
+                    onPointerEnter={() => setHover(id)}
                     onPointerLeave={() => setHover(null)}
+                    onPointerDown={(event) => marks.select(id, `${row.label} · ${series[s] || "Bar"}`, event)}
                   >
                     <title>{`${row.label} ${series[s]}: ${formatValue(row.nums[s])}`}</title>
                   </rect>
-                  {style.showValues && s === (mode === "stacked" ? inner - 1 : s) ? (
+                  {style.showValues && mark.showLabel !== false && s === (mode === "stacked" ? inner - 1 : s) ? (
                     <text x={x + barW / 2} y={top - 4} textAnchor="middle" fill={theme.ink} fontSize={style.valueSize}>
                       {formatValue(mode === "stacked" ? value : row.nums[s])}
                     </text>
@@ -313,7 +330,19 @@ function CartesianChart({ kind }: { kind: Kind }) {
             const x = pad.l + scale(base) * plotW
             return (
               <g key={`${row.id}-${s}`}>
-                <rect x={x} y={y} width={Math.max(0, w)} height={barH} fill={fill}>
+                <rect
+                  x={x}
+                  y={y}
+                  width={Math.max(0, w)}
+                  height={barH}
+                  fill={fill}
+                  opacity={mark.opacity ?? 1}
+                  stroke={selected ? theme.selected : "transparent"}
+                  strokeWidth={selected ? 2 : 0}
+                  className="cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                  {...markTarget(id, `${row.label} · ${series[s] || "Bar"}`, selected, marks.select)}
+                  onPointerDown={(event) => marks.select(id, `${row.label} · ${series[s] || "Bar"}`, event)}
+                >
                   <title>{`${row.label}: ${formatValue(row.nums[s])}`}</title>
                 </rect>
                 {style.showLabels && s === 0 ? (
@@ -351,21 +380,42 @@ function CartesianChart({ kind }: { kind: Kind }) {
               )
             })
           : null}
-        {series.map((_, s) => {
+        {series.map((name, s) => {
+          const id = `line:${s}`
+          const mark = marks.of(id)
           const pts = pointsFor(s)
           const d = pts.map((pt, i) => `${i === 0 ? "M" : "L"} ${pt.x} ${pt.y}`).join(" ")
           const last = pts[pts.length - 1]
           const areaD = `${d} L ${last?.x ?? 0} ${pad.t + plotH} L ${pts[0]?.x ?? 0} ${pad.t + plotH} Z`
-          const fill = seriesColor(theme, s)
+          const fill = mark.color ?? seriesColor(theme, s)
+          const width = mark.strokeWidth ?? 2
+          const selected = marks.selected?.id === id
           return (
-            <g key={series[s]}>
-              {area ? <path d={areaD} fill={fill} opacity={0.12} /> : null}
-              <path d={d} fill="none" stroke={fill} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
-              {pts.map((pt) => (
-                <circle key={pt.row.id} cx={pt.x} cy={pt.y} r={3.5} fill={theme.background} stroke={fill} strokeWidth={1.5}>
-                  <title>{`${pt.row.label}: ${formatValue(pt.row.nums[s])}`}</title>
-                </circle>
-              ))}
+            <g key={name}>
+              {area ? <path d={areaD} fill={fill} opacity={(mark.opacity ?? 1) * 0.12} /> : null}
+              {selected ? (
+                <path d={d} fill="none" stroke={theme.selected} strokeWidth={width + 4} strokeLinejoin="round" strokeLinecap="round" opacity={0.35} />
+              ) : null}
+              <path
+                d={d}
+                fill="none"
+                stroke={fill}
+                strokeWidth={width}
+                strokeDasharray={dashOf(mark.dash)}
+                strokeLinejoin="round"
+                strokeLinecap="round"
+                opacity={mark.opacity ?? 1}
+                className="cursor-pointer focus-visible:outline focus-visible:outline-2"
+                {...markTarget(id, name || "Series", selected, marks.select)}
+                onPointerDown={(event) => marks.select(id, name || "Series", event)}
+              />
+              {mark.showPoints === false
+                ? null
+                : pts.map((pt) => (
+                    <circle key={pt.row.id} cx={pt.x} cy={pt.y} r={selected ? 4.5 : 3.5} fill={theme.background} stroke={fill} strokeWidth={1.5}>
+                      <title>{`${pt.row.label}: ${formatValue(pt.row.nums[s])}`}</title>
+                    </circle>
+                  ))}
             </g>
           )
         })}
@@ -398,6 +448,9 @@ function CartesianChart({ kind }: { kind: Kind }) {
     plot = (
       <g>
         {slices.map((slice, index) => {
+          const id = `pie:${slice.row.id}`
+          const mark = marks.of(id)
+          const selected = marks.selected?.id === id
           const start = starts[index]
           const end = start + (slice.value / total) * Math.PI * 2
           const large = end - start > Math.PI ? 1 : 0
@@ -420,15 +473,20 @@ function CartesianChart({ kind }: { kind: Kind }) {
             <g key={slice.row.id}>
               <path
                 d={d}
-                fill={seriesColor(theme, index)}
-                opacity={hover && !highlighted ? 0.35 : 1}
+                fill={mark.color ?? seriesColor(theme, index)}
+                opacity={mark.opacity ?? (hover && !highlighted ? 0.45 : 1)}
+                stroke={selected ? theme.selected : "transparent"}
+                strokeWidth={selected ? 2 : 0}
+                className="cursor-pointer focus-visible:outline focus-visible:outline-2"
+                {...markTarget(id, slice.row.label || "Slice", selected, marks.select)}
                 transform={highlighted ? `translate(${Math.cos(mid) * 6} ${Math.sin(mid) * 6})` : undefined}
                 onPointerEnter={() => setHover(slice.row.id)}
                 onPointerLeave={() => setHover(null)}
+                onPointerDown={(event) => marks.select(id, slice.row.label || "Slice", event)}
               >
                 <title>{`${slice.row.label}: ${formatValue(slice.row.nums[0])} (${formatPercent((slice.value / total) * 100)})`}</title>
               </path>
-              {style.showLabels && end - start > 0.45 ? (
+              {style.showLabels && mark.showLabel !== false && end - start > 0.45 ? (
                 <text x={lx} y={ly} textAnchor={Math.cos(mid) > 0 ? "start" : "end"} fill={theme.ink} fontSize={style.labelSize}>
                   {slice.row.label}
                   {style.showPercent ? ` ${formatPercent((slice.value / total) * 100)}` : ""}
@@ -464,19 +522,85 @@ function CartesianChart({ kind }: { kind: Kind }) {
     </ChartFrame>
   )
 
+  const finite = allValues.filter((value) => Number.isFinite(value))
+  const stats =
+    empty || finite.length === 0
+      ? []
+      : [
+          { label: "Total", value: formatValue(finite.reduce((sum, value) => sum + value, 0)) },
+          { label: "Min", value: formatValue(Math.min(...finite)) },
+          { label: "Max", value: formatValue(Math.max(...finite)) },
+        ]
+
+  function reset() {
+    setSeries([...first.data.series])
+    setRows(first.data.rows.map((row) => ({ ...row, id: vizId(), values: [...row.values] })))
+    setStyle(defaultVizStyle)
+    setMeta({ ...emptyMeta, title: first.title })
+    setLayout("vertical")
+    setMode("grouped")
+    setSort("none")
+    setStartAtZero(kind !== "line")
+    setArea(false)
+    setDonut(false)
+    setHover(null)
+    marks.reset()
+    setPasteNote(null)
+    setFileNote(null)
+  }
+
   return (
     <VizStudio
+      title={title}
       filename={`${kind}-chart`}
+      stats={stats}
+      onReset={reset}
       csv={csv}
       svgRef={svgRef}
+      surface={{ background: theme.background, dot: theme.dot }}
       data={data}
-      canvas={canvas}
+      canvas={
+        <>
+          {canvas}
+          <MarkPopover
+            selected={marks.selected}
+            value={marks.selected ? marks.of(marks.selected.id) : {}}
+            color={
+              marks.selected
+                ? (marks.of(marks.selected.id).color ??
+                  seriesColor(
+                    theme,
+                    kind === "pie"
+                      ? Math.max(0, sorted.findIndex((row) => `pie:${row.id}` === marks.selected?.id))
+                      : Number(marks.selected.id.split(":").pop()) || 0
+                  ))
+                : theme.series[0]
+            }
+            fields={kind === "line" ? ["width", "dash", "points"] : ["label"]}
+            onChange={marks.update}
+            onClose={marks.close}
+          />
+        </>
+      }
       customize={
         <VizCustomize
           style={style}
           meta={meta}
           onStyle={(next) => setStyle((current) => ({ ...current, ...next }))}
           onMeta={(next) => setMeta((current) => ({ ...current, ...next }))}
+          afterTheme={
+            kind === "pie" ? (
+              <Segmented
+                label="Chart"
+                value={donut ? "doughnut" : "pie"}
+                options={[
+                  { id: "pie", label: "Pie" },
+                  { id: "doughnut", label: "Doughnut" },
+                ]}
+                onChange={(value) => setDonut(value === "doughnut")}
+              />
+            ) : null
+          }
           extra={
             <>
               {kind === "bar" ? (
@@ -509,7 +633,6 @@ function CartesianChart({ kind }: { kind: Kind }) {
                   <ToggleField label="Area fill" checked={area} onChange={setArea} />
                 </>
               ) : null}
-              {kind === "pie" ? <ToggleField label="Donut" checked={donut} onChange={setDonut} /> : null}
               <Segmented
                 label="Sort"
                 value={sort}

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 import { convertCase } from "./case.ts"
-import { diffLines, diffSummary, unifiedDiff } from "./diff.ts"
+import { diffLines, diffSummary, foldUnchanged, unifiedDiff } from "./diff.ts"
 import { countText, formatReading, readingClock } from "./stats.ts"
 import { markdownTable, tidyText, uniqueLines } from "./transform.ts"
 
@@ -39,6 +39,7 @@ test("convertCase covers sentence, title, and identifier forms", () => {
   assert.equal(convertCase("the quick brown fox", "pascal"), "TheQuickBrownFox")
   assert.equal(convertCase("the quick brown fox", "snake"), "the_quick_brown_fox")
   assert.equal(convertCase("the quick brown fox", "kebab"), "the-quick-brown-fox")
+  assert.equal(convertCase("the end of ", "title"), "The End Of ")
 })
 
 test("formatReading shows seconds for short text", () => {
@@ -47,13 +48,37 @@ test("formatReading shows seconds for short text", () => {
 })
 
 test("diffLines marks added and removed lines", () => {
-  const rows = diffLines("The quiet toolkit.\nBuilt nicely.", "The quiet toolkit.\nBuilt carefully.")
-  const summary = diffSummary(rows)
+  const diff = diffLines("The quiet toolkit.\nBuilt nicely.", "The quiet toolkit.\nBuilt carefully.")
+  assert.equal(diff.limited, false)
+  if (diff.limited) return
+  const summary = diffSummary(diff.rows)
   assert.equal(summary.unchanged, 1)
   assert.equal(summary.removed, 1)
   assert.equal(summary.added, 1)
-  assert.ok(unifiedDiff(rows).includes("- Built nicely."))
-  assert.ok(unifiedDiff(rows).includes("+ Built carefully."))
+  assert.ok(unifiedDiff(diff.rows).includes("- Built nicely."))
+  assert.ok(unifiedDiff(diff.rows).includes("+ Built carefully."))
+})
+
+test("diffLines compares a long shared document by the edit", () => {
+  const lines = Array.from({ length: 2000 }, (_, index) => `line ${index}`)
+  const changed = [...lines]
+  changed[1000] = "changed"
+  const diff = diffLines(lines.join("\n"), changed.join("\n"))
+  assert.equal(diff.limited, false)
+  if (diff.limited) return
+  const summary = diffSummary(diff.rows)
+  assert.equal(summary.removed, 1)
+  assert.equal(summary.added, 1)
+  const folded = foldUnchanged(diff.rows, 1)
+  assert.ok(folded.some((row) => row.type === "skip"))
+  assert.ok(folded.length < 20)
+})
+
+test("diffLines refuses a huge unrelated pair", () => {
+  const before = Array.from({ length: 400 }, (_, index) => `alpha ${index}`).join("\n")
+  const after = Array.from({ length: 400 }, (_, index) => `beta ${index}`).join("\n")
+  const diff = diffLines(before, after)
+  assert.equal(diff.limited, true)
 })
 
 test("uniqueLines keeps first copies in order", () => {
@@ -100,4 +125,5 @@ test("tidyText trims, collapses blanks, and can sort", () => {
 test("markdownTable builds a header, divider, and rows", () => {
   const table = markdownTable("Name, Role", "Ada, Design\nLin, Build")
   assert.equal(table, "| Name | Role |\n| --- | --- |\n| Ada | Design |\n| Lin | Build |")
+  assert.equal(markdownTable("Name\tRole", "Ada\tDesign"), "| Name | Role |\n| --- | --- |\n| Ada | Design |")
 })

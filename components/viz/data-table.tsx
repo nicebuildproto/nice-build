@@ -2,8 +2,9 @@
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { badNumber, cellInput, DataError } from "@/components/viz/data-entry"
 import { cn } from "@/lib/utils"
-import { Copy, GripVertical, Plus, Trash2 } from "lucide-react"
+import { ChevronUp, Copy, Plus, Trash2 } from "lucide-react"
 
 export type VizColumn = {
   key: string
@@ -34,6 +35,8 @@ export function VizDataTable<Row extends { id: string }>({
   onMove?: (id: string, direction: -1 | 1) => void
   addLabel?: string
 }) {
+  const invalid = rows.some((row) => columns.some((column) => column.kind === "number" && badNumber(get(row, column.key))))
+
   return (
     <div className="flex flex-col gap-3">
       <div className="overflow-x-auto rounded-lg border border-black/[0.08]">
@@ -62,11 +65,12 @@ export function VizDataTable<Row extends { id: string }>({
                   <td className="px-1 text-[var(--nb-secondary)]">
                     <button
                       type="button"
-                      className="grid size-7 place-items-center rounded-md hover:bg-[var(--nb-accent)]"
-                      aria-label={`Move ${get(row, columns[0].key) || "row"}`}
-                      onClick={() => onMove(row.id, index === 0 ? 1 : -1)}
+                      className="grid size-8 place-items-center rounded-lg hover:bg-[var(--nb-accent)] disabled:opacity-30"
+                      aria-label={`Move ${get(row, columns[0].key) || "row"} up`}
+                      disabled={index === 0}
+                      onClick={() => onMove(row.id, -1)}
                     >
-                      <GripVertical className="size-3.5" />
+                      <ChevronUp className="size-4" />
                     </button>
                   </td>
                 ) : null}
@@ -78,8 +82,9 @@ export function VizDataTable<Row extends { id: string }>({
                       inputMode={column.kind === "number" ? "decimal" : undefined}
                       placeholder={column.placeholder}
                       aria-label={column.label}
+                      aria-invalid={column.kind === "number" && badNumber(get(row, column.key)) ? true : undefined}
                       onChange={(event) => set(row.id, column.key, event.target.value)}
-                      className="h-9 rounded-none border-0 bg-transparent shadow-none focus-visible:ring-0"
+                      className={cn(cellInput, column.kind === "number" && badNumber(get(row, column.key)) && "text-red-600")}
                     />
                   </td>
                 ))}
@@ -89,7 +94,7 @@ export function VizDataTable<Row extends { id: string }>({
                       <Button
                         type="button"
                         variant="ghost"
-                        size="icon-xs"
+                        size="icon"
                         aria-label="Duplicate row"
                         onClick={() => onDuplicate(row.id)}
                       >
@@ -99,7 +104,7 @@ export function VizDataTable<Row extends { id: string }>({
                     <Button
                       type="button"
                       variant="ghost"
-                      size="icon-xs"
+                      size="icon"
                       aria-label="Delete row"
                       onClick={() => onDelete(row.id)}
                     >
@@ -112,10 +117,11 @@ export function VizDataTable<Row extends { id: string }>({
           </tbody>
         </table>
       </div>
-      <Button type="button" variant="outline" size="sm" className="w-fit" onClick={onAdd}>
+      <Button type="button" variant="outline" className="h-8 w-fit" onClick={onAdd}>
         <Plus />
         {addLabel}
       </Button>
+      <DataError show={invalid} />
     </div>
   )
 }

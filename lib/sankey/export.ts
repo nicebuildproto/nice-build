@@ -1,5 +1,16 @@
 export function serializeSvg(svg: SVGSVGElement): string {
   const clone = svg.cloneNode(true) as SVGSVGElement
+  const background = svg.dataset.exportBackground
+  if (background) {
+    const box = svg.viewBox.baseVal
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect")
+    rect.setAttribute("x", String(box.x || 0))
+    rect.setAttribute("y", String(box.y || 0))
+    rect.setAttribute("width", String(box.width || svg.clientWidth || 1200))
+    rect.setAttribute("height", String(box.height || svg.clientHeight || 720))
+    rect.setAttribute("fill", background)
+    clone.insertBefore(rect, clone.firstChild)
+  }
   clone.setAttribute("xmlns", "http://www.w3.org/2000/svg")
   if (!clone.getAttribute("width")) clone.setAttribute("width", String(svg.clientWidth || 1200))
   if (!clone.getAttribute("height")) clone.setAttribute("height", String(svg.clientHeight || 720))

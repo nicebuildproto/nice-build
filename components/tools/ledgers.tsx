@@ -73,9 +73,9 @@ export function CryptoTaxCalculator() {
                   <td className="p-2">{row.coin}</td>
                   <td className="p-2">{row.date || "—"}</td>
                   <td className="p-2 tabular-nums">{num(row.amount, 6)}</td>
-                  <td className="p-2 tabular-nums">{money(row.proceeds)}</td>
-                  <td className="p-2 tabular-nums">{money(row.cost)}</td>
-                  <td className="p-2 tabular-nums">{money(row.gain)}{row.uncovered > 0 ? " (short of buys)" : ""}</td>
+                  <td className="p-2 tabular-nums">{typedAmount(row.proceeds)}</td>
+                  <td className="p-2 tabular-nums">{typedAmount(row.cost)}</td>
+                  <td className="p-2 tabular-nums">{typedAmount(row.gain)}{row.uncovered > 0 ? " (short of buys)" : ""}</td>
                 </tr>
               ))}
             </tbody>
@@ -86,14 +86,21 @@ export function CryptoTaxCalculator() {
       )}
       <div>
         <div className="text-xs font-medium text-[var(--nb-secondary)]">Total realised</div>
-        <div className="mt-1 text-3xl font-semibold tracking-[-0.04em] tabular-nums">{money(total)}</div>
+        <div className="mt-1 text-3xl font-semibold tracking-[-0.04em] tabular-nums">{typedAmount(total)}</div>
       </div>
-      <p className="max-w-xl text-sm leading-relaxed text-[var(--nb-secondary)]">Estimate only. Not tax advice.</p>
+      <p className="max-w-xl text-sm leading-relaxed text-[var(--nb-secondary)]">
+        Proceeds, cost, and gain use the prices you typed, in that same unit. They are not converted, and fees are not deducted. Estimate only. Not tax advice.
+      </p>
     </div>
   )
 }
 
 type Fill = { id: string; side: string; coin: string; date: string; amount: string; price: string }
+
+function typedAmount(value: number) {
+  if (!Number.isFinite(value)) return "—"
+  return new Intl.NumberFormat("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)
+}
 
 function fifo(rows: Fill[]) {
   const grouped = new Map<string, Fill[]>()

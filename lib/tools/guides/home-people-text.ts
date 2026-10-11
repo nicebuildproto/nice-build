@@ -121,23 +121,23 @@ export const homePeopleTextGuides: Record<string, ToolGuideCopy> = {
     "Five answers that lean maker land on Maker. The page says you tend to reach for the work itself, and offers a question to take to the team: where do you need uninterrupted time this week? A 3–1–1–0 mix is shown as counts, not a hidden score.",
     ["Is this a personality test?", "No. It is a conversation starter. It does not diagnose, certify, or tell you who to hire."],
     ["What if two styles tie?", "Both are shown. Most people are a mix — the page will not pick a single winner."],
-    ["Are the answers stored?", "Only in this browser tab, so you can refresh and go back. They are not sent anywhere. Start again to clear them."],
+    ["Are the answers stored?", "Only in this browser tab, so you can refresh and go back. Going back keeps the answer you picked. They are not sent anywhere. Start again to clear them."],
     ["Can I share the result?", "Yes. Copy or download the text. It is written as “you tend to…”, not as a type."],
   ),
   "meeting-cost": guide(
     "Six people at $85 an hour, meeting for 45 minutes, four times a month, cost $382.50 a sitting. That is $1,530 a month, and $18,360 a year — about 216 hours of people’s time. The yearly figure is the one that usually lands.",
     ["How is the cost calculated?", "People × hourly rate × length of one meeting. The month multiplies by how often it repeats. The year is that month times 12."],
     ["Should I use salary or charge-out rate?", "Use the rate that matches the decision. Charge-out shows client cost. Salary shows payroll cost, and still ignores overhead."],
-    ["Does this include preparation?", "Only if you add that time to the meeting length."],
+    ["Does this include preparation?", "Only if you add that time to the meeting length. If it doesn’t repeat, set times each month to 0 and the page shows the cost of this sitting, not a year of zeros."],
   ),
   "raci-generator": guide(
-    "A task “Publish the page” with Alex as R, Sam as A, and Priya as C reads Responsible, Accountable, Consulted. The page warns if a task has no accountable person, or more than one. Copy exports the grid as tab-separated text for a spreadsheet.",
+    "A task “Publish the page” with Alex as R, Sam as A, and Priya as C reads Responsible, Accountable, Consulted. Choose the role in the cell. The page warns if a task has no accountable person, or more than one. Copy exports the grid as tab-separated text for a spreadsheet.",
     ["What do R, A, C, and I mean?", "Responsible does the work. Accountable owns the outcome — usually one person. Consulted is asked. Informed is told."],
     ["How many A’s should a task have?", "One. More than one accountable and nobody is. The page will say so under the task."],
     ["Can I paste the grid into a spreadsheet?", "Yes. Copy table is tab-separated. Download .csv if you would rather have a file."],
   ),
   "team-working-agreement": guide(
-    "A team named Studio, overlap hours of 10:00–15:00, a same-day response for blockers, and a sentence on how decisions are made, becomes a one-page agreement you can copy.",
+    "A team named Studio, overlap hours of 10:00–15:00, a same-day response for blockers, a note on how you meet, and a sentence on how decisions are made, becomes a one-page agreement you can copy.",
     ["What is a working agreement?", "A short list of how the team will behave: hours, response, and decisions. It is not an employment contract."],
     ["How long should each answer be?", "One or two sentences. The page prints them under plain headings."],
     ["Can we revise it?", "Yes. Change the fields and copy again. Agreements are useful when the team updates them."],
@@ -158,7 +158,7 @@ export const homePeopleTextGuides: Record<string, ToolGuideCopy> = {
     "Each click draws one prompt, such as “What is a small thing that made today better?”. The list is a fixed set of light questions. The same prompt will not come back until the others have had a turn.",
     ["Are the prompts appropriate for work?", "They’re written for a team meeting. They avoid personal topics."],
     ["Can I add our own prompts?", "Not on this page. The list is built in. Use the Random Choice Picker if you want to supply the lines."],
-    ["Will the same prompt repeat?", "Not immediately. Once every prompt has been drawn, the bag starts again."],
+    ["Will the same prompt repeat?", "Not until the others have been drawn. The one on screen stays out of the next draw."],
   ),
   "word-counter": guide(
     "“Nice Build is a quiet place for useful tools.” is 9 words, 45 characters, 37 without spaces, 1 sentence, and about 3 seconds to read at 200 words a minute. Select a few words in the box to count only the selection.",
@@ -170,7 +170,7 @@ export const homePeopleTextGuides: Record<string, ToolGuideCopy> = {
   "diff-checker": guide(
     "Original “The quiet toolkit. / Built nicely.” against “The quiet toolkit. / Built carefully.” keeps the first line, marks the old second line as removed, and the new one as added. Swap sides if you pasted them the wrong way around.",
     ["Line or word compare?", "Lines is the default — a one-word change marks the whole line. Words highlights the tokens that actually moved."],
-    ["What if the texts are very long?", "Very large pairs are summarised instead of fully compared, so the page stays responsive. Split a huge document into sections."],
+    ["What if the texts are very long?", "A long document with a small edit is compared in full, and unchanged stretches are folded. Two very different long texts are left uncompared so the page stays responsive — paste a shorter section, or switch from words to lines."],
     ["Can I copy the result?", "Yes. Copy diff gives a unified-style listing you can paste into a review."],
     ["Does any of this leave my browser?", "No. Your text stays on your device."],
   ),
@@ -202,7 +202,7 @@ export const homePeopleTextGuides: Record<string, ToolGuideCopy> = {
   "lorem-ipsum": guide(
     "Three paragraphs produce three blocks of placeholder Latin, each a different length. The text is fixed for a given count, so a layout doesn’t jump between reloads.",
     ["Is this real Latin?", "It’s the familiar lorem ipsum filler. It isn’t meant to be translated."],
-    ["Why is it the same every time?", "So a design review compares layout, not a new paragraph. Change the count if you need more or less."],
+    ["Why is it the same every time?", "So a design review compares layout, not a new paragraph. Change the count if you need more or less. Twelve paragraphs is the maximum."],
     ["Can I use it in a live product?", "Only as placeholder. Replace it before you publish."],
   ),
   "remove-duplicate-lines": guide(
@@ -225,7 +225,7 @@ export const homePeopleTextGuides: Record<string, ToolGuideCopy> = {
   ),
   "markdown-table": guide(
     "Headers Name, Role, Note and two rows become a Markdown table with a header, a separator row of dashes, and one row per line.",
-    ["How do I separate cells?", "Commas. Headers are one comma-separated line. Each data row is its own line, also comma-separated."],
+    ["How do I separate cells?", "Commas, or a paste from a spreadsheet, which arrives as tabs. Headers are one line. Each data row is its own line."],
     ["What if a cell contains a comma?", "Split the cell another way before you paste, or edit the Markdown after. This page splits on every comma."],
     ["Where can I use the result?", "In any Markdown file: GitHub, a docs site, or the Markdown Preview on this site."],
   ),

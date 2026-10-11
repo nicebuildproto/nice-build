@@ -83,6 +83,34 @@ export function DownloadTxt({ text, filename, label = "Download .txt" }: { text:
   )
 }
 
+export function ShareResult({ text, title }: { text: string; title: string }) {
+  const [note, setNote] = useState<string | null>(null)
+  if (!text) return null
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      className="h-10"
+      onClick={async () => {
+        if (typeof navigator !== "undefined" && navigator.share) {
+          try {
+            await navigator.share({ title, text })
+            setNote(null)
+            return
+          } catch (error) {
+            if (error instanceof Error && error.name === "AbortError") return
+          }
+        }
+        const ok = await copyText(text)
+        setNote(ok ? "Copied to share" : "Could not share")
+        window.setTimeout(() => setNote(null), 1400)
+      }}
+    >
+      {note ?? "Share"}
+    </Button>
+  )
+}
+
 export function PrintButton() {
   return (
     <Button type="button" variant="outline" className="h-10" onClick={() => window.print()}>
@@ -98,17 +126,20 @@ export function CopyReset({
   onReset,
   copyLabel = "Copy",
   resetLabel = "Clear",
+  shareTitle,
 }: {
   text: string
   filename?: string
   onReset?: () => void
   copyLabel?: string
   resetLabel?: string
+  shareTitle?: string
 }) {
   return (
     <ActionBar>
       <CopyTextButton text={text} label={copyLabel} />
       {filename ? <DownloadTxt text={text} filename={filename} /> : null}
+      {shareTitle ? <ShareResult text={text} title={shareTitle} /> : null}
       <PrintButton />
       {onReset ? <ResetButton onClick={onReset} label={resetLabel} /> : null}
     </ActionBar>

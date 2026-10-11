@@ -15,7 +15,7 @@ import {
 } from "@/components/text/kit"
 import { NumberField } from "@/components/tools/ui"
 import { convertCase, type CaseMode } from "@/lib/text/case"
-import { diffLines, diffSummary, diffWords, unifiedDiff } from "@/lib/text/diff"
+import { diffLines, diffSummary, diffWords, foldUnchanged, unifiedDiff, type DiffView } from "@/lib/text/diff"
 import { countText, formatReading, readingClock, utf8Bytes } from "@/lib/text/stats"
 import { markdownTable, tidyText, uniqueLines } from "@/lib/text/transform"
 import { flesch, lorem, numberToWords, slugify } from "@/lib/tools/pure"
@@ -26,8 +26,8 @@ const sample = "Nice Build is a quiet place for useful tools."
 export function WordCounter() {
   const [text, setText] = useState(sample)
   const [selected, setSelected] = useState<string | null>(null)
-  const stats = useMemo(() => countText(text), [text])
-  const focus = selected ? countText(selected) : stats
+  const deferred = useDeferredValue(text)
+  const focus = useMemo(() => countText(selected ?? deferred), [selected, deferred])
   const items = [
     { label: "Words", value: String(focus.words) },
     { label: "Characters", value: String(focus.characters) },
@@ -66,8 +66,7 @@ export function WordCounter() {
         ]}
       />
       <TextEditor label="Text" value={text} onChange={setText} onSelection={setSelected} rows={12} />
-      {selected ? <p className="text-[13px] text-[var(--nb-secondary)]">Showing counts for the selection.</p> : null}
-      <StatsPanel items={items} />
+      <StatsPanel items={items} caption={selected ? "Showing counts for the selection." : undefined} />
       <CopyReset
         text={copy}
         copyLabel="Copy counts"
@@ -85,21 +84,26 @@ export function WordCounter() {
 export function CharacterCounter() {
   const [text, setText] = useState("Nice Build")
   const [selected, setSelected] = useState<string | null>(null)
-  const source = selected ?? text
-  const stats = countText(source)
+  const deferred = useDeferredValue(text)
+  const source = selected ?? deferred
+  const counted = useMemo(() => {
+    const stats = countText(source)
+    const bytes = utf8Bytes(source)
+    return { stats, bytes }
+  }, [source])
   const items = [
-    { label: "Characters", value: String(stats.characters) },
-    { label: "Without spaces", value: String(stats.withoutSpaces) },
-    { label: "Lines", value: String(stats.lines) },
-    { label: "UTF-8 bytes", value: String(utf8Bytes(source)) },
+    { label: "Characters", value: String(counted.stats.characters) },
+    { label: "Without spaces", value: String(counted.stats.withoutSpaces) },
+    { label: "Lines", value: String(counted.stats.lines) },
+    { label: "UTF-8 bytes", value: String(counted.bytes) },
   ]
   const copy = items.map((item) => `${item.label}: ${item.value}`).join("\n")
   const json = JSON.stringify(
     {
-      characters: stats.characters,
-      withoutSpaces: stats.withoutSpaces,
-      lines: stats.lines,
-      utf8Bytes: utf8Bytes(source),
+      characters: counted.stats.characters,
+      withoutSpaces: counted.stats.withoutSpaces,
+      lines: counted.stats.lines,
+      utf8Bytes: counted.bytes,
       scope: selected ? "selection" : "all",
     },
     null,
@@ -110,8 +114,7 @@ export function CharacterCounter() {
     <TextToolShell>
       <PrivacyNote />
       <TextEditor label="Text" value={text} onChange={setText} onSelection={setSelected} rows={10} />
-      {selected ? <p className="text-[13px] text-[var(--nb-secondary)]">Showing counts for the selection.</p> : null}
-      <StatsPanel items={items} />
+      <StatsPanel items={items} caption={selected ? "Showing counts for the selection." : undefined} />
       <CopyReset
         text={copy}
         copyLabel="Copy counts"
@@ -129,7 +132,8 @@ export function CharacterCounter() {
 export function ReadingTime() {
   const [text, setText] = useState(sample)
   const [pace, setPace] = useState("220")
-  const words = countText(text).words
+  const deferred = useDeferredValue(text)
+  const words = useMemo(() => countText(deferred).words, [deferred])
   const wpm = Math.max(1, Number(pace) || 220)
   const clock = readingClock(words, wpm)
 
@@ -137,8 +141,17 @@ export function ReadingTime() {
     <TextToolShell>
       <PrivacyNote />
       <TextEditor label="Text" value={text} onChange={setText} rows={10} />
-      <div className="max-w-xs">
-        <NumberField label="Words a minute" value={pace} onChange={setPace} suffix="wpm" min={1} />
+      <div className="flex flex-col gap-3">
+        <div className="max-w-xs">
+          <NumberField label="Words a minute" value={pace} onChange={setPace} suffix="wpm" min={1} />
+        </div>
+        <ExamplePicker
+          examples={[
+            { label: "Dense 180", apply: () => setPace("180") },
+            { label: "Everyday 220", apply: () => setPace("220") },
+            { label: "Light 280", apply: () => setPace("280") },
+          ]}
+        />
       </div>
       <StatsPanel
         items={[
@@ -157,7 +170,8 @@ export function ReadingTime() {
 
 export function ReadabilityChecker() {
   const [text, setText] = useState("Nice Build is a quiet place for useful tools. Short sentences are easier to read.")
-  const result = useMemo(() => flesch(text), [text])
+  const deferred = useDeferredValue(text)
+  const result = useMemo(() => flesch(deferred), [deferred])
 
   return (
     <TextToolShell>
@@ -224,15 +238,16 @@ export function DiffChecker() {
   const [before, setBefore] = useState("The quiet toolkit.\nBuilt nicely.")
   const [after, setAfter] = useState("The quiet toolkit.\nBuilt carefully.")
   const [mode, setMode] = useState<"line" | "word">("line")
+  const [changesOnly, setChangesOnly] = useState(false)
   const deferredBefore = useDeferredValue(before)
   const deferredAfter = useDeferredValue(after)
-  const rows = useMemo(
+  const diff = useMemo(
     () => (mode === "word" ? diffWords(deferredBefore, deferredAfter) : diffLines(deferredBefore, deferredAfter)),
     [deferredBefore, deferredAfter, mode],
   )
-  const summary = diffSummary(rows)
-  const shown = rows.slice(0, 2000)
-  const copy = unifiedDiff(shown)
+  const summary = diff.limited ? null : diffSummary(diff.rows)
+  const view = diff.limited ? [] : mode === "line" ? foldUnchanged(diff.rows, changesOnly ? 0 : 2) : diff.rows
+  const copy = diff.limited ? "" : unifiedDiff(diff.rows)
 
   return (
     <TextToolShell>
@@ -247,65 +262,49 @@ export function DiffChecker() {
           ]}
           onChange={(id) => setMode(id as "line" | "word")}
         />
-        <SwapButton
-          label="Swap sides"
-          onClick={() => {
-            setBefore(after)
-            setAfter(before)
-          }}
-        />
+        <div className="flex flex-wrap items-center gap-3">
+          {mode === "line" ? (
+            <label className="flex items-center gap-2 text-sm text-[var(--nb-primary)]">
+              <input
+                type="checkbox"
+                checked={changesOnly}
+                onChange={(event) => setChangesOnly(event.target.checked)}
+                className="size-4 accent-[var(--nb-primary)]"
+              />
+              Changes only
+            </label>
+          ) : null}
+          <SwapButton
+            label="Swap sides"
+            onClick={() => {
+              setBefore(after)
+              setAfter(before)
+            }}
+          />
+        </div>
       </div>
       <SplitPane>
         <TextEditor label="Original" value={before} onChange={setBefore} rows={12} mono />
         <TextEditor label="Changed" value={after} onChange={setAfter} rows={12} mono />
       </SplitPane>
-      <StatsPanel
-        items={[
-          { label: "Unchanged", value: String(summary.unchanged) },
-          { label: "Removed", value: String(summary.removed) },
-          { label: "Added", value: String(summary.added) },
-        ]}
-      />
-      <p className="text-[13px] text-[var(--nb-secondary)]">Green is added. Red is removed.</p>
-      <div className="max-h-[min(28rem,60vh)] overflow-auto rounded-xl border border-border font-mono text-[13px] leading-relaxed">
-        <ul aria-label="Differences" className="list-none">
-          {shown.map((row, index) => {
-            const mark = row.type === "add" ? "+ " : row.type === "del" ? "− " : "  "
-            const body = `${mark}${row.text || " "}`
-            if (row.type === "add") {
-              return (
-                <li key={`${row.type}-${index}`}>
-                  <ins className="block bg-emerald-500/10 px-3 py-1 text-[var(--nb-primary)] no-underline">
-                    <span className="sr-only">Added: </span>
-                    {body}
-                  </ins>
-                </li>
-              )
-            }
-            if (row.type === "del") {
-              return (
-                <li key={`${row.type}-${index}`}>
-                  <del className="block bg-red-500/10 px-3 py-1 text-[var(--nb-primary)] no-underline">
-                    <span className="sr-only">Removed: </span>
-                    {body}
-                  </del>
-                </li>
-              )
-            }
-            return (
-              <li key={`${row.type}-${index}`} className="px-3 py-1 text-[var(--nb-secondary)]">
-                <span className="sr-only">Unchanged: </span>
-                {body}
-              </li>
-            )
-          })}
-        </ul>
-      </div>
-      {rows.length > shown.length ? (
-        <p className="text-[13px] text-[var(--nb-secondary)]">
-          Showing the first {shown.length} of {rows.length} rows.
-        </p>
+      {summary ? (
+        <StatsPanel
+          items={[
+            { label: "Unchanged", value: String(summary.unchanged) },
+            { label: "Removed", value: String(summary.removed) },
+            { label: "Added", value: String(summary.added) },
+          ]}
+        />
       ) : null}
+      {diff.limited ? (
+        <p className="text-sm text-[var(--nb-secondary)]" role="status">
+          {diff.message}
+        </p>
+      ) : mode === "word" ? (
+        <WordDiff rows={view} />
+      ) : (
+        <LineDiff rows={view} />
+      )}
       <CopyReset
         text={copy}
         copyLabel="Copy diff"
@@ -388,8 +387,10 @@ export function SlugGenerator() {
   return (
     <TextToolShell>
       <PrivacyNote />
-      <TextEditor label="Title" value={title} onChange={setTitle} rows={3} />
-      <OutputBox label="Slug" value={slug} mono />
+      <SplitPane>
+        <TextEditor label="Title" value={title} onChange={setTitle} rows={4} />
+        <OutputBox label="Slug" value={slug} mono />
+      </SplitPane>
       <CopyReset text={slug} copyLabel="Copy slug" onReset={() => setTitle("")} />
     </TextToolShell>
   )
@@ -397,7 +398,8 @@ export function SlugGenerator() {
 
 export function LoremIpsum() {
   const [count, setCount] = useState("3")
-  const paragraphs = Math.min(12, Math.max(1, Math.round(Number(count) || 3)))
+  const requested = Math.round(Number(count) || 3)
+  const paragraphs = Math.min(12, Math.max(1, Number.isFinite(requested) ? requested : 3))
   const text = lorem(paragraphs)
 
   return (
@@ -406,6 +408,7 @@ export function LoremIpsum() {
       <div className="max-w-xs">
         <NumberField label="Paragraphs" value={count} onChange={setCount} min={1} />
       </div>
+      {requested > 12 ? <p className="text-sm text-[var(--nb-secondary)]">Showing 12 paragraphs, the maximum.</p> : null}
       <OutputBox label="Placeholder" value={text} />
       <CopyReset text={text} onReset={() => setCount("3")} filename="lorem.txt" />
     </TextToolShell>
@@ -438,7 +441,7 @@ export function MarkdownTable() {
     <TextToolShell>
       <PrivacyNote />
       <TextEditor label="Headers" value={headers} onChange={setHeaders} rows={2} mono />
-      <TextEditor label="Rows" value={rows} onChange={setRows} rows={8} mono placeholder="One comma-separated row per line" />
+      <TextEditor label="Rows" value={rows} onChange={setRows} rows={8} mono placeholder="One row per line. Commas, or a paste from a spreadsheet." />
       <OutputBox label="Markdown" value={table} mono />
       <CopyReset text={table} copyLabel="Copy table" filename="table.md" onReset={() => setRows("")} />
     </TextToolShell>
@@ -464,6 +467,82 @@ export function MarkdownPreview() {
       </SplitPane>
       <CopyReset text={text} copyLabel="Copy Markdown" filename="notes.md" onReset={() => setText("")} />
     </TextToolShell>
+  )
+}
+
+function LineDiff({ rows }: { rows: DiffView[] }) {
+  return (
+    <div className="max-h-[min(28rem,60vh)] overflow-auto rounded-xl border border-border font-mono text-[13px] leading-relaxed">
+      <ul aria-label="Differences" className="list-none">
+        {rows.map((row, index) => {
+          if (row.type === "skip") {
+            return (
+              <li key={`skip-${index}`} className="px-3 py-1 text-[var(--nb-secondary)]">
+                {row.count} unchanged {row.count === 1 ? "line" : "lines"}
+              </li>
+            )
+          }
+          const mark = row.type === "add" ? "+ " : row.type === "del" ? "− " : "  "
+          const body = `${mark}${row.text || " "}`
+          if (row.type === "add") {
+            return (
+              <li key={`${row.type}-${index}`}>
+                <ins className="block bg-emerald-500/10 px-3 py-1 text-[var(--nb-primary)] no-underline">
+                  <span className="sr-only">Added: </span>
+                  {body}
+                </ins>
+              </li>
+            )
+          }
+          if (row.type === "del") {
+            return (
+              <li key={`${row.type}-${index}`}>
+                <del className="block bg-red-500/10 px-3 py-1 text-[var(--nb-primary)] no-underline">
+                  <span className="sr-only">Removed: </span>
+                  {body}
+                </del>
+              </li>
+            )
+          }
+          return (
+            <li key={`${row.type}-${index}`} className="px-3 py-1 text-[var(--nb-secondary)]">
+              <span className="sr-only">Unchanged: </span>
+              {body}
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  )
+}
+
+function WordDiff({ rows }: { rows: DiffView[] }) {
+  return (
+    <p
+      aria-label="Differences"
+      className="max-h-[min(28rem,60vh)] overflow-auto whitespace-pre-wrap rounded-xl border border-border px-3 py-3 font-mono text-[13px] leading-relaxed"
+    >
+      {rows.map((row, index) => {
+        if (row.type === "skip") return null
+        if (row.type === "add") {
+          return (
+            <ins key={index} className="bg-emerald-500/15 text-[var(--nb-primary)] no-underline">
+              <span className="sr-only">Added: </span>
+              {row.text}
+            </ins>
+          )
+        }
+        if (row.type === "del") {
+          return (
+            <del key={index} className="bg-red-500/15 text-[var(--nb-primary)] no-underline">
+              <span className="sr-only">Removed: </span>
+              {row.text}
+            </del>
+          )
+        }
+        return <span key={index}>{row.text}</span>
+      })}
+    </p>
   )
 }
 

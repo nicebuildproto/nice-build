@@ -22,7 +22,7 @@ export default function TermsPage() {
       </InfoSection>
       <InfoSection title="Results">
         <p>
-          A result is the formula on that page, applied to the figures you enter. Tax, health, building, fee, and crypto tools are estimates. They are not advice, a diagnosis, a quote, or a live market price.
+          A calculator result is the formula on that page, applied to the figures you enter. Tax, health, building, and fee tools are estimates. They are not advice, a diagnosis, or a quote. The crypto scanner shows public market data and the time it was fetched. It is not a forecast or a recommendation.
         </p>
         <p>Check a result before you rely on it. The site is provided as it is, without a promise that a number is fit for a particular job.</p>
       </InfoSection>
@@ -34,7 +34,7 @@ export default function TermsPage() {
         <p>
           Questions can go through the <Link href="/contact" className="underline-offset-4 hover:underline">contact page</Link>. That form does not send yet.
         </p>
-        <p>Last updated 4 October 2026.</p>
+        <p>Last updated 8 October 2026.</p>
       </InfoSection>
     </InfoPage>
   )

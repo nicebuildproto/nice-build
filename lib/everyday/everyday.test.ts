@@ -1,12 +1,13 @@
 import { diceCountMax, formatRoll, rollDie } from "../dice/roll"
 import { ageDetails, formatAge, nextBirthday, parseLocalDate } from "./age"
-import { carbonEstimate, screenTime } from "./audit"
+import { carbonEstimate, parseHourField, screenTime } from "./audit"
 import { batteryRead } from "./battery"
 import { duplicateNote, parseList, removeAt } from "./picker"
 import { randomInt } from "./random"
 import { scaledRecipe } from "./recipe"
 import {
   countdownParts,
+  countdownSummary,
   durationFromFields,
   formatCountdownClock,
   formatStopwatch,
@@ -45,6 +46,9 @@ test("countdown parts tick and mark completion", () => {
   assert.equal(done?.complete, true)
   assert.equal(done?.past, true)
   assert.equal(done?.seconds, 0)
+  assert.equal(countdownSummary(parts), "0 days, 0 hours, 0 minutes, 1 second remaining")
+  assert.match(countdownSummary(done), /ago$/)
+  assert.equal(countdownSummary(countdownParts(1_000, 1_000)!), "That’s now.")
 })
 
 test("stopwatch and kitchen clocks format without relying on animation", () => {
@@ -107,6 +111,10 @@ test("screen time and carbon estimates stay deterministic", () => {
   assert.equal(screen.day, 9.5)
   assert.equal(screen.week, 66.5)
   assert.equal(screen.year, 9.5 * 365)
+  assert.equal(parseHourField(""), 0)
+  assert.equal(parseHourField("1.5"), 1.5)
+  assert.equal(parseHourField("nope"), null)
+  assert.equal(parseHourField("-1"), null)
   const carbon = carbonEstimate(7, 20)
   assert.ok(carbon)
   assert.equal(carbon.streamYearG, 7 * 52 * 36)

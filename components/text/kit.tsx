@@ -23,9 +23,11 @@ export function ActionBar({ children }: { children: ReactNode }) {
   return <div className="flex flex-wrap items-center gap-2">{children}</div>
 }
 
-export function StatsPanel({ items }: { items: { label: string; value: string }[] }) {
+export function StatsPanel({ items, caption }: { items: { label: string; value: string }[]; caption?: string }) {
   return (
-    <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3 lg:grid-cols-4" aria-live="polite">
+    <div className="flex flex-col gap-3">
+      {caption ? <p className="text-[13px] text-[var(--nb-secondary)]">{caption}</p> : null}
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3 lg:grid-cols-4" aria-live="polite">
       {items.map((item) => (
         <div key={item.label}>
           <dt className="text-[11px] font-medium tracking-[0.08em] text-[var(--nb-secondary)] uppercase">{item.label}</dt>
@@ -35,6 +37,7 @@ export function StatsPanel({ items }: { items: { label: string; value: string }[
         </div>
       ))}
     </dl>
+    </div>
   )
 }
 

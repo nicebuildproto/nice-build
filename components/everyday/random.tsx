@@ -17,7 +17,7 @@ import { duplicateNote, joinList, parseList, removeAt } from "@/lib/everyday/pic
 import { flipCoin, randomInt, randomPick, randomUnit } from "@/lib/everyday/random"
 import { wheelGradient, wheelWinner } from "@/lib/everyday/wheel"
 import { cn } from "@/lib/utils"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 const sampleNames = "Ava\nNoah\nMia\nLeo\nSofia"
 const sampleChoices = "Ada\nLin\nNoor\nSam"
@@ -192,7 +192,11 @@ export function NamePicker() {
           }}
         />
       </ActionBar>
-      <Note>{parsed.items.length} remaining</Note>
+      <Note>
+        {parsed.items.length === 0
+          ? "No names left. Paste a new list, or reset to bring the sample back."
+          : `${parsed.items.length} remaining`}
+      </Note>
       <History items={history} label="Drawn names" />
     </EverydayToolShell>
   )
@@ -208,13 +212,17 @@ export function WheelSpinner() {
   const note = duplicateNote(parseList(text))
   const reducedMotion = useReducedMotion()
   const timer = useRef(0)
-  const namesRef = useRef(names)
-  namesRef.current = names
+  const [board, setBoard] = useState<string[] | null>(null)
+  const slices = spinning && board ? board : names
+
+  useEffect(() => () => window.clearTimeout(timer.current), [])
 
   function spin() {
     if (!names.length || spinning) return
+    const locked = names.slice()
     const next = angle + (4 + randomInt(0, 2)) * 360 + randomUnit() * 360
-    const picked = wheelWinner(names, next)
+    const picked = wheelWinner(locked, next)
+    setBoard(locked)
     setAngle(next)
     if (reducedMotion) {
       finish(picked?.name ?? null)
@@ -247,11 +255,20 @@ export function WheelSpinner() {
             "size-64 rounded-full border border-border",
             reducedMotion ? "" : "transition-transform duration-[2400ms] ease-out",
           )}
-          style={{ transform: `rotate(${angle}deg)`, background: wheelGradient(names.length) }}
+          style={{ transform: `rotate(${angle}deg)`, background: wheelGradient(slices.length) }}
           aria-hidden
         />
-        <span className="sr-only">{names.length ? `${names.length} equal slices` : "Add options to spin"}</span>
+        <span className="sr-only">{slices.length ? `${slices.length} equal slices` : "Add options to spin"}</span>
       </div>
+      {slices.length ? (
+        <ol className="mx-auto flex max-w-xs flex-col gap-1 text-sm text-[var(--nb-secondary)]" aria-label="Slices, in order">
+          {slices.map((name, index) => (
+            <li key={`${name}-${index}`}>
+              {index + 1}. {name}
+            </li>
+          ))}
+        </ol>
+      ) : null}
       <ActionBar>
         <PrimaryAction onClick={spin} disabled={!names.length || spinning}>
           Spin
@@ -265,12 +282,13 @@ export function WheelSpinner() {
             setAngle(0)
             setWinner(null)
             setSpinning(false)
+            setBoard(null)
             setHistory([])
           }}
         />
       </ActionBar>
-      <ResultDisplay label="Winner">{spinning ? "…" : (winner ?? "—")}</ResultDisplay>
-      <Note>The pointer is at the top. The winner is whoever lands there, not a separate pick after the spin.</Note>
+      <ResultDisplay label="Winner">{spinning ? "Spinning" : (winner ?? "—")}</ResultDisplay>
+      <Note>The pointer is at the top. Slice 1 starts there before a spin. The winner is whoever lands under the pointer.</Note>
       <History items={history} label="Recent winners" />
     </EverydayToolShell>
   )

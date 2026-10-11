@@ -1,13 +1,12 @@
 "use client"
 
+import { ToolStage, type StageStat, type StageTool, type StageViewControl } from "@/components/stage/ToolStage"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { SlidersHorizontal, Table2 } from "lucide-react"
-import { useState, type ReactNode, type RefObject } from "react"
+import type { ReactNode, RefObject } from "react"
 import { ExportMenu } from "./export-menu"
 
 export function VizStudio({
+  title,
   filename,
   csv,
   svgRef,
@@ -15,7 +14,16 @@ export function VizStudio({
   canvas,
   customize,
   notice,
+  stats,
+  spatial = false,
+  view,
+  onFit,
+  tools,
+  onReset,
+  fill = false,
+  surface,
 }: {
+  title: string
   filename: string
   csv?: string
   svgRef: RefObject<SVGSVGElement | null>
@@ -23,86 +31,47 @@ export function VizStudio({
   canvas: ReactNode
   customize: ReactNode
   notice?: ReactNode
+  stats?: StageStat[]
+  spatial?: boolean
+  view?: StageViewControl
+  onFit?: () => void
+  tools?: StageTool[]
+  onReset?: () => void
+  fill?: boolean
+  surface?: { background: string; dot: string }
 }) {
-  const [dataOpen, setDataOpen] = useState(false)
-  const [styleOpen, setStyleOpen] = useState(false)
-
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[12px] text-[var(--nb-secondary)]">Your data stays in this browser.</p>
-        <div className="flex items-center gap-1.5">
-          <Button type="button" variant="ghost" size="sm" className="lg:hidden" onClick={() => setDataOpen(true)}>
-            <Table2 />
-            Data
-          </Button>
-          <Button type="button" variant="ghost" size="sm" className="lg:hidden" onClick={() => setStyleOpen(true)}>
-            <SlidersHorizontal />
-            Customize
-          </Button>
+    <ToolStage
+      toolId={filename}
+      title={title}
+      stats={stats}
+      left={
+        <>
+          <p className="text-[12px] text-[var(--nb-secondary)]">Your data stays in this browser.</p>
+          {data}
+        </>
+      }
+      right={customize}
+      notice={notice}
+      spatial={spatial}
+      view={view}
+      onFit={onFit}
+      tools={tools}
+      fill={fill}
+      surface={surface}
+      actions={
+        <>
           <ExportMenu svgRef={svgRef} filename={filename} csv={csv} />
-        </div>
-      </div>
-
-      {notice}
-
-      <div className="hidden overflow-hidden rounded-2xl border border-black/[0.08] lg:grid lg:grid-cols-[minmax(260px,300px)_minmax(0,1fr)_minmax(220px,260px)]">
-        <aside className="min-h-0 border-r border-black/[0.06] p-4">
-          <Panel title="Data">{data}</Panel>
-        </aside>
-        <section className="min-h-[520px] bg-[var(--nb-accent)]/40 p-5">{canvas}</section>
-        <aside className="min-h-0 border-l border-black/[0.06] p-4">
-          <Panel title="Customize">{customize}</Panel>
-        </aside>
-      </div>
-
-      <div className="lg:hidden">
-        <Tabs defaultValue="chart">
-          <TabsList variant="line" className="w-full">
-            <TabsTrigger value="chart">Chart</TabsTrigger>
-            <TabsTrigger value="data">Data</TabsTrigger>
-            <TabsTrigger value="style">Customize</TabsTrigger>
-          </TabsList>
-          <TabsContent value="chart" className="pt-4">
-            <div className="rounded-2xl border border-black/[0.08] bg-[var(--nb-accent)]/40 p-3">{canvas}</div>
-          </TabsContent>
-          <TabsContent value="data" className="pt-4">
-            {data}
-          </TabsContent>
-          <TabsContent value="style" className="pt-4">
-            {customize}
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      <Sheet open={dataOpen} onOpenChange={setDataOpen}>
-        <SheetContent side="left" className="w-[min(100%,24rem)] overflow-y-auto p-5">
-          <SheetHeader>
-            <SheetTitle>Data</SheetTitle>
-          </SheetHeader>
-          <div className="mt-4">{data}</div>
-        </SheetContent>
-      </Sheet>
-      <Sheet open={styleOpen} onOpenChange={setStyleOpen}>
-        <SheetContent side="right" className="w-[min(100%,22rem)] overflow-y-auto p-5">
-          <SheetHeader>
-            <SheetTitle>Customize</SheetTitle>
-          </SheetHeader>
-          <div className="mt-4">{customize}</div>
-        </SheetContent>
-      </Sheet>
-    </div>
-  )
-}
-
-function Panel({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <div className="flex h-full max-h-[70vh] min-h-0 flex-col">
-      <h2 className="mb-4 text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
-        {title}
-      </h2>
-      <div className="min-h-0 flex-1 overflow-y-auto pr-1">{children}</div>
-    </div>
+          {onReset ? (
+            <Button type="button" variant="ghost" className="h-8" onClick={onReset}>
+              Reset
+            </Button>
+          ) : null}
+        </>
+      }
+    >
+      {canvas}
+    </ToolStage>
   )
 }
 
@@ -114,18 +83,21 @@ export function ExampleList<T>({
   onLoad: (data: T, title: string) => void
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-2">
+      <p className="text-[11px] font-medium tracking-[0.08em] text-[var(--nb-secondary)] uppercase">Templates</p>
+      <div className="flex flex-wrap gap-1.5">
       {examples.map((example) => (
         <button
           key={example.id}
           type="button"
+          title={example.description}
           onClick={() => onLoad(example.data, example.title)}
-          className="rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-[var(--nb-accent)]"
+          className="h-8 rounded-lg bg-[var(--nb-accent)] px-2.5 text-[13px] font-medium text-[var(--nb-primary)] transition-colors hover:bg-[var(--nb-primary)] hover:text-white"
         >
-          <span className="block text-[13px] font-medium text-[var(--nb-primary)]">{example.title}</span>
-          <span className="block text-[12px] text-[var(--nb-secondary)]">{example.description}</span>
+          {example.title}
         </button>
       ))}
+      </div>
     </div>
   )
 }
@@ -144,10 +116,10 @@ export function EmptyViz({
         <p className="mt-1 text-[13px] text-[var(--nb-secondary)]">Start from an example, or enter your own data.</p>
       </div>
       <div className="flex flex-wrap justify-center gap-2">
-        <Button type="button" size="sm" onClick={onExample}>
+        <Button type="button" className="h-8" onClick={onExample}>
           Start with example
         </Button>
-        <Button type="button" size="sm" variant="outline" onClick={onManual}>
+        <Button type="button" className="h-8" variant="outline" onClick={onManual}>
           Enter data
         </Button>
       </div>

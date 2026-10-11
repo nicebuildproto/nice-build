@@ -29,12 +29,13 @@ import {
   meetingAgenda,
   meetingCost,
   nextFromBag,
-  nextRaci,
   oneOnOneAgenda,
   raciCsv,
   raciLegend,
   raciRows,
+  raciSummary,
   raciTsv,
+  rememberPrompt,
   splitLines,
   workingAgreement,
 } from "@/lib/people/team"
@@ -70,7 +71,7 @@ export function WorkStyleQuiz() {
   }, [ready, started, step, answers])
 
   const scores = useMemo(() => scoreAnswers(answers), [answers])
-  const done = answers.length >= questions.length
+  const done = step >= questions.length && answers.length >= questions.length
   const leading = leadingStyles(scores)
   const question = questions[step]
 
@@ -84,9 +85,7 @@ export function WorkStyleQuiz() {
   }
 
   function back() {
-    if (step === 0) return
-    setStep((value) => value - 1)
-    setAnswers((current) => current.slice(0, step - 1))
+    setStep((value) => Math.max(0, value - 1))
   }
 
   function reset() {
@@ -131,7 +130,17 @@ export function WorkStyleQuiz() {
             ))}
           </ul>
         </div>
-        <CopyReset text={copy} filename="work-style.txt" onReset={reset} copyLabel="Copy result" resetLabel="Start again" />
+        <CopyReset
+          text={copy}
+          filename="work-style.txt"
+          onReset={reset}
+          copyLabel="Copy result"
+          resetLabel="Start again"
+          shareTitle="Work style"
+        />
+        <button type="button" className="w-fit text-sm text-[var(--nb-secondary)] underline-offset-4 hover:underline" onClick={back}>
+          Back to the last question
+        </button>
       </PeopleToolShell>
     )
   }
@@ -141,7 +150,7 @@ export function WorkStyleQuiz() {
       <PeopleToolShell>
         <PrivacyNote>Five questions. Your answers stay on this device — a light read of how you tend to work, not a certificate.</PrivacyNote>
         <p className="max-w-xl text-sm leading-relaxed text-[var(--nb-secondary)]">
-          Most people are a mix of making, connecting, planning, and closing. The result is something to talk about with a team, not a label to hire against.
+          Most people are a mix of making, connecting, planning, and closing. You’ll get a short read and one question to take to the team — something to talk about, not a label to hire against.
         </p>
         <Button type="button" className="h-10 w-fit" onClick={() => setStarted(true)}>
           Start
@@ -159,8 +168,8 @@ export function WorkStyleQuiz() {
       <PrivacyNote />
       <div className="flex max-w-xl flex-col gap-4">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-sm text-[var(--nb-secondary)]">
-            {step + 1} of {questions.length}
+          <p className="text-sm text-[var(--nb-secondary)]" aria-live="polite">
+            Question {step + 1} of {questions.length}
           </p>
           {step > 0 ? (
             <button type="button" className="text-sm text-[var(--nb-secondary)] underline-offset-4 hover:underline" onClick={back}>
@@ -168,11 +177,31 @@ export function WorkStyleQuiz() {
             </button>
           ) : null}
         </div>
-        <div className="h-1 overflow-hidden rounded-full bg-border" aria-hidden>
+        <div
+          className="h-1 overflow-hidden rounded-full bg-border"
+          role="progressbar"
+          aria-valuemin={1}
+          aria-valuemax={questions.length}
+          aria-valuenow={step + 1}
+          aria-label="Quiz progress"
+        >
           <div className="h-full bg-[var(--nb-primary)] motion-reduce:transition-none" style={{ width: `${progress}%` }} />
         </div>
         <h2 className="text-2xl font-semibold tracking-[-0.03em]">{question.prompt}</h2>
-        <div role="radiogroup" aria-label={question.prompt} className="flex flex-col gap-2">
+        <div
+          role="radiogroup"
+          aria-label={question.prompt}
+          className="flex flex-col gap-2"
+          onKeyDown={(event) => {
+            if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return
+            const buttons = [...event.currentTarget.querySelectorAll("button")]
+            const index = buttons.indexOf(document.activeElement as HTMLButtonElement)
+            if (index < 0) return
+            event.preventDefault()
+            const next = event.key === "ArrowDown" ? (index + 1) % buttons.length : (index - 1 + buttons.length) % buttons.length
+            buttons[next]?.focus()
+          }}
+        >
           {question.options.map((option) => {
             const selected = answers[step] === option.style
             return (
@@ -226,23 +255,46 @@ export function MeetingCost() {
         <NumberField label="Length" value={minutes} onChange={setMinutes} suffix="min" min={0} />
         <NumberField label="Times each month" value={perMonth} onChange={setPerMonth} min={0} />
       </div>
+      <div className="flex flex-wrap gap-2">
+        {[15, 30, 45, 60].map((length) => (
+          <button
+            key={length}
+            type="button"
+            onClick={() => setMinutes(String(length))}
+            className={cn(
+              "h-10 rounded-lg border px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+              minutes === String(length) ? "border-[var(--nb-primary)] bg-[var(--nb-accent)] text-[var(--nb-primary)]" : "border-border text-[var(--nb-secondary)]",
+            )}
+          >
+            {length} min
+          </button>
+        ))}
+      </div>
       {result ? (
         <ResultSection>
-          <p className="text-[11px] font-medium tracking-[0.08em] text-[var(--nb-secondary)] uppercase">If this keeps running for a year</p>
-          <p className="text-4xl font-semibold tracking-[-0.04em] tabular-nums sm:text-5xl">{money(result.year)}</p>
-          <p className="max-w-xl text-sm leading-relaxed text-[var(--nb-secondary)]">
-            {money(result.meeting)} each sitting, {money(result.month)} a month. About {Math.round(result.hoursYear)} hours of people’s time in a year.
+          <p className="text-[11px] font-medium tracking-[0.08em] text-[var(--nb-secondary)] uppercase">
+            {(times ?? 0) > 0 ? "If this keeps running for a year" : "This meeting"}
           </p>
-          <dl className="grid grid-cols-2 gap-4 sm:max-w-md">
-            <div>
-              <dt className="text-[11px] font-medium tracking-[0.08em] text-[var(--nb-secondary)] uppercase">Each meeting</dt>
-              <dd className="mt-1 text-xl font-semibold tabular-nums">{money(result.meeting)}</dd>
-            </div>
-            <div>
-              <dt className="text-[11px] font-medium tracking-[0.08em] text-[var(--nb-secondary)] uppercase">Each month</dt>
-              <dd className="mt-1 text-xl font-semibold tabular-nums">{money(result.month)}</dd>
-            </div>
-          </dl>
+          <p className="text-4xl font-semibold tracking-[-0.04em] tabular-nums sm:text-5xl">
+            {money((times ?? 0) > 0 ? result.year : result.meeting)}
+          </p>
+          <p className="max-w-xl text-sm leading-relaxed text-[var(--nb-secondary)]">
+            {(times ?? 0) > 0
+              ? `${money(result.meeting)} each sitting, ${money(result.month)} a month. About ${Math.round(result.hoursYear)} hours of people’s time in a year.`
+              : `${money(result.meeting)} for this sitting. Set how often it repeats to see the month and the year.`}
+          </p>
+          {(times ?? 0) > 0 ? (
+            <dl className="grid grid-cols-2 gap-4 sm:max-w-md">
+              <div>
+                <dt className="text-[11px] font-medium tracking-[0.08em] text-[var(--nb-secondary)] uppercase">Each meeting</dt>
+                <dd className="mt-1 text-xl font-semibold tabular-nums">{money(result.meeting)}</dd>
+              </div>
+              <div>
+                <dt className="text-[11px] font-medium tracking-[0.08em] text-[var(--nb-secondary)] uppercase">Each month</dt>
+                <dd className="mt-1 text-xl font-semibold tabular-nums">{money(result.month)}</dd>
+              </div>
+            </dl>
+          ) : null}
         </ResultSection>
       ) : (
         <p className="text-sm text-[var(--nb-secondary)]">Enter people, a rate, and a length to see the cost.</p>
@@ -271,6 +323,7 @@ export function RaciGenerator() {
   const rows = raciRows(tasks, people, grid)
   const table = raciTsv(tasks, people, grid)
   const csv = raciCsv(tasks, people, grid)
+  const summary = raciSummary(rows)
   const empty = !people.length || !tasks.length
 
   return (
@@ -288,9 +341,14 @@ export function RaciGenerator() {
         ))}
       </ul>
       <p className="text-[13px] text-[var(--nb-secondary)]">
-        Click a cell to cycle R, A, C, and I. Aim for one accountable on each task.
+        Choose a role in each cell. Aim for one accountable person on each task.
         <span className="lg:hidden"> Swipe sideways to see every person.</span>
       </p>
+      {summary ? (
+        <p className="text-sm text-[var(--nb-primary)]" role="status">
+          {summary}
+        </p>
+      ) : null}
       {empty ? (
         <p className="text-sm text-[var(--nb-secondary)]">Add at least one person and one task.</p>
       ) : (
@@ -307,7 +365,7 @@ export function RaciGenerator() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
+              {rows.map((row, rowIndex) => (
                 <tr key={row.task} className="border-t border-border">
                   <th scope="row" className="sticky left-0 bg-background p-2 text-left font-normal">
                     <span className="break-words">{row.task}</span>
@@ -317,21 +375,29 @@ export function RaciGenerator() {
                   </th>
                   {people.map((person, index) => {
                     const key = `${row.task}|${person}`
+                    const fieldId = `raci-${rowIndex}-${index}`
                     const value = row.cells[index]
-                    const label = raciLegend.find((item) => item.id === value)?.label ?? "None"
                     return (
                       <td key={person} className="p-2">
-                        <button
-                          type="button"
-                          onClick={() => setGrid((current) => ({ ...current, [key]: nextRaci(current[key] || "") }))}
-                          aria-label={`${person} on ${row.task}: ${label}. Cycle role.`}
+                        <label className="sr-only" htmlFor={fieldId}>
+                          {person} on {row.task}
+                        </label>
+                        <select
+                          id={fieldId}
+                          value={value}
+                          onChange={(event) => setGrid((current) => ({ ...current, [key]: event.target.value }))}
                           className={cn(
-                            "size-10 rounded-full text-sm font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-                            value ? "bg-[var(--nb-accent)] text-[var(--nb-primary)]" : "bg-muted text-[var(--nb-secondary)]",
+                            "h-10 w-full min-w-16 rounded-lg border border-border bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+                            value ? "text-[var(--nb-primary)]" : "text-[var(--nb-secondary)]",
                           )}
                         >
-                          {value || "·"}
-                        </button>
+                          <option value="">—</option>
+                          {raciLegend.map((item) => (
+                            <option key={item.id} value={item.id}>
+                              {item.id} {item.label}
+                            </option>
+                          ))}
+                        </select>
                       </td>
                     )
                   })}
@@ -362,8 +428,9 @@ export function TeamWorkingAgreement() {
   const [team, setTeam] = useState("Studio")
   const [hours, setHours] = useState("We overlap 10:00–15:00 local.")
   const [response, setResponse] = useState("Same day for a blocker, next day otherwise.")
+  const [meetings, setMeetings] = useState("The weekly stays at 45 minutes. If it needs a decision, it goes on the agenda.")
   const [decisions, setDecisions] = useState("The person doing the work proposes. We disagree in the open, then commit.")
-  const text = workingAgreement({ team, hours, response, decisions })
+  const text = workingAgreement({ team, hours, response, decisions, meetings })
 
   return (
     <PeopleToolShell>
@@ -379,6 +446,7 @@ export function TeamWorkingAgreement() {
           <Field label="Response">
             <Input value={response} onChange={(event) => setResponse(event.target.value)} className="h-11 sm:h-10" />
           </Field>
+          <TextArea label="How we meet" value={meetings} onChange={setMeetings} rows={3} />
           <TextArea label="How we decide" value={decisions} onChange={setDecisions} rows={4} />
         </div>
         <DocumentPreview label="Agreement" text={text} />
@@ -390,6 +458,7 @@ export function TeamWorkingAgreement() {
           setTeam("")
           setHours("")
           setResponse("")
+          setMeetings("")
           setDecisions("")
         }}
       />
@@ -473,10 +542,7 @@ export function TeamIcebreaker() {
   function draw() {
     const next = nextFromBag(icebreakers, recent)
     setPrompt(next)
-    setRecent((current) => {
-      const bag = [...current, next]
-      return bag.length >= icebreakers.length ? [] : bag
-    })
+    setRecent((current) => rememberPrompt(current, next, icebreakers.length))
   }
 
   return (
@@ -484,6 +550,7 @@ export function TeamIcebreaker() {
       <PrivacyNote>A fixed list of light questions for a team meeting. Nothing is stored.</PrivacyNote>
       <ResultSection>
         <p className="max-w-xl text-2xl font-semibold tracking-[-0.03em] leading-snug">{prompt}</p>
+        <p className="text-sm text-[var(--nb-secondary)]">This one stays out of the draw until the others have had a turn.</p>
       </ResultSection>
       <ActionBar>
         <Button type="button" className="h-10" onClick={draw}>

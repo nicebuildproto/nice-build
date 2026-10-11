@@ -59,8 +59,6 @@ export function TimerDisplay({
 }) {
   return (
     <p
-      aria-live="polite"
-      aria-atomic="true"
       className="text-5xl font-semibold tracking-[-0.04em] text-[var(--nb-primary)] tabular-nums sm:text-6xl"
     >
       {label ? <span className="sr-only">{label}: </span> : null}
@@ -161,6 +159,17 @@ export function CopyResetShare({
       {onReset ? <ResetButton onClick={onReset} label={resetLabel} /> : null}
     </ActionBar>
   )
+}
+
+export function useTabTitle(next: string | null) {
+  useEffect(() => {
+    if (!next) return
+    const previous = document.title
+    document.title = next
+    return () => {
+      document.title = previous
+    }
+  }, [next])
 }
 
 export function useNow(active = true, interval = 1000) {

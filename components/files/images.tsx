@@ -16,7 +16,7 @@ import {
 } from "@/components/files/kit"
 import { Button } from "@/components/ui/button"
 import { NumberField, CopyButton, ResetButton } from "@/components/tools/ui"
-import { clamp, formatBytes, percentChange, withSuffix } from "@/lib/files/format"
+import { batchLimitNote, clamp, formatBytes, percentChange, takeBatch, withSuffix } from "@/lib/files/format"
 import { canvasToBlob, loadImageFile } from "@/lib/tools/image"
 import { downloadBlob } from "@/lib/tools/download"
 import { cn } from "@/lib/utils"
@@ -60,11 +60,15 @@ function ImageBench({ mode }: { mode: "compress" | "strip" }) {
   const [capEdge, setCapEdge] = useState(mode === "compress")
   const [items, setItems] = useState<BenchItem[]>([])
   const [busy, setBusy] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
   const itemsRef = useRef(items)
+  const job = useRef(0)
+  const timer = useRef<number | null>(null)
   itemsRef.current = items
 
   useEffect(() => {
     return () => {
+      if (timer.current) window.clearTimeout(timer.current)
       for (const item of itemsRef.current) {
         URL.revokeObjectURL(item.previewUrl)
         if (item.result?.url) URL.revokeObjectURL(item.result.url)
@@ -72,7 +76,7 @@ function ImageBench({ mode }: { mode: "compress" | "strip" }) {
     }
   }, [])
 
-  async function processFile(file: File, nextQuality: number, nextCap: boolean): Promise<BenchItem["result"]> {
+  async function processFile(file: File, nextQuality: number, nextCap: boolean): Promise<NonNullable<BenchItem["result"]>> {
     const image = await loadImageFile(file)
     const max = nextCap ? 2400 : 8000
     const scale = Math.min(1, max / Math.max(image.width, image.height))
@@ -100,45 +104,23 @@ function ImageBench({ mode }: { mode: "compress" | "strip" }) {
     }
   }
 
-  async function addFiles(files: File[]) {
-    const room = Math.max(0, 12 - itemsRef.current.length)
-    const incoming = files.slice(0, room).map((file) => ({
-      id: uid(),
-      file,
-      previewUrl: URL.createObjectURL(file),
-      status: "processing" as const,
-    }))
-    if (!incoming.length) return
-    setItems((current) => [...current, ...incoming])
+  async function runItems(list: { id: string; file: File; previousUrl?: string }[], nextQuality: number, nextCap: boolean) {
+    if (!list.length) return
+    const token = ++job.current
     setBusy(true)
-    for (const item of incoming) {
-      try {
-        const result = await processFile(item.file, quality, capEdge)
-        setItems((current) => current.map((row) => (row.id === item.id ? { ...row, status: "complete", result } : row)))
-      } catch (err) {
-        setItems((current) =>
-          current.map((row) =>
-            row.id === item.id
-              ? { ...row, status: "failed", error: err instanceof Error ? err.message : "Could not process that image." }
-              : row,
-          ),
-        )
-      }
-    }
-    setBusy(false)
-  }
-
-  async function reprocess(nextQuality = quality, nextCap = capEdge) {
-    const current = itemsRef.current
-    if (!current.length) return
-    setBusy(true)
-    for (const item of current) {
+    for (const item of list) {
+      if (job.current !== token) return
       setItems((rows) => rows.map((row) => (row.id === item.id ? { ...row, status: "processing", error: undefined } : row)))
       try {
         const result = await processFile(item.file, nextQuality, nextCap)
-        if (item.result?.url) URL.revokeObjectURL(item.result.url)
+        if (job.current !== token) {
+          URL.revokeObjectURL(result.url)
+          return
+        }
+        if (item.previousUrl) URL.revokeObjectURL(item.previousUrl)
         setItems((rows) => rows.map((row) => (row.id === item.id ? { ...row, status: "complete", result } : row)))
       } catch (err) {
+        if (job.current !== token) return
         setItems((rows) =>
           rows.map((row) =>
             row.id === item.id
@@ -148,7 +130,43 @@ function ImageBench({ mode }: { mode: "compress" | "strip" }) {
         )
       }
     }
-    setBusy(false)
+    if (job.current === token) setBusy(false)
+  }
+
+  async function addFiles(files: File[]) {
+    const { accepted, skipped } = takeBatch(files, itemsRef.current.length, 12)
+    setNotice(batchLimitNote(skipped, 12, "images"))
+    const incoming = accepted.map((file) => ({
+      id: uid(),
+      file,
+      previewUrl: URL.createObjectURL(file),
+      status: "processing" as const,
+    }))
+    if (!incoming.length) return
+    setItems((current) => [...current, ...incoming])
+    await runItems(
+      incoming.map((item) => ({ id: item.id, file: item.file })),
+      quality,
+      capEdge,
+    )
+  }
+
+  function queueReprocess(nextQuality = quality, nextCap = capEdge) {
+    if (timer.current) window.clearTimeout(timer.current)
+    timer.current = window.setTimeout(() => {
+      const current = itemsRef.current
+      void runItems(
+        current.map((item) => ({ id: item.id, file: item.file, previousUrl: item.result?.url })),
+        nextQuality,
+        nextCap,
+      )
+    }, 280)
+  }
+
+  function retry(id: string) {
+    const item = itemsRef.current.find((row) => row.id === id)
+    if (!item) return
+    void runItems([{ id: item.id, file: item.file, previousUrl: item.result?.url }], quality, capEdge)
   }
 
   function clearAll() {
@@ -157,6 +175,7 @@ function ImageBench({ mode }: { mode: "compress" | "strip" }) {
       if (item.result?.url) URL.revokeObjectURL(item.result.url)
     }
     setItems([])
+    setNotice(null)
   }
 
   const done = items.filter((item) => item.status === "complete" && item.result)
@@ -190,7 +209,7 @@ function ImageBench({ mode }: { mode: "compress" | "strip" }) {
             display={`${Math.round(quality * 100)}%`}
             onChange={(value) => {
               setQuality(value)
-              void reprocess(value, capEdge)
+              queueReprocess(value, capEdge)
             }}
           />
           <label className="flex items-center gap-2 text-sm text-[var(--nb-primary)]">
@@ -200,7 +219,7 @@ function ImageBench({ mode }: { mode: "compress" | "strip" }) {
               onChange={(event) => {
                 const next = event.target.checked
                 setCapEdge(next)
-                void reprocess(quality, next)
+                queueReprocess(quality, next)
               }}
               className="size-4 accent-[var(--nb-primary)]"
             />
@@ -208,6 +227,7 @@ function ImageBench({ mode }: { mode: "compress" | "strip" }) {
           </label>
         </Section>
       ) : null}
+      {notice ? <p className="text-sm text-[var(--nb-secondary)]">{notice}</p> : null}
       <StatusLine status={busy ? "processing" : failed.length ? "failed" : done.length ? "complete" : "idle"}>
         {busy
           ? mode === "compress"
@@ -228,14 +248,24 @@ function ImageBench({ mode }: { mode: "compress" | "strip" }) {
                     name={item.file.name}
                     meta={`${formatBytes(item.file.size)}${item.result ? ` → ${formatBytes(item.result.blob.size)}` : ""}`}
                     previewUrl={item.result?.url ?? item.previewUrl}
+                    beforeUrl={item.result ? item.previewUrl : undefined}
                     onRemove={() => {
                       URL.revokeObjectURL(item.previewUrl)
                       if (item.result?.url) URL.revokeObjectURL(item.result.url)
                       setItems((current) => current.filter((row) => row.id !== item.id))
                     }}
                   >
-                    {item.status === "processing" ? <p className="mt-1 text-xs text-[var(--nb-secondary)]">Working…</p> : null}
-                    {item.error ? <p className="mt-1 text-xs text-destructive">{item.error}</p> : null}
+                    {item.status === "processing" ? (
+                      <p className="mt-1 text-xs text-[var(--nb-secondary)]">{mode === "compress" ? "Compressing…" : "Redrawing…"}</p>
+                    ) : null}
+                    {item.error ? (
+                      <p className="mt-1 text-xs text-destructive">
+                        {item.error}{" "}
+                        <button type="button" className="underline" onClick={() => retry(item.id)}>
+                          Retry
+                        </button>
+                      </p>
+                    ) : null}
                     {item.result ? (
                       <p className="mt-1 text-xs text-[var(--nb-secondary)]">
                         {item.result.originalWidth}×{item.result.originalHeight} → {item.result.width}×{item.result.height}
@@ -280,8 +310,8 @@ function ImageBench({ mode }: { mode: "compress" | "strip" }) {
 type StudioMode = "resize" | "crop" | "png" | "jpg" | "webp" | "svg" | "base64"
 
 const studioCopy: Record<StudioMode, string> = {
-  resize: "Set a width and the height follows, unless you unlock it. Social presets cover-crop to a fixed frame. Your files stay on your device.",
-  crop: "Set the keep-region as percentages of the original. A dashed box shows what you’ll download — the source file stays put.",
+  resize: "Set a width and the height follows, unless you unlock both sides. Social presets cover-crop to a fixed frame. Your files stay on your device.",
+  crop: "Drag on the photo to choose what to keep, or type percentages. A dashed box shows the download — the source file stays put.",
   png: "The JPEG is redrawn as a PNG in this browser.",
   jpg: "The image is redrawn as a JPEG. Transparent pixels become white.",
   webp: "The WebP is redrawn as a JPEG in this browser.",
@@ -313,6 +343,7 @@ export function ImageToBase64() {
 
 function ImageStudio({ mode }: { mode: StudioMode }) {
   const [width, setWidth] = useState("800")
+  const [height, setHeight] = useState("")
   const [lock, setLock] = useState(true)
   const [presetId, setPresetId] = useState<string | null>(null)
   const [crop, setCrop] = useState({ x: 10, y: 10, w: 80, h: 80 })
@@ -333,7 +364,7 @@ function ImageStudio({ mode }: { mode: StudioMode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function draw(next: File, options: { preset: (typeof SOCIAL)[number] | null; width: string; lock: boolean; crop: typeof crop }) {
+  async function draw(next: File, options: { preset: (typeof SOCIAL)[number] | null; width: string; height: string; lock: boolean; crop: typeof crop }) {
     setBusy(true)
     setError(null)
     try {
@@ -345,6 +376,7 @@ function ImageStudio({ mode }: { mode: StudioMode }) {
       }
       const image = await loadImageFile(next)
       setOriginal({ width: image.width, height: image.height })
+      if (!options.height) setHeight(String(image.height))
       const canvas = document.createElement("canvas")
       const context = canvas.getContext("2d")
       if (!context) throw new Error("This browser could not draw that image.")
@@ -366,8 +398,9 @@ function ImageStudio({ mode }: { mode: StudioMode }) {
       } else if (mode === "resize") {
         const target = Math.max(1, Math.round(Number(options.width) || image.width))
         const ratio = image.height / image.width
+        const unlocked = Math.max(1, Math.round(Number(options.height) || image.height))
         canvas.width = target
-        canvas.height = options.lock ? Math.max(1, Math.round(target * ratio)) : image.height
+        canvas.height = options.lock ? Math.max(1, Math.round(target * ratio)) : unlocked
         context.drawImage(image, 0, 0, canvas.width, canvas.height)
       } else {
         canvas.width = image.width
@@ -408,7 +441,7 @@ function ImageStudio({ mode }: { mode: StudioMode }) {
     if (sourceUrl) URL.revokeObjectURL(sourceUrl)
     setSourceUrl(URL.createObjectURL(next))
     setFile(next)
-    void draw(next, { preset, width, lock, crop })
+    void draw(next, { preset, width, height, lock, crop })
   }
 
   const accept =
@@ -439,7 +472,7 @@ function ImageStudio({ mode }: { mode: StudioMode }) {
                   setPresetId(item.id)
                   setWidth(String(item.width))
                   const current = fileRef.current
-                  if (current) void draw(current, { preset: item, width: String(item.width), lock, crop })
+                  if (current) void draw(current, { preset: item, width: String(item.width), height, lock, crop })
                 }}
                 className={cn(
                   "h-10 rounded-lg border px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
@@ -459,12 +492,33 @@ function ImageStudio({ mode }: { mode: StudioMode }) {
                   setWidth(value)
                   setPresetId(null)
                   const current = fileRef.current
-                  if (current) void draw(current, { preset: null, width: value, lock, crop })
+                  if (current) void draw(current, { preset: null, width: value, height, lock, crop })
                 }}
                 suffix="px"
                 min={1}
               />
             </div>
+            {lock ? (
+              <p className="pb-2 text-sm text-[var(--nb-secondary)]">
+                Height follows the original proportion
+                {original ? ` (${Math.max(1, Math.round((Number(width) || original.width) * (original.height / original.width)))} px)` : ""}.
+              </p>
+            ) : (
+              <div className="w-40">
+                <NumberField
+                  label="Height"
+                  value={height}
+                  onChange={(value) => {
+                    setHeight(value)
+                    setPresetId(null)
+                    const current = fileRef.current
+                    if (current) void draw(current, { preset: null, width, height: value, lock, crop })
+                  }}
+                  suffix="px"
+                  min={1}
+                />
+              </div>
+            )}
             <label className="flex items-center gap-2 pb-2 text-sm">
               <input
                 type="checkbox"
@@ -474,7 +528,7 @@ function ImageStudio({ mode }: { mode: StudioMode }) {
                   setLock(next)
                   setPresetId(null)
                   const current = fileRef.current
-                  if (current) void draw(current, { preset: null, width, lock: next, crop })
+                  if (current) void draw(current, { preset: null, width, height, lock: next, crop })
                 }}
                 className="size-4 accent-[var(--nb-primary)]"
               />
@@ -508,7 +562,7 @@ function ImageStudio({ mode }: { mode: StudioMode }) {
                   const next = { ...crop, [key]: clamp(Number(value) || 0, 0, 100) }
                   setCrop(next)
                   const current = fileRef.current
-                  if (current) void draw(current, { preset, width, lock, crop: next })
+                  if (current) void draw(current, { preset, width, height, lock, crop: next })
                 }}
                 suffix="%"
                 min={0}
@@ -531,19 +585,57 @@ function ImageStudio({ mode }: { mode: StudioMode }) {
         {busy ? "Processing in this browser…" : null}
       </StatusLine>
       {file && sourceUrl && mode === "crop" ? (
-        <PreviewFrame label="Crop overlay" className="relative w-fit max-w-full">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={sourceUrl} alt="Original" className="max-h-80 w-auto" />
-          <div
-            className="pointer-events-none absolute border-2 border-dashed border-white/90"
-            style={{
-              left: `${crop.x}%`,
-              top: `${crop.y}%`,
-              width: `${crop.w}%`,
-              height: `${crop.h}%`,
-            }}
-          />
-        </PreviewFrame>
+        <Section title="Preview" hint="Drag on the photo to set the keep-region. Release to update the result.">
+          <PreviewFrame label="Crop overlay" className="relative w-fit max-w-full touch-none">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={sourceUrl} alt="Original" className="pointer-events-none max-h-80 w-auto" />
+            <div
+              className="absolute inset-0 cursor-crosshair"
+              onPointerDown={(event) => {
+                const bounds = event.currentTarget.getBoundingClientRect()
+                const point = (clientX: number, clientY: number) => ({
+                  x: clamp(((clientX - bounds.left) / bounds.width) * 100, 0, 100),
+                  y: clamp(((clientY - bounds.top) / bounds.height) * 100, 0, 100),
+                })
+                const origin = point(event.clientX, event.clientY)
+                event.currentTarget.setPointerCapture(event.pointerId)
+                const apply = (clientX: number, clientY: number, commit: boolean) => {
+                  const nextPoint = point(clientX, clientY)
+                  const x = Math.min(origin.x, nextPoint.x)
+                  const y = Math.min(origin.y, nextPoint.y)
+                  const next = {
+                    x: clamp(x, 0, 99),
+                    y: clamp(y, 0, 99),
+                    w: clamp(Math.max(1, Math.abs(nextPoint.x - origin.x)), 1, 100 - x),
+                    h: clamp(Math.max(1, Math.abs(nextPoint.y - origin.y)), 1, 100 - y),
+                  }
+                  setCrop(next)
+                  if (commit) {
+                    const current = fileRef.current
+                    if (current) void draw(current, { preset, width, height, lock, crop: next })
+                  }
+                }
+                const move = (next: PointerEvent) => apply(next.clientX, next.clientY, false)
+                const up = (next: PointerEvent) => {
+                  apply(next.clientX, next.clientY, true)
+                  window.removeEventListener("pointermove", move)
+                  window.removeEventListener("pointerup", up)
+                }
+                window.addEventListener("pointermove", move)
+                window.addEventListener("pointerup", up)
+              }}
+            />
+            <div
+              className="pointer-events-none absolute border-2 border-dashed border-white/90"
+              style={{
+                left: `${crop.x}%`,
+                top: `${crop.y}%`,
+                width: `${crop.w}%`,
+                height: `${crop.h}%`,
+              }}
+            />
+          </PreviewFrame>
+        </Section>
       ) : null}
       {result?.text ? (
         <Section title="Data URL">

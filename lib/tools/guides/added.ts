@@ -5,7 +5,7 @@ export const addedGuides: Record<string, ToolGuideCopy> = {
     "Buy 0.1 BTC on 15 January 2024 at $60,000, then sell 0.04 BTC on 1 November 2024 at $70,000. FIFO assigns the oldest coins, so the cost of that sale is $2,400 and the proceeds are $2,800. The realised gain is $400.",
     ["Why only FIFO?", "The page always matches a sale to the oldest remaining buy of that coin. It doesn’t offer last-in or a hand-picked parcel."],
     ["What if I sell more than I bought?", "The matched portion is shown, and the row notes that some of the sale had no buy to cover it. That remainder is not given a cost."],
-    ["Can I lodge this with the ATO?", "No — this is an estimate from the rows you type. Fees, transfers, and your actual tax rules aren't applied, so don't lodge it as-is."],
+    ["Can I lodge this with the ATO?", "No. This is an estimate from the rows you type, in the currency of those prices. It is not converted. Fees, transfers, and your actual tax rules aren't applied, so don't lodge it as-is."],
   ),
   "crypto-dca-backtest-calculator": guide(
     "$50 of BTC on the first of each month from January 2022 is invested at that day’s close, then valued at the last close in the bundled series. A lump sum puts the whole amount in on the start date instead — same dollars, one buy rather than many.",
@@ -38,21 +38,21 @@ export const addedGuides: Record<string, ToolGuideCopy> = {
     ["Is it double elimination?", "No. One loss removes a name. There is no losers’ bracket. Colour is not the only winner signal — a ✓ marks the side you chose."],
   ),
   "rate-card-calculator": guide(
-    "25,000 Instagram followers, a 2.4% engagement rate, and a reel. The page starts from a rough amount per 1,000 followers for that format, nudges it because 2.4% is above a typical Instagram rate, and shows a low and a high.",
-    ["Is this what a brand will pay?", "No. It is a starting-point estimate. Usage rights, exclusivity, and how long the piece takes are not in the formula."],
-    ["What does the engagement adjustment do?", "It compares your rate with a rough typical rate for that platform, then scales the base up or down inside a limited band."],
-    ["Why is the range in US dollars?", "The multipliers are the rough industry-style dollars per 1,000 followers used on this page, quoted in USD. Convert them if you invoice in AUD."],
+    "An Instagram short, priced per project. Type 800 USD, quantity 1, usage rights 200, and the total is 1,000 USD. Separately, 25,000 followers at 2.4% engagement suggests a USD middle of 800 for that short: (25,000 ÷ 1,000) × 20 × 1.6. Low is 560 and high is 1,040. That range is not the quote.",
+    ["Is this what a brand will pay?", "No. The quote is the rate, quantity, and optional costs you type. The follower range is a rough USD starting guess, and it leaves out exclusivity and production time."],
+    ["What does the engagement adjustment do?", "It divides the engagement you type by a rough typical rate for that platform, then holds the result between 0.6 and 1.8. Instagram’s typical on this page is 1.5%."],
+    ["Does it convert currencies?", "No. The starting range is always US dollars. Your quote uses the currency you pick, and the two are not converted. Using the middle as your rate also switches the quote to USD."],
   ),
   "engagement-rate-calculator": guide(
-    "12,000 followers, 240 average likes, and 18 average comments. Interactions are 258, so the rate is 258 ÷ 12,000, which is 2.15%.",
-    ["Which interactions count?", "Average likes plus average comments. Saves, shares, and views are not in this version."],
-    ["What is a good rate?", "On Instagram, under 1% is quiet for a larger account, 1–3% is a common mid range, and above 3% is strong. Smaller accounts and other platforms often sit elsewhere."],
+    "By followers: 12,000 followers, 240 average likes, and 18 average comments. Interactions are 258, so the rate is 258 ÷ 12,000, which is 2.15%. Switch to by views and the same likes and comments are divided by views, with shares added, and the follower count is left out.",
+    ["Which interactions count?", "By followers uses likes and comments only. By views uses likes, comments, and shares, divided by views. The page does not mix the two."],
+    ["What is a good rate?", "The quiet, ordinary, and strong bands are a rough guide for a larger Instagram account on the followers method. They are not shown for the views method, and they are not a target."],
     ["Should I use one post or an average?", "An average across recent posts. One viral post will overstate the rate you can usually offer."],
   ),
   "best-time-to-post": guide(
-    "Instagram, an audience in Australia, clock set to Adelaide: late morning to early afternoon on a weekday, about 10:00–13:00 local time. The same platform with a United States audience uses the same kind of window, on that audience’s clock.",
-    ["Are these my best hours?", "No. They are general windows drawn from published industry timing reports. Your own analytics can disagree."],
-    ["Does the timezone move the clock?", "The hours are already in the audience’s local time. The timezone tells you which clock to read them on."],
+    "Instagram’s starting window is weekday late morning to early afternoon, about 10:00–13:00 in the audience’s local time. TikTok’s starting window is early evening, about 18:00–21:00. The hours do not change when you imagine a different city.",
+    ["Are these my best hours?", "No. They are a starting point from general weekday patterns. Your own analytics can disagree, especially if your audience is online at night."],
+    ["Does a timezone move the clock?", "No. The page does not have a separate dataset per country, so it does not pretend to shift the hours. Read them on the audience’s local clock."],
     ["Why do weekdays show up so often?", "Many published benchmarks cluster on weekday mid-morning or early evening. A niche that is online at night will not match that."],
   ),
   "thread-formatter": guide(
@@ -65,7 +65,7 @@ export const addedGuides: Record<string, ToolGuideCopy> = {
     "Upload two stills, set the title to “Saturday build log”, the channel to “Nice Tools”, and the views to “12K”. The two cards show the same caption under different images so you can compare the crop.",
     ["Is this a real feed?", "No. It is a simple side-by-side mock: image, title, channel, and a view count you type."],
     ["Are the images uploaded?", "No. They stay in this browser as local previews."],
-    ["Can I judge the safe area for Shorts?", "Only by eye. This page does not overlay a platform’s UI chrome."],
+    ["Can I judge the safe area for Shorts?", "Only by eye. Fill crops to 16:9. Fit shows the whole image. This page does not overlay a platform’s UI chrome."],
   ),
   "username-checker": guide(
     "Checking “nicebuild” asks Instagram, TikTok, and X from the server. A profile the platform confirms is marked taken. A clear miss is marked looks free. A block, a login wall, or a timeout is “couldn’t check”, not a crash.",
@@ -77,7 +77,7 @@ export const addedGuides: Record<string, ToolGuideCopy> = {
     "A title of “Nice Tools” plus Site and Newsletter becomes a short preview and a single HTML file. Open the download, or paste the HTML onto a host you already use.",
     ["Is there a public link?", "Not in this version. There is no account and no saved page. The preview and the HTML file are the output."],
     ["Can I style it?", "The download uses a plain layout. Edit the file if you want different colours or fonts."],
-    ["Do the links open from the preview?", "Yes, if the address is a full URL. A label without an address still shows in the preview."],
+    ["Do the links open from the preview?", "Only http and mailto addresses become links. A label on its own still shows, and it is not turned into a link."],
   ),
   "api-cost-calculator": guide(
     "1,000 requests to Claude Sonnet 5, with 800 input tokens and 300 output tokens each. At $2 and $10 per million tokens, the input is $1.60 and the output is $3.00, so the estimate is $4.60.",
@@ -153,7 +153,7 @@ export const addedGuides: Record<string, ToolGuideCopy> = {
   ),
   "social-battery-checkin": guide(
     "Answer that you want an early night, that tonight feels like too much, and that the week has been stacked. The page says you are probably due for some downtime.",
-    ["Is there a score?", "No. Two or three rest-leaning answers point to downtime, one is a quieter evening, and none is a read that you still have some charge."],
+    ["Is there a score?", "No. Two or three rest-leaning answers point to downtime, one is a quieter evening, and none is a read that you still have some charge. Back keeps the earlier answers."],
     ["Is this the work style quiz?", "No. That quiz is about how you work with other people. This one is three questions about social energy."],
     ["Should I cancel plans because of it?", "Not on this alone. It is a light prompt, not advice."],
   ),

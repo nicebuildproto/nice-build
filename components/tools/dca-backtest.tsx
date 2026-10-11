@@ -61,7 +61,7 @@ export function CryptoDcaBacktest() {
           <div className="flex flex-wrap gap-10">
             <Stat label="Invested" value={usd(result.invested)} />
             <Stat label="Value at last close" value={usd(result.value)} />
-            <Stat label="Result" value={usd(result.value - result.invested)} />
+            <Stat label={result.value - result.invested >= 0 ? "Result, gain" : "Result, loss"} value={usd(result.value - result.invested)} />
           </div>
           <p className="text-sm text-[var(--nb-secondary)]">
             {num(result.coins, 6)} {coin.toUpperCase()} from {result.startDate} to {result.endDate}. Last close {usd(result.endPrice)}.

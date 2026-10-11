@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useId, useState } from "react"
 
-export function B2BContactButton({ label = "Contact" }: { label?: string }) {
+export function B2BContactButton({ label = "Contact", appearance = "solid" }: { label?: string; appearance?: "solid" | "ghost" }) {
   const [open, setOpen] = useState(false)
   const [sent, setSent] = useState(false)
   const nameId = useId()
@@ -30,7 +30,11 @@ export function B2BContactButton({ label = "Contact" }: { label?: string }) {
       }}
     >
       <DialogTrigger
-        className="inline-flex h-7 items-center justify-center rounded-[min(var(--radius-md),12px)] border border-border bg-background px-2.5 text-[0.8rem] font-medium text-[var(--nb-primary)] transition-colors outline-none hover:bg-[var(--nb-accent)] focus-visible:ring-3 focus-visible:ring-ring/50"
+        className={
+          appearance === "ghost"
+            ? "inline-flex h-8 items-center justify-center rounded-lg px-2.5 text-sm font-medium text-foreground transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+            : "inline-flex h-7 items-center justify-center rounded-[min(var(--radius-md),12px)] border border-border bg-background px-2.5 text-[0.8rem] font-medium text-[var(--nb-primary)] transition-colors outline-none hover:bg-[var(--nb-accent)] focus-visible:ring-3 focus-visible:ring-ring/50"
+        }
       >
         {label}
       </DialogTrigger>

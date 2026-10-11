@@ -6,7 +6,7 @@ import Link from "next/link"
 
 export const metadata: Metadata = {
   title: `About${titleSuffix}`,
-  description: "Nice Tools is a free collection of calculators and small studios that run in your browser. No sign-up, no clutter.",
+  description: "Nice Tools is a set of calculators, converters, and small utilities. Most of the work happens in your browser. No account.",
 }
 
 export default function AboutPage() {
@@ -14,28 +14,28 @@ export default function AboutPage() {
     <InfoPage
       current="/about"
       eyebrow="About"
-      title="A quiet place for useful tools."
-      lede="Nice Tools is a free collection of calculators, converters, and small studios. Open one, get the answer, and get on with your day."
+      title="Useful tools, one job each."
+      lede="Nice Tools is a set of calculators, converters, and small utilities. Open one, get a result, and leave."
     >
       <InfoSection title="What it is">
         <p>
-          Fourteen categories, from everyday percentages to invoices and material estimates. Each tool is there to finish one job — not to keep you clicking around.
+          Fourteen categories, from percentages to invoices and material estimates. Each tool finishes one job.
         </p>
         <p>
-          There’s no account to create. Log in on this site is a preview, and it doesn’t save anything.
+          There is no account to create. Log in on this site is a preview, and it does not save anything.
         </p>
       </InfoSection>
       <InfoSection title="Where the work happens">
         <p>
-          Calculations run in your browser. Image tools redraw a picture on this device and offer a download. The file isn’t uploaded.
+          Calculations run in your browser. Image tools redraw a picture on this device and offer a download. Those files are not uploaded.
         </p>
         <p>
-          A result is only as current as the figures you type. Crypto tools don’t read a market, and fee tools start from rates you can edit.
+          Most results use only the figures you type. The crypto scanner is the exception: it reads public market data and shows when that data was fetched. Fee tools start from rates you can edit.
         </p>
       </InfoSection>
       <InfoSection title="What a result is">
         <p>
-          Tax, health, building, and price figures are estimates from the formula on the page. They’re not advice, a quote, a diagnosis, or a live price.
+          Tax, health, building, and price figures are estimates from the formula on the page. They are not advice, a quote, a diagnosis, or a promise of a future price.
         </p>
       </InfoSection>
       <InfoSection title="The library">

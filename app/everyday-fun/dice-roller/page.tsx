@@ -2,7 +2,7 @@ import { DiceRoller } from "@/components/dice/DiceRoller"
 import { SoftwareApplicationJsonLd } from "@/components/seo/SoftwareApplicationJsonLd"
 import { PageShell } from "@/components/site/PageShell"
 import { ToolGuide } from "@/components/tools/ToolGuide"
-import { titleSuffix } from "@/lib/site"
+import { siteUrl, titleSuffix } from "@/lib/site"
 import type { Metadata } from "next"
 
 const title = "Dice Roller"
@@ -11,6 +11,13 @@ const description = "Roll dice in the browser — pick the sides, throw one or t
 export const metadata: Metadata = {
   title: `${title}${titleSuffix}`,
   description,
+  keywords: ["dice roller", "roll dice", "d20", "d6", "random dice"],
+  alternates: { canonical: `${siteUrl}/everyday-fun/dice-roller` },
+  openGraph: {
+    title: `${title}${titleSuffix}`,
+    description,
+    url: `${siteUrl}/everyday-fun/dice-roller`,
+  },
 }
 
 export default function DiceRollerPage() {

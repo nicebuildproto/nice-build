@@ -49,20 +49,20 @@ export type CategoryIcon =
   | "Bot"
 
 export const categories: { key: Category; label: string; description: string; icon: CategoryIcon }[] = [
-  { key: "calculators", label: "Calculators", description: "Everyday maths — percentages, loans, pay, and more. Type the numbers and we'll do the rest.", icon: "Calculator" },
-  { key: "developer", label: "Developer Tools", description: "Formatters, converters, and generators that run in your browser. Paste, tweak, copy.", icon: "Code2" },
-  { key: "files-media", label: "Files & Media", description: "Compress, convert, merge, sign, and clean up files in your browser. Your files stay on your device.", icon: "FileStack" },
-  { key: "design-creative", label: "Design & Creative", description: "Colour palettes, contrast, gradients, and CSS extras you can preview and copy.", icon: "Palette" },
-  { key: "data-viz", label: "Data Visualization", description: "Paste a table, get a chart you can export. Funnels, Gantt, bars, lines, pies, scatter, waterfall, timelines, and simple diagrams.", icon: "BarChart3" },
-  { key: "business", label: "Business Tools", description: "Invoices, quotes, fees, and margins — the everyday numbers behind running a job.", icon: "Briefcase" },
-  { key: "home-trade", label: "Home & Trade", description: "Paint, concrete, tiles, and material quantities for a job — from measurements you already have.", icon: "Hammer" },
-  { key: "people-teams", label: "People & Teams", description: "Short tools for how you work together — meetings, roles, and a light work-style quiz.", icon: "Users" },
-  { key: "text-tools", label: "Text Tools", description: "Paste text, see the result. Count, convert, clean, and compare — in this browser.", icon: "Type" },
-  { key: "everyday-fun", label: "Everyday & Fun", description: "Small helpers for everyday moments — timers, pickers, dice, and a bit of play.", icon: "Sparkles" },
-  { key: "gaming-hardware", label: "Gaming & Hardware", description: "Testers that show live hardware, and calculators that answer the number a player actually needs.", icon: "Gamepad2" },
-  { key: "crypto", label: "Crypto", description: "A free momentum scanner plus calculators for profit, position size, and staking. No wallet connection.", icon: "Bitcoin" },
-  { key: "creator", label: "Creator Tools", description: "Rates, posting windows, and small utilities for publishing — starting points, not promises.", icon: "Video" },
-  { key: "ai-tools", label: "AI Tools", description: "Token counts, prompt notes, and cost estimates from published prices you can check yourself.", icon: "Bot" },
+  { key: "calculators", label: "Calculators", description: "Percentages, loans, pay, and other everyday maths. Enter the numbers and read the result.", icon: "Calculator" },
+  { key: "developer", label: "Developer Tools", description: "Format, convert, and generate text in the browser. Paste, edit, and copy.", icon: "Code2" },
+  { key: "files-media", label: "Files & Media", description: "Compress, convert, merge, sign, and clean up files in the browser. Your files stay on your device.", icon: "FileStack" },
+  { key: "design-creative", label: "Design & Creative", description: "Palettes, contrast, gradients, and CSS you can preview and copy.", icon: "Palette" },
+  { key: "data-viz", label: "Data Visualization", description: "Paste a table and export a chart. Funnels, Gantt, bars, lines, pies, and simple diagrams.", icon: "BarChart3" },
+  { key: "business", label: "Business Tools", description: "Invoices, quotes, fees, and margins from the numbers you enter.", icon: "Briefcase" },
+  { key: "home-trade", label: "Home & Trade", description: "Paint, concrete, tiles, and material quantities from measurements you already have.", icon: "Hammer" },
+  { key: "people-teams", label: "People & Teams", description: "Meetings, roles, and a short work-style quiz for working together.", icon: "Users" },
+  { key: "text-tools", label: "Text Tools", description: "Count, convert, clean, and compare text in the browser.", icon: "Type" },
+  { key: "everyday-fun", label: "Everyday & Fun", description: "Timers, pickers, dice, and other small helpers.", icon: "Sparkles" },
+  { key: "gaming-hardware", label: "Gaming & Hardware", description: "Hardware testers, and calculators for the number a player needs.", icon: "Gamepad2" },
+  { key: "crypto", label: "Crypto", description: "Profit, position size, and staking from numbers you type. The scanner shows its source and time. No wallet.", icon: "Bitcoin" },
+  { key: "creator", label: "Creator Tools", description: "Rate cards, engagement, and posting windows. Starting points, not a promise of reach or income.", icon: "Video" },
+  { key: "ai-tools", label: "AI Tools", description: "Token counts and cost estimates from published prices, with the date those prices were checked.", icon: "Bot" },
 ]
 
 // Every tool lives at /[category]/[slug]. Add new tools on that path.
@@ -193,7 +193,7 @@ export const registry: ToolEntry[] = [
   },
   {
     slug: "sankey-generator",
-    category: "design-creative",
+    category: "data-viz",
     title: "Sankey Diagram Generator",
     description: "Turn a table of flows into a Sankey diagram you can export as SVG or PNG.",
     route: "/design-creative/sankey-generator",
@@ -364,7 +364,7 @@ export const registry: ToolEntry[] = [
     slug: "diff-checker",
     category: "text-tools",
     title: "Diff Checker",
-    description: "Compare two texts side by side. See added and removed lines — or words — then copy a unified diff. Your text stays on your device.",
+    description: "Compare two texts side by side. See added and removed lines or words, then copy a unified diff. Your text stays on your device.",
     route: "/text-tools/diff-checker",
     status: "live",
     featured: true,
@@ -447,8 +447,11 @@ export function getToolsByCategory(key: Category) {
 
 export function getFeaturedTools(key: Category, limit = 3) {
   const tools = getToolsByCategory(key)
-  const featured = tools.filter((tool) => tool.featured)
-  return (featured.length > 0 ? featured : tools).slice(0, limit)
+  const live = tools.filter((tool) => tool.status === "live")
+  const pool = live.length > 0 ? live : tools
+  const featured = pool.filter((tool) => tool.featured)
+  const rest = pool.filter((tool) => !tool.featured)
+  return [...featured, ...rest].slice(0, limit)
 }
 
 export const homeFeaturedSlugs = [

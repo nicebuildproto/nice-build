@@ -8,6 +8,22 @@ export type CountdownParts = {
   totalMs: number
 }
 
+function countWord(value: number, word: string) {
+  return `${value} ${word}${value === 1 ? "" : "s"}`
+}
+
+export function countdownSummary(parts: CountdownParts) {
+  const clock = [
+    countWord(parts.days, "day"),
+    countWord(parts.hours, "hour"),
+    countWord(parts.minutes, "minute"),
+    countWord(parts.seconds, "second"),
+  ].join(", ")
+  if (parts.totalMs === 0) return "That’s now."
+  if (parts.past) return `${clock} ago`
+  return `${clock} remaining`
+}
+
 export function countdownParts(targetMs: number, nowMs: number): CountdownParts | null {
   if (!Number.isFinite(targetMs) || !Number.isFinite(nowMs)) return null
   const totalMs = targetMs - nowMs

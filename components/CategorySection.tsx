@@ -20,7 +20,7 @@ export function CategorySection({
         </span>
       </h2>
       {tools.length === 0 ? (
-        <p className="text-sm text-[var(--nb-secondary)]">Nothing here yet.</p>
+        <p className="text-sm text-[var(--nb-secondary)]">No tools in this category yet.</p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {tools.map((tool) => (

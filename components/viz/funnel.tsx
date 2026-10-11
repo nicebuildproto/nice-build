@@ -1,10 +1,14 @@
 "use client"
 
+import { ToolStage } from "@/components/stage/ToolStage"
 import { Button } from "@/components/ui/button"
 import { ChartFrame } from "@/components/viz/chart-frame"
+import { markTarget, MarkPopover, useMarks } from "@/components/viz/mark-editor"
 import { VizCustomize } from "@/components/viz/customize"
 import { VizDataTable } from "@/components/viz/data-table"
-import { EmptyViz, ExampleList, VizStudio } from "@/components/viz/studio"
+import { DataLead } from "@/components/viz/data-entry"
+import { ExportMenu } from "@/components/viz/export-menu"
+import { EmptyViz, ExampleList } from "@/components/viz/studio"
 import {
   funnelExamples,
   funnelStage,
@@ -20,7 +24,7 @@ import { useMemo, useRef, useState } from "react"
 
 const first = funnelExamples[0]
 
-export function FunnelChart() {
+export function FunnelChart({ title = "Funnel Chart" }: { title?: string }) {
   const svgRef = useRef<SVGSVGElement>(null)
   const [stages, setStages] = useState<FunnelStage[]>(() => first.data.map((stage) => ({ ...stage, id: vizId() })))
   const [style, setStyle] = useState<VizStyle>(defaultVizStyle)
@@ -28,6 +32,7 @@ export function FunnelChart() {
   const [pasteNote, setPasteNote] = useState<string | null>(null)
   const rows = useMemo(() => computeFunnel(stages), [stages])
   const theme = resolveTheme(style)
+  const marks = useMarks()
   const overall = rows.length > 1 && Number.isFinite(rows[0].value) && rows[0].value !== 0
     ? (rows[rows.length - 1].value / rows[0].value) * 100
     : null
@@ -60,10 +65,12 @@ export function FunnelChart() {
 
   const data = (
     <div className="flex flex-col gap-4" onPaste={onPaste}>
-      <ExampleList examples={funnelExamples} onLoad={(next, title) => {
-        setStages(next.map((stage) => ({ ...stage, id: vizId() })))
-        setMeta((current) => ({ ...current, title }))
-      }} />
+      <DataLead hint="Name each stage, then enter how many people reached it. You can paste a table from a spreadsheet.">
+        <ExampleList examples={funnelExamples} onLoad={(next, title) => {
+          setStages(next.map((stage) => ({ ...stage, id: vizId() })))
+          setMeta((current) => ({ ...current, title }))
+        }} />
+      </DataLead>
       <VizDataTable
         columns={[
           { key: "label", label: "Stage", placeholder: "Visits" },
@@ -96,16 +103,33 @@ export function FunnelChart() {
         addLabel="Add stage"
       />
       <div className="flex gap-2">
-        <Button type="button" variant="ghost" size="xs" onClick={() => setStages(current => [...current].sort((a, b) => (parseNumber(b.value) ?? 0) - (parseNumber(a.value) ?? 0)))}>
+        <Button type="button" variant="ghost" className="h-8" onClick={() => setStages(current => [...current].sort((a, b) => (parseNumber(b.value) ?? 0) - (parseNumber(a.value) ?? 0)))}>
           Sort largest first
         </Button>
-        <Button type="button" variant="ghost" size="xs" onClick={() => setStages([funnelStage("", "")])}>
+        <Button type="button" variant="ghost" className="h-8" onClick={() => setStages([funnelStage("", "")])}>
           Clear
         </Button>
       </div>
-      <p className="text-[12px] text-[var(--nb-secondary)]">Paste a table from Excel or Sheets. Each row is a stage and a value.</p>
     </div>
   )
+
+  const biggestDrop = rows.reduce<(typeof rows)[number] | null>((best, row) => {
+    if (!(row.drop > 0)) return best
+    if (!best || row.drop > best.drop) return row
+    return best
+  }, null)
+  const stats = [
+    overall != null ? { label: "Overall conversion", value: formatPercent(overall) } : null,
+    biggestDrop ? { label: "Biggest drop-off", value: `${biggestDrop.label} · ${formatPercent(biggestDrop.drop)}` } : null,
+  ].flatMap((stat) => (stat ? [stat] : []))
+
+  function reset() {
+    setStages(first.data.map((stage) => ({ ...stage, id: vizId() })))
+    setStyle(defaultVizStyle)
+    setMeta({ ...emptyMeta, title: first.title })
+    marks.reset()
+    setPasteNote(null)
+  }
 
   const empty = stages.every((stage) => !stage.label.trim() && !stage.value.trim())
   const canvas = empty ? (
@@ -135,15 +159,27 @@ export function FunnelChart() {
         const nx = 24 + (width - 180 - nextW) / 2
         const h = 40
         const path = `M ${x} ${y} L ${x + w} ${y} L ${nx + nextW} ${y + h} L ${nx} ${y + h} Z`
-        const fill = seriesColor(theme, 0)
-        const label = style.showLabels ? row.label : ""
+        const id = `stage:${row.id}`
+        const mark = marks.of(id)
+        const selected = marks.selected?.id === id
+        const fill = mark.color ?? seriesColor(theme, index)
+        const label = style.showLabels && mark.showLabel !== false ? row.label : ""
         const valueBits = [
           style.showValues && Number.isFinite(row.value) ? formatValue(row.value) : "",
           style.showPercent ? formatPercent(row.ofTop) : "",
         ].filter(Boolean)
         return (
           <g key={row.id}>
-            <path d={path} fill={fill} opacity={1 - index * 0.12} />
+            <path
+              d={path}
+              fill={fill}
+              opacity={mark.opacity ?? 1 - index * 0.08}
+              stroke={selected ? theme.selected : "transparent"}
+              strokeWidth={selected ? 2 : 0}
+              className="cursor-pointer focus-visible:outline focus-visible:outline-2"
+              {...markTarget(id, row.label || "Stage", selected, marks.select)}
+              onPointerDown={(event) => marks.select(id, row.label || "Stage", event)}
+            />
             <text x={width - 20} y={y + 18} textAnchor="end" fill={theme.ink} fontSize={style.labelSize} fontWeight={style.labelWeight}>
               {label}
             </text>
@@ -162,14 +198,23 @@ export function FunnelChart() {
     </ChartFrame>
   )
 
+  const notice =
+    increased.length > 0 ? (
+      <p className="rounded-xl border border-border bg-muted px-4 py-3 text-[13px] text-foreground">
+        {increased.map((row) => row.label).join(", ")} {increased.length === 1 ? "is" : "are"} larger than the stage above. That’s unusual for a conversion funnel — the shape will widen.
+      </p>
+    ) : pasteNote ? (
+      <p className="text-[13px] text-[var(--nb-secondary)]">{pasteNote}</p>
+    ) : null
+
   return (
-    <VizStudio
-      filename="funnel-chart"
-      csv={csv}
-      svgRef={svgRef}
-      data={data}
-      canvas={canvas}
-      customize={
+    <ToolStage
+      toolId="funnel-chart"
+      title={title}
+      surface={{ background: theme.background, dot: theme.dot }}
+      stats={empty ? [] : stats}
+      left={data}
+      right={
         <VizCustomize
           style={style}
           meta={meta}
@@ -178,15 +223,25 @@ export function FunnelChart() {
           omit={["grid", "legend"]}
         />
       }
-      notice={
-        increased.length > 0 ? (
-          <p className="rounded-xl border border-black/[0.08] bg-[var(--nb-accent)] px-4 py-3 text-[13px] text-[var(--nb-primary)]">
-            {increased.map((row) => row.label).join(", ")} {increased.length === 1 ? "is" : "are"} larger than the stage above. That’s unusual for a conversion funnel — the shape will widen.
-          </p>
-        ) : pasteNote ? (
-          <p className="text-[13px] text-[var(--nb-secondary)]">{pasteNote}</p>
-        ) : null
+      notice={notice}
+      actions={
+        <>
+          <ExportMenu svgRef={svgRef} filename="funnel-chart" csv={csv} />
+          <Button type="button" variant="ghost" className="h-8" onClick={reset}>
+            Reset
+          </Button>
+        </>
       }
-    />
+    >
+      {canvas}
+      <MarkPopover
+        selected={marks.selected}
+        value={marks.selected ? marks.of(marks.selected.id) : {}}
+        color={marks.selected ? (marks.of(marks.selected.id).color ?? seriesColor(theme, Math.max(0, rows.findIndex((row) => `stage:${row.id}` === marks.selected?.id)))) : theme.series[0]}
+        fields={["label"]}
+        onChange={marks.update}
+        onClose={marks.close}
+      />
+    </ToolStage>
   )
 }

@@ -12,12 +12,14 @@ import {
   ResultDisplay,
   TimerDisplay,
   useNow,
+  useTabTitle,
 } from "@/components/everyday/kit"
 import { NumberField } from "@/components/tools/ui"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
   countdownParts,
+  countdownSummary,
   defaultCountdownTarget,
   durationFromFields,
   formatCountdownClock,
@@ -37,10 +39,20 @@ function Count({ label, value }: { label: string; value: number }) {
 }
 
 export function Countdown() {
-  const [when, setWhen] = useState(defaultCountdownTarget)
-  const target = parseLocalDatetime(when)
-  const now = useNow(true, 250)
+  const [when, setWhen] = useState("")
+  const target = when ? parseLocalDatetime(when) : null
+  const now = useNow(Boolean(when), 250)
   const parts = target === null ? null : countdownParts(target, now)
+  const summary = parts ? countdownSummary(parts) : ""
+  const spoken = parts
+    ? parts.totalMs === 0
+      ? "That’s now."
+      : `${parts.past ? "Time since" : "Time remaining"}, ${parts.days} days, ${parts.hours} hours, ${parts.minutes} minutes`
+    : ""
+
+  useEffect(() => {
+    setWhen(defaultCountdownTarget())
+  }, [])
 
   return (
     <EverydayToolShell>
@@ -50,23 +62,27 @@ export function Countdown() {
       </label>
       {parts ? (
         <>
-          <ResultDisplay label="Status">
+          <ResultDisplay label="Status" live={false}>
             <span className="text-2xl sm:text-3xl">
-              {parts.complete ? "That moment has passed." : "Time remaining"}
+              {parts.totalMs === 0 ? "That’s now." : parts.past ? "Time since" : "Time remaining"}
             </span>
           </ResultDisplay>
-          <div className="flex flex-wrap gap-8" aria-live="polite">
-            <Count label="Days" value={parts.days} />
-            <Count label="Hours" value={parts.hours} />
-            <Count label="Minutes" value={parts.minutes} />
-            <Count label="Seconds" value={parts.seconds} />
+          <p className="sr-only" aria-live="polite">
+            {spoken}
+          </p>
+          <div className="flex flex-wrap gap-8">
+            <Count label={parts.past && parts.totalMs !== 0 ? "Days ago" : "Days"} value={parts.days} />
+            <Count label={parts.past && parts.totalMs !== 0 ? "Hours ago" : "Hours"} value={parts.hours} />
+            <Count label={parts.past && parts.totalMs !== 0 ? "Minutes ago" : "Minutes"} value={parts.minutes} />
+            <Count label={parts.past && parts.totalMs !== 0 ? "Seconds ago" : "Seconds"} value={parts.seconds} />
           </div>
-          <Note>Times are local to this device. The numbers come from the clock, not from the animation.</Note>
+          <Note>Times are local to this device. The numbers come from the clock, not from an animation.</Note>
         </>
       ) : (
-        <Note>Choose a valid date.</Note>
+        <Note>{when ? "Choose a valid date." : "Setting the clock…"}</Note>
       )}
       <ActionBar>
+        <CopyButton text={summary} />
         <ResetButton onClick={() => setWhen(defaultCountdownTarget())} />
       </ActionBar>
     </EverydayToolShell>
@@ -99,6 +115,7 @@ export function StopwatchTool() {
   }, [running])
 
   const shown = running ? base.current + now - start.current : elapsed
+  useTabTitle(running ? `${formatStopwatch(shown)} — Stopwatch` : null)
 
   function toggle() {
     if (running) {
@@ -214,6 +231,9 @@ export function CookingTimer() {
 
   const clock = formatCountdownClock(display)
   const status = done ? "Time’s up" : pausedLeft !== null ? "Paused" : running ? "Remaining" : "Ready"
+  useTabTitle(
+    done ? "Time’s up — Cooking Timer" : running || pausedLeft !== null ? `${status} ${clock} — Cooking Timer` : null,
+  )
 
   return (
     <EverydayToolShell>

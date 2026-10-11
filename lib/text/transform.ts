@@ -46,13 +46,18 @@ export function uniqueLines(text: string) {
   return { text: kept.join("\n"), dropped, kept: kept.length }
 }
 
+function tableCells(line: string) {
+  const parts = line.includes("\t") ? line.split("\t") : line.split(",")
+  return parts.map((item) => item.trim())
+}
+
 export function markdownTable(headersRaw: string, rowsRaw: string) {
-  const headers = headersRaw.split(",").map((item) => item.trim()).filter(Boolean)
+  const headers = tableCells(headersRaw).filter(Boolean)
   const rows = rowsRaw
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean)
-    .map((line) => line.split(",").map((item) => item.trim()))
+    .map((line) => tableCells(line))
   if (!headers.length) return ""
   const render = (cells: string[]) => `| ${headers.map((_, index) => cells[index] ?? "").join(" | ")} |`
   return [render(headers), `| ${headers.map(() => "---").join(" | ")} |`, ...rows.map(render)].join("\n")

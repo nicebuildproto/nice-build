@@ -3,8 +3,8 @@ import { guide, type ToolGuideCopy } from "@/lib/tools/guides/types"
 export const developerGuides: Record<string, ToolGuideCopy> = {
   "json-formatter": guide(
     "Paste {\"name\":\"Nice Tools\",\"tools\":[\"JSON\",\"Regex\"]}. Format indents it. Minify puts it on one line. An extra comma is reported with a line and column so you can jump to it.",
-    ["Does formatting change the data?", "Nope — it only changes whitespace, unless you turn on Sort keys."],
-    ["Is my JSON uploaded?", "Nope — parsing and formatting happen in your browser. It is not put in the URL."],
+    ["Does formatting change the data?", "No. It only changes whitespace, unless you turn on Sort keys."],
+    ["Is my JSON uploaded?", "No. Parsing and formatting happen in your browser. It is not put in the URL."],
     ["Why was valid-looking JSON rejected?", "JSON needs double quotes around keys and strings, and it doesn't allow trailing commas or comments."],
   ),
   "uuid-generator": guide(
@@ -23,11 +23,11 @@ export const developerGuides: Record<string, ToolGuideCopy> = {
     "A length of 16 with numbers and symbols might produce something like kP7n-wQ2mX!a4Rde. Each click of Generate draws a new password. Nothing is stored.",
     ["How random is the password?", "Characters are chosen with crypto.getRandomValues in your browser, not a guessable seed."],
     ["Why are some letters missing?", "O, 0, I, l, and 1 are left out so a password is easier to read if you have to type it."],
-    ["Is the password sent anywhere?", "Nope — it's created locally. Copy it into your password manager yourself."],
+    ["Is the password sent anywhere?", "No. It's created locally. Copy it into your password manager yourself."],
   ),
   "base64-encoder": guide(
     "The text “Nice Build” encodes to TmljZSBCdWlsZA==. Decoding that string returns “Nice Build”. Unicode characters are encoded as UTF-8 bytes first.",
-    ["Is Base64 encryption?", "Nope — anyone can decode it. Use it to carry bytes through a text channel, not to hide a secret."],
+    ["Is Base64 encryption?", "No. Anyone can decode it. Use it to carry bytes through a text channel, not to hide a secret."],
     ["Why do I see padding equals signs?", "Base64 length is a multiple of 4. The = characters fill the last block. They’re part of a normal encoding."],
     ["Can I decode a data URL?", "Paste only the Base64 portion, after the comma. The data:image/png;base64, prefix isn’t part of the payload."],
   ),
@@ -46,37 +46,37 @@ export const developerGuides: Record<string, ToolGuideCopy> = {
   "hash-generator": guide(
     "SHA-256 of the text “Nice Build” is a 64-character hex string. The same text always produces the same hash. Change one character and the hash changes completely.",
     ["Which algorithms are available?", "SHA-1, SHA-256, SHA-384, and SHA-512, through the browser’s Web Crypto API. MD5 is not included."],
-    ["Can I use this to store passwords?", "Nope — these are fast hashes. Password storage needs a slow hash such as Argon2 or bcrypt, plus a salt."],
-    ["Does the hash leave the browser?", "Nope — the digest is computed locally from the text in the box."],
+    ["Can I use this to store passwords?", "No. These are fast hashes. Password storage needs a slow hash such as Argon2 or bcrypt, plus a salt."],
+    ["Does the hash leave the browser?", "No. The digest is computed locally from the text in the box."],
   ),
   "jwt-decoder": guide(
     "The sample token decodes to a header of {\"alg\":\"none\"} and a payload of {\"sub\":\"demo\"}. The third part, the signature, is shown only as text. It isn’t checked.",
-    ["Does this verify the token?", "Nope — it only Base64-decodes the header and payload. A valid-looking payload can still be forged."],
+    ["Does this verify the token?", "No. It only Base64-decodes the header and payload. A valid-looking payload can still be forged."],
     ["What are the three parts?", "Header, payload, and signature, separated by dots. The first two are JSON. The signature is binary and isn’t decoded as JSON."],
     ["Why did decoding fail?", "The header and payload must be Base64url JSON. A token with fewer than two segments, or with damaged padding, will not parse."],
   ),
   "json-validator": guide(
     "{\"ok\": true} is valid JSON. {ok: true} is not, because the key is unquoted. A trailing comma after the last property is also invalid.",
     ["What counts as valid JSON?", "The JSON grammar: objects, arrays, strings in double quotes, numbers, true, false, and null. No comments and no trailing commas."],
-    ["Does a successful check format the document?", "Nope — this page only reports whether it parses. Use the JSON Formatter to pretty-print it."],
+    ["Does a successful check format the document?", "No. This page only reports whether it parses. Use the JSON Formatter to pretty-print it."],
     ["Will it tell me the line of the error?", "It shows the parser message from the browser, which often includes a position."],
   ),
   "sql-formatter": guide(
     "select id, name from tools where status = 'live' order by name becomes a statement with SELECT, FROM, WHERE, and ORDER BY each starting a line.",
-    ["Does this understand every SQL dialect?", "Nope — it breaks major clauses onto their own lines and uppercases those keywords. It’s a readability pass, not a full parser."],
+    ["Does this understand every SQL dialect?", "No. It breaks major clauses onto their own lines and uppercases those keywords. It’s a readability pass, not a full parser."],
     ["Will it change string contents?", "It rewrites whitespace and the clause keywords it recognises. Check quoted text if a keyword appears inside a string."],
     ["Can I format a stored procedure?", "Short statements format cleanly. Large scripts with several statements may only pick up the clauses it knows."],
   ),
   "xml-formatter": guide(
     "<tools><tool id=\"1\">Nice</tool></tools> indents to a tools element with one tool child. A missing closing tag is reported instead of a formatted document.",
-    ["Is the XML uploaded?", "Nope — the browser’s XML parser reads it locally."],
+    ["Is the XML uploaded?", "No. The browser’s XML parser reads it locally."],
     ["Are attributes preserved?", "Yes. Attributes stay on the opening tag. Child elements are indented underneath."],
     ["Why was my XML rejected?", "It has to be well-formed: matching tags, quoted attributes, and a single root element."],
   ),
   "cron-expression-generator": guide(
     "Minute 0, hour 9, weekdays produces 0 9 * * 1-5, which runs at 09:00 Monday to Friday. Every 15 minutes, every hour, every day produces */15 * * * *.",
     ["What cron format is this?", "The five-field form: minute, hour, day of month, month, day of week. Day of month and month stay as *."],
-    ["Does “weekdays” include Saturday?", "Nope — 1-5 is Monday through Friday. Sunday is 0."],
+    ["Does “weekdays” include Saturday?", "No. 1-5 is Monday through Friday. Sunday is 0."],
     ["Will this match my scheduler?", "Most Unix crons use these five fields. Some hosted schedulers add a seconds field at the front. Check before you paste it in."],
   ),
   "html-encoder": guide(
@@ -88,8 +88,8 @@ export const developerGuides: Record<string, ToolGuideCopy> = {
   "code-beautifier": guide(
     "{\"name\":\"Nice\",\"tools\":[1,2]} pretty-prints as indented JSON. A brace snippet that isn’t JSON is indented by braces instead, with each { and } on its own line.",
     ["Does it format every language?", "JSON is formatted properly when it parses. Anything else gets a simple brace indent, which suits JavaScript-like code and not Python."],
-    ["Will it fix syntax errors?", "Nope — invalid JSON falls through to the brace indenter. It doesn’t repair missing commas or quotes."],
-    ["Is the code uploaded?", "Nope — formatting runs in the browser."],
+    ["Will it fix syntax errors?", "No. Invalid JSON falls through to the brace indenter. It doesn’t repair missing commas or quotes."],
+    ["Is the code uploaded?", "No. Formatting runs in the browser."],
   ),
   "json-to-csv": guide(
     "An array of {\"name\":\"Ada\",\"role\":\"Design\"} and {\"name\":\"Lin\",\"role\":\"Build\"} becomes a header row name,role and one row per object.",
@@ -117,7 +117,7 @@ export const developerGuides: Record<string, ToolGuideCopy> = {
   ),
   "robots-txt-generator": guide(
     "User agent *, allow /, disallow /private, and a sitemap URL produces a robots.txt with those four lines. Blank lines in the path boxes are skipped.",
-    ["Does this publish the file?", "Nope — it only writes the text. Save it as robots.txt at the root of your site."],
+    ["Does this publish the file?", "No. It only writes the text. Save it as robots.txt at the root of your site."],
     ["What does Disallow: /private mean?", "Paths that start with /private are asked to stay out. Crawlers may still ignore the file. It isn’t access control."],
     ["Can I target one bot?", "Change the user agent from * to the bot’s token, such as Googlebot. This form writes a single group."],
   ),
@@ -125,13 +125,13 @@ export const developerGuides: Record<string, ToolGuideCopy> = {
     "Owner read, write, and execute, plus group and public read and execute, is 755 and rwxr-xr-x. Clearing public execute changes it to 754 and rwxr-xr--.",
     ["How is the octal number built?", "Each of owner, group, and public is read 4, write 2, and execute 1. Add the bits you tick. 7 is read+write+execute."],
     ["What does the symbol form mean?", "Nine characters in order: owner, group, then everyone else. A letter means that permission is on. A dash means it is off."],
-    ["Does this change files on my computer?", "Nope — it only shows the mode. Apply it yourself with chmod if you need to."],
+    ["Does this change files on my computer?", "No. It only shows the mode. Apply it yourself with chmod if you need to."],
   ),
   "subnet-calculator": guide(
     "192.168.1.40/24 sits in 192.168.1.0 to 192.168.1.255. The usable hosts run from .1 to .254, which is 254 addresses. The mask is 255.255.255.0.",
     ["What is a prefix?", "The number of leading 1-bits in the mask. /24 means the first 24 bits are the network."],
     ["Why are there two fewer usable hosts than addresses?", "For prefixes of /30 and wider, the network address and the broadcast address are reserved. /31 and /32 are treated as special cases."],
-    ["Does this support IPv6?", "Nope — enter an IPv4 address and a prefix from 0 to 32."],
+    ["Does this support IPv6?", "No. Enter an IPv4 address and a prefix from 0 to 32."],
   ),
   "cidr-calculator": guide(
     "10.0.0.8/22 belongs to the network 10.0.0.0. The broadcast is 10.0.3.255, the mask is 255.255.252.0, and there are 1,022 usable hosts.",
@@ -154,7 +154,7 @@ export const developerGuides: Record<string, ToolGuideCopy> = {
   "utm-link-builder": guide(
     "https://example.com/tools with source newsletter, medium email, and campaign spring becomes a URL whose query includes utm_source, utm_medium, and utm_campaign. Empty fields are left off.",
     ["What are UTM parameters for?", "They label a link so analytics can tell which campaign, medium, and source sent the visit."],
-    ["Do I have to fill every field?", "Nope — source, medium, and campaign are the usual set. Term and content are optional and omitted when blank."],
+    ["Do I have to fill every field?", "No. Source, medium, and campaign are the usual set. Term and content are optional and omitted when blank."],
     ["Will this replace parameters already on the URL?", "It sets the UTM keys you fill in. Other query parameters on the URL are kept."],
   ),
 }

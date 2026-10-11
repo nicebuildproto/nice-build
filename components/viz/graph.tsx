@@ -3,8 +3,10 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ChartFrame } from "@/components/viz/chart-frame"
+import { MarkPopover, useMarks } from "@/components/viz/mark-editor"
 import { Segmented } from "@/components/viz/fields"
 import { VizCustomize } from "@/components/viz/customize"
+import { DataLead } from "@/components/viz/data-entry"
 import { EmptyViz, ExampleList, VizStudio } from "@/components/viz/studio"
 import {
   diagramExamples,
@@ -18,14 +20,13 @@ import { layoutGraph, parseLinkSyntax } from "@/lib/viz/graph"
 import { vizId } from "@/lib/viz/id"
 import { rowsToCsv } from "@/lib/viz/parse"
 import { defaultVizStyle, emptyMeta, resolveTheme, type VizMeta, type VizStyle } from "@/lib/viz/style"
-import { Minus, Plus } from "lucide-react"
 import { useMemo, useRef, useState } from "react"
 
-export function FlowchartGenerator() {
-  return <GraphTool kind="flow" />
+export function FlowchartGenerator({ title = "Flowchart Generator" }: { title?: string }) {
+  return <GraphTool kind="flow" title={title} />
 }
-export function DiagramGenerator() {
-  return <GraphTool kind="diagram" />
+export function DiagramGenerator({ title = "Diagram Generator" }: { title?: string }) {
+  return <GraphTool kind="diagram" title={title} />
 }
 
 function cloneGraph(model: GraphModel): GraphModel {
@@ -41,7 +42,7 @@ function cloneGraph(model: GraphModel): GraphModel {
   }
 }
 
-function GraphTool({ kind }: { kind: "flow" | "diagram" }) {
+function GraphTool({ kind, title }: { kind: "flow" | "diagram"; title: string }) {
   const examples = kind === "flow" ? flowchartExamples : diagramExamples
   const first = examples[0]
   const svgRef = useRef<SVGSVGElement>(null)
@@ -53,8 +54,10 @@ function GraphTool({ kind }: { kind: "flow" | "diagram" }) {
   const [connectFrom, setConnectFrom] = useState<string | null>(null)
   const [syntax, setSyntax] = useState("")
   const [zoom, setZoom] = useState(1)
-  const drag = useRef<{ id: string; x: number; y: number; ox: number; oy: number } | null>(null)
+  const [pan, setPan] = useState({ x: 0, y: 0 })
+  const drag = useRef<{ id: string; x: number; y: number; ox: number; oy: number; moved: boolean } | null>(null)
   const theme = resolveTheme(style)
+  const marks = useMarks()
   const layout = useMemo(() => layoutGraph(model, orientation), [model, orientation])
 
   function load(next: GraphModel, title: string) {
@@ -106,13 +109,15 @@ function GraphTool({ kind }: { kind: "flow" | "diagram" }) {
 
   const data = (
     <div className="flex flex-col gap-4">
-      <ExampleList examples={examples} onLoad={load} />
+      <DataLead hint={kind === "flow" ? "Add a step, then connect it to the next one." : "Add a box, name it, then connect it."}>
+        <ExampleList examples={examples} onLoad={load} />
+      </DataLead>
       <div className="flex flex-wrap gap-1.5">
         {(kind === "flow"
           ? (["process", "decision", "start", "end"] as const)
           : (["process"] as const)
         ).map((type) => (
-          <Button key={type} type="button" size="xs" variant="outline" onClick={() => addNode(type)}>
+          <Button key={type} type="button" className="h-8" variant="outline" onClick={() => addNode(type)}>
             Add {type}
           </Button>
         ))}
@@ -125,12 +130,12 @@ function GraphTool({ kind }: { kind: "flow" | "diagram" }) {
               aria-label="Node label"
               onChange={(event) => updateNode(node.id, event.target.value)}
               onFocus={() => setSelected(node.id)}
-              className="h-9"
+              className="h-8"
             />
-            <Button type="button" variant="ghost" size="xs" onClick={() => setConnectFrom(node.id)}>
+            <Button type="button" variant="ghost" className="h-8" onClick={() => setConnectFrom(node.id)}>
               Connect
             </Button>
-            <Button type="button" variant="ghost" size="icon-xs" aria-label={`Delete ${node.label}`} onClick={() => removeNode(node.id)}>
+            <Button type="button" variant="ghost" size="icon" aria-label={`Delete ${node.label}`} onClick={() => removeNode(node.id)}>
               ×
             </Button>
           </li>
@@ -146,7 +151,7 @@ function GraphTool({ kind }: { kind: "flow" | "diagram" }) {
                 <Button
                   key={node.id}
                   type="button"
-                  size="xs"
+                  className="h-8"
                   variant="outline"
                   onClick={() => {
                     const fromNode = model.nodes.find((item) => item.id === connectFrom)
@@ -158,7 +163,7 @@ function GraphTool({ kind }: { kind: "flow" | "diagram" }) {
                   {node.label}
                 </Button>
               ))}
-            <Button type="button" size="xs" variant="ghost" onClick={() => setConnectFrom(null)}>
+            <Button type="button" className="h-8" variant="ghost" onClick={() => setConnectFrom(null)}>
               Cancel
             </Button>
           </div>
@@ -175,9 +180,8 @@ function GraphTool({ kind }: { kind: "flow" | "diagram" }) {
         />
         <Button
           type="button"
-          size="xs"
+          className="h-8 w-fit"
           variant="outline"
-          className="w-fit"
           onClick={() => {
             const parsed = parseLinkSyntax(syntax)
             if (parsed.nodes.length) setModel(parsed)
@@ -186,35 +190,20 @@ function GraphTool({ kind }: { kind: "flow" | "diagram" }) {
           Apply links
         </Button>
       </label>
-      <Button type="button" variant="ghost" size="xs" onClick={() => setModel({ nodes: [], edges: [] })}>
+      <Button type="button" variant="ghost" className="h-8" onClick={() => setModel({ nodes: [], edges: [] })}>
         Clear
       </Button>
-      <p className="text-[12px] text-[var(--nb-secondary)]">
-        Add a step, then Connect to branch. Drag a box on the canvas. Layout is automatic until you drag.
-      </p>
+      <p className="text-[13px] text-[var(--nb-secondary)]">Drag a box to place it. Click a box to change its colour.</p>
     </div>
   )
 
   const canvas = empty ? (
     <EmptyViz onExample={() => load(first.data, first.title)} onManual={() => addNode("process")} />
   ) : (
-    <div className="relative">
-      <div className="absolute top-2 right-2 z-10 flex gap-1">
-        <Button type="button" size="icon-xs" variant="outline" aria-label="Zoom out" onClick={() => setZoom((value) => Math.max(0.5, value - 0.1))}>
-          <Minus />
-        </Button>
-        <Button type="button" size="icon-xs" variant="outline" aria-label="Zoom in" onClick={() => setZoom((value) => Math.min(2, value + 0.1))}>
-          <Plus />
-        </Button>
-        <Button type="button" size="xs" variant="outline" onClick={() => {
-          setModel((current) => ({ ...current, nodes: current.nodes.map((node) => ({ ...node, x: 0, y: 0 })) }))
-          setZoom(1)
-        }}>
-          Fit
-        </Button>
-      </div>
-      <div className="overflow-auto">
-        <div style={{ transform: `scale(${zoom})`, transformOrigin: "top left" }}>
+    <div
+      className="flex h-full w-full items-center justify-center"
+      style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}
+    >
           <ChartFrame
             ref={svgRef}
             width={layout.width}
@@ -253,31 +242,47 @@ function GraphTool({ kind }: { kind: "flow" | "diagram" }) {
             })}
             {layout.nodes.map((node) => {
               const active = selected === node.id
+              const mark = marks.of(node.id)
+              const stroke = mark.color ?? theme.ink
               const onDown = (event: React.PointerEvent) => {
                 event.stopPropagation()
-                setSelected(node.id)
-                drag.current = { id: node.id, x: event.clientX, y: event.clientY, ox: node.x, oy: node.y }
-                event.currentTarget.setPointerCapture(event.pointerId)
+                drag.current = { id: node.id, x: event.clientX, y: event.clientY, ox: node.x, oy: node.y, moved: false }
               }
               const onMove = (event: React.PointerEvent) => {
                 const activeDrag = drag.current
                 if (!activeDrag || activeDrag.id !== node.id) return
-                const dx = (event.clientX - activeDrag.x) / zoom
-                const dy = (event.clientY - activeDrag.y) / zoom
+                const dx = event.clientX - activeDrag.x
+                const dy = event.clientY - activeDrag.y
+                if (!activeDrag.moved && Math.hypot(dx, dy) < 4) return
+                if (!activeDrag.moved) {
+                  activeDrag.moved = true
+                  event.currentTarget.setPointerCapture(event.pointerId)
+                }
                 setModel((current) => ({
                   ...current,
                   nodes: current.nodes.map((item) =>
-                    item.id === node.id ? { ...item, x: activeDrag.ox + dx, y: activeDrag.oy + dy } : item
+                    item.id === node.id
+                      ? { ...item, x: activeDrag.ox + dx / zoom, y: activeDrag.oy + dy / zoom }
+                      : item
                   ),
                 }))
+              }
+              const onUp = (event: React.PointerEvent) => {
+                const activeDrag = drag.current
+                drag.current = null
+                if (!activeDrag || activeDrag.id !== node.id || activeDrag.moved) return
+                setSelected(node.id)
+                marks.select(node.id, node.label || "Step", event)
               }
               const shape =
                 node.type === "decision" ? (
                   <polygon
                     points={`${node.x + node.width / 2},${node.y} ${node.x + node.width},${node.y + node.height / 2} ${node.x + node.width / 2},${node.y + node.height} ${node.x},${node.y + node.height / 2}`}
-                    fill={theme.background}
-                    stroke={theme.ink}
-                    strokeWidth={active ? 2.25 : 1.5}
+                    fill={mark.color ?? "transparent"}
+                    fillOpacity={mark.color ? 0.55 : 1}
+                    stroke={stroke}
+                    strokeWidth={active ? 3.5 : mark.color ? 2.5 : 1.5}
+                    opacity={mark.opacity ?? 1}
                   />
                 ) : (
                   <rect
@@ -286,9 +291,11 @@ function GraphTool({ kind }: { kind: "flow" | "diagram" }) {
                     width={node.width}
                     height={node.height}
                     rx={node.type === "process" ? 10 : 24}
-                    fill={theme.background}
-                    stroke={theme.ink}
-                    strokeWidth={active ? 2.25 : 1.5}
+                    fill={mark.color ?? "transparent"}
+                    fillOpacity={mark.color ? 0.55 : 1}
+                    stroke={stroke}
+                    strokeWidth={active ? 3.5 : mark.color ? 2.5 : 1.5}
+                    opacity={mark.opacity ?? 1}
                   />
                 )
               return (
@@ -296,9 +303,7 @@ function GraphTool({ kind }: { kind: "flow" | "diagram" }) {
                   key={node.id}
                   onPointerDown={onDown}
                   onPointerMove={onMove}
-                  onPointerUp={() => {
-                    drag.current = null
-                  }}
+                  onPointerUp={onUp}
                   style={{ cursor: "grab" }}
                 >
                   {shape}
@@ -316,17 +321,47 @@ function GraphTool({ kind }: { kind: "flow" | "diagram" }) {
               )
             })}
           </ChartFrame>
-        </div>
-      </div>
-      {selectedNode ? (
-        <p className="mt-2 text-[12px] text-[var(--nb-secondary)]">Selected: {selectedNode.label}. Drag to place, or connect it from the data panel.</p>
-      ) : null}
     </div>
   )
 
+  const steps = model.nodes.filter((node) => node.type !== "decision").length
+  const decisions = model.nodes.filter((node) => node.type === "decision").length
+  const stats = empty
+    ? []
+    : kind === "flow"
+      ? [
+          { label: "Steps", value: String(steps) },
+          { label: "Decisions", value: String(decisions) },
+        ]
+      : [
+          { label: "Boxes", value: String(model.nodes.length) },
+          { label: "Connections", value: String(model.edges.length) },
+        ]
+
+  function reset() {
+    load(first.data, first.title)
+    setStyle(defaultVizStyle)
+    setOrientation("tb")
+    setZoom(1)
+    setPan({ x: 0, y: 0 })
+    setSyntax("")
+    marks.reset()
+  }
+
   return (
+    <>
     <VizStudio
+      title={title}
       filename={kind === "flow" ? "flowchart" : "diagram"}
+      stats={stats}
+      view={{ zoom, setZoom, pan, setPan }}
+      surface={{ background: theme.background, dot: theme.dot }}
+      onFit={() => {
+        setModel((current) => ({ ...current, nodes: current.nodes.map((node) => ({ ...node, x: 0, y: 0 })) }))
+        setZoom(1)
+        setPan({ x: 0, y: 0 })
+      }}
+      onReset={reset}
       csv={csv}
       svgRef={svgRef}
       data={data}
@@ -337,23 +372,39 @@ function GraphTool({ kind }: { kind: "flow" | "diagram" }) {
           meta={meta}
           onStyle={(next) => setStyle((current) => ({ ...current, ...next }))}
           onMeta={(next) => setMeta((current) => ({ ...current, ...next }))}
-          omit={["values", "percent", "grid", "legend"]}
+          omit={kind === "flow" ? ["theme", "values", "percent", "grid", "legend"] : ["values", "percent", "grid", "legend"]}
           extra={
-            <Segmented
-              label="Orientation"
-              value={orientation}
-              options={[
-                { id: "tb", label: "Top–bottom" },
-                { id: "lr", label: "Left–right" },
-              ]}
-              onChange={(value) => {
-                setOrientation(value)
-                setModel((current) => ({ ...current, nodes: current.nodes.map((node) => ({ ...node, x: 0, y: 0 })) }))
-              }}
-            />
+            <>
+              <Segmented
+                label="Orientation"
+                value={orientation}
+                options={[
+                  { id: "tb", label: "Top–bottom" },
+                  { id: "lr", label: "Left–right" },
+                ]}
+                onChange={(value) => {
+                  setOrientation(value)
+                  setModel((current) => ({ ...current, nodes: current.nodes.map((node) => ({ ...node, x: 0, y: 0 })) }))
+                }}
+              />
+              {selectedNode ? (
+                <p className="text-[12px] text-[var(--nb-secondary)]">
+                  Selected: {selectedNode.label}. Drag to place, or connect it from the data panel.
+                </p>
+              ) : null}
+            </>
           }
         />
       }
     />
+    <MarkPopover
+      selected={marks.selected}
+      value={marks.selected ? marks.of(marks.selected.id) : {}}
+      color={marks.selected ? (marks.of(marks.selected.id).color ?? theme.ink) : theme.ink}
+      fields={[]}
+      onChange={marks.update}
+      onClose={marks.close}
+    />
+    </>
   )
 }

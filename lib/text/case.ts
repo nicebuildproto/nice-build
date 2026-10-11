@@ -10,14 +10,19 @@ export function convertCase(text: string, mode: CaseMode) {
     return lower.replace(/(^\s*\p{L}|[.!?]\s+\p{L})/gu, (match) => match.toLocaleUpperCase())
   }
   if (mode === "title") {
-    return text
-      .toLocaleLowerCase()
-      .split(/(\s+)/)
-      .map((part, index, parts) => {
+    const parts = text.toLocaleLowerCase().split(/(\s+)/)
+    let first = -1
+    let last = -1
+    parts.forEach((part, index) => {
+      if (!part.trim()) return
+      if (first < 0) first = index
+      last = index
+    })
+    return parts
+      .map((part, index) => {
         const word = part.trim()
         if (!word) return part
-        const first = index === 0 || index === parts.length - 1
-        if (!first && small.has(word)) return part
+        if (index !== first && index !== last && small.has(word)) return part
         return part.replace(word, word.charAt(0).toLocaleUpperCase() + word.slice(1))
       })
       .join("")

@@ -1,5 +1,6 @@
 "use client"
 
+import { lighterHex } from "@/lib/sankey/color"
 import { formatValue } from "@/lib/sankey/layout"
 import type { SankeyLayout, StyleSettings } from "@/lib/sankey/types"
 import { cn } from "@/lib/utils"
@@ -11,7 +12,6 @@ export function SankeySvg({
   selectedLink,
   hoveredLink,
   nodeColors,
-  flowColors,
   zoom,
   pan,
   onSelectNode,
@@ -27,11 +27,10 @@ export function SankeySvg({
   selectedLink: string | null
   hoveredLink: string | null
   nodeColors: Record<string, string>
-  flowColors: Record<string, string>
   zoom: number
   pan: { x: number; y: number }
   onSelectNode: (id: string | null) => void
-  onSelectLink: (id: string | null) => void
+  onSelectLink: (id: string | null, point?: { clientX: number; clientY: number }) => void
   onHoverLink: (id: string | null) => void
   onNodePointerDown: (id: string, event: React.PointerEvent) => void
   svgRef: React.RefObject<SVGSVGElement | null>
@@ -45,10 +44,12 @@ export function SankeySvg({
   return (
     <svg
       ref={svgRef}
-      className={cn("h-full w-full touch-none", className)}
+      className={cn("h-full w-full", className)}
       viewBox={`${viewX} ${viewY} ${viewW} ${viewH}`}
-      role="img"
+      overflow="visible"
+      role="group"
       aria-label="Sankey diagram"
+      data-export-background={style.background}
       onPointerDown={(event) => {
         if (event.target === event.currentTarget) {
           onSelectNode(null)
@@ -61,7 +62,7 @@ export function SankeySvg({
         y={viewY}
         width={viewW}
         height={viewH}
-        fill={style.background}
+        fill="transparent"
         onPointerDown={() => {
           onSelectNode(null)
           onSelectLink(null)
@@ -72,15 +73,15 @@ export function SankeySvg({
         <path
           key={link.id}
           d={link.path}
-          fill={flowColors[link.id] ?? style.flowColor}
-          fillOpacity={hoveredLink === link.id || selectedLink === link.id ? Math.min(1, style.flowOpacity + 0.16) : style.flowOpacity}
+          fill={lighterHex(nodeColors[link.source] ?? style.nodeColor)}
+          fillOpacity={hoveredLink === link.id || selectedLink === link.id ? Math.min(1, style.flowOpacity + 0.15) : style.flowOpacity}
           className="cursor-pointer transition-[fill-opacity] duration-150"
           stroke={selectedLink === link.id ? style.labelColor : "transparent"}
           strokeWidth={selectedLink === link.id ? 1.5 / zoom : 0}
           onPointerDown={(event) => {
             event.stopPropagation()
             onSelectNode(null)
-            onSelectLink(link.id)
+            onSelectLink(link.id, event)
           }}
           onPointerEnter={() => onHoverLink(link.id)}
           onPointerLeave={() => onHoverLink(null)}
@@ -116,6 +117,7 @@ export function SankeySvg({
               height={node.height}
               rx={3}
               fill={nodeColors[node.id] ?? style.nodeColor}
+              opacity={1}
               stroke={selected ? style.labelColor : "transparent"}
               strokeWidth={selected ? 2 / zoom : 0}
             />

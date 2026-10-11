@@ -26,7 +26,10 @@ function applyTheme(theme: "light" | "dark") {
 const menuItemClass =
   "inline-flex h-7 items-center rounded-md px-2 text-[13px] font-medium text-[var(--nb-secondary)] transition-colors outline-none hover:bg-[var(--nb-accent)] hover:text-[var(--nb-primary)] focus-visible:ring-3 focus-visible:ring-ring/50"
 
-export function HeaderActions() {
+const stageItemClass =
+  "inline-flex h-8 items-center rounded-lg px-2.5 text-[13px] font-medium text-[var(--nb-secondary)] transition-colors outline-none hover:bg-[var(--nb-accent)] hover:text-[var(--nb-primary)] focus-visible:ring-3 focus-visible:ring-ring/50"
+
+export function HeaderActions({ variant = "default" }: { variant?: "default" | "stage" }) {
   const [theme, setTheme] = useState<"light" | "dark">("light")
   const [open, setOpen] = useState(false)
   const [email, setEmail] = useState("")
@@ -45,21 +48,24 @@ export function HeaderActions() {
     setTheme(next)
   }
 
+  const itemClass = variant === "stage" ? stageItemClass : menuItemClass
+  const iconSize = variant === "stage" ? "icon" : "icon-sm"
+
   return (
-    <div className="flex items-center gap-0.5 sm:gap-1.5">
-      <button type="button" className={menuItemClass} onClick={() => setWorkspaceOpen(true)}>
+    <div className="flex items-center gap-0.5 sm:gap-1">
+      <button type="button" className={itemClass} onClick={() => setWorkspaceOpen(true)}>
         Workspace
       </button>
       {workspaceOpen ? <Workspace onClose={() => setWorkspaceOpen(false)} /> : null}
 
-      <Link href="/contact" className={menuItemClass}>
+      <Link href="/contact" className={itemClass}>
         Contact
       </Link>
 
       <Button
         type="button"
         variant="ghost"
-        size="icon-sm"
+        size={iconSize}
         aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
         onClick={toggleTheme}
         className="text-[var(--nb-secondary)] hover:bg-[var(--nb-accent)] hover:text-[var(--nb-primary)]"
@@ -78,16 +84,20 @@ export function HeaderActions() {
         }}
       >
         <DialogTrigger
-          className="inline-flex h-7 items-center justify-center rounded-[min(var(--radius-md),12px)] border border-border bg-background px-2.5 text-[0.8rem] font-medium text-[var(--nb-primary)] transition-colors outline-none hover:bg-[var(--nb-accent)] focus-visible:ring-3 focus-visible:ring-ring/50"
+          className={
+            variant === "stage"
+              ? "inline-flex h-8 items-center justify-center rounded-lg border border-border bg-background px-2.5 text-[13px] font-medium text-[var(--nb-primary)] transition-colors outline-none hover:bg-[var(--nb-accent)] focus-visible:ring-3 focus-visible:ring-ring/50"
+              : "inline-flex h-7 items-center justify-center rounded-[min(var(--radius-md),12px)] border border-border bg-background px-2.5 text-[0.8rem] font-medium text-[var(--nb-primary)] transition-colors outline-none hover:bg-[var(--nb-accent)] focus-visible:ring-3 focus-visible:ring-ring/50"
+          }
         >
           Log in
         </DialogTrigger>
         <DialogContent>
           {done ? (
             <DialogHeader>
-              <DialogTitle>Accounts are on the way.</DialogTitle>
+              <DialogTitle>Nothing was saved.</DialogTitle>
               <DialogDescription>
-                Nothing was saved. This screen is a preview of signing in to Nice Tools.
+                This screen is a preview. It does not create an account.
               </DialogDescription>
             </DialogHeader>
           ) : (
@@ -102,7 +112,7 @@ export function HeaderActions() {
               <DialogHeader>
                 <DialogTitle>Log in</DialogTitle>
                 <DialogDescription>
-                  A quiet place for your account. Signing in is not available yet.
+                  Signing in is not available yet. An email typed here is not saved.
                 </DialogDescription>
               </DialogHeader>
 
@@ -133,7 +143,7 @@ export function HeaderActions() {
               </div>
 
               <Button type="submit" className="mt-6 h-10 w-full">
-                Continue
+                Log in
               </Button>
               <p className="mt-3 text-center text-xs text-[var(--nb-secondary)]">
                 No account is created.

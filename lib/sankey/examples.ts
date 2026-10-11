@@ -18,6 +18,20 @@ export interface SankeyExample {
 
 export const sankeyExamples: SankeyExample[] = [
   {
+    id: "launch",
+    title: "Launch week",
+    description: "Where visits came from, and what people did next.",
+    rows: rows([
+      ["Search", "Site", "46"],
+      ["Social", "Site", "24"],
+      ["Email", "Site", "18"],
+      ["Site", "Signup", "36"],
+      ["Site", "Read", "52"],
+      ["Signup", "Trial", "22"],
+      ["Signup", "Newsletter", "14"],
+    ]),
+  },
+  {
     id: "revenue",
     title: "Company Revenue",
     description: "How income splits into cost and profit.",
@@ -62,13 +76,13 @@ export const sankeyExamples: SankeyExample[] = [
     title: "Budget Breakdown",
     description: "A household budget from income to leftover.",
     rows: rows([
-      ["Income", "Housing", "2200"],
-      ["Income", "Food", "800"],
-      ["Income", "Transport", "450"],
-      ["Income", "Savings", "600"],
-      ["Income", "Other", "350"],
-      ["Housing", "Rent", "1800"],
-      ["Housing", "Utilities", "400"],
+      ["Income", "Housing", "22"],
+      ["Income", "Food", "8"],
+      ["Income", "Transport", "5"],
+      ["Income", "Savings", "6"],
+      ["Income", "Other", "4"],
+      ["Housing", "Rent", "18"],
+      ["Housing", "Utilities", "4"],
     ]),
   },
   {

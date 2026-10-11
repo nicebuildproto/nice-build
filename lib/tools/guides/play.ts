@@ -3,7 +3,7 @@ import { guide, type ToolGuideCopy } from "@/lib/tools/guides/types"
 export const playGuides: Record<string, ToolGuideCopy> = {
   "dice-roller": guide(
     "Two d6 showing 5 and 3 total 8. Switch to d20, add a third die, press Roll — say 14, 7, and 2, total 23. Tap one die to throw just that one again. R does the same when you're not typing.",
-    ["How many dice can I roll?", "From 1 to 12. Use plus and minus. Sides are d4, d6, d8, d10, d12, or d20."],
+    ["How many dice can I roll?", "From 1 to 12. Use plus and minus. Presets are d4, d6, d8, d10, d12, and d20. Custom sides accept any whole number from 2 to 100."],
     ["Are the rolls fair?", "Yes. Each face is equally likely. The roll uses the browser’s cryptographic random source, not Math.random."],
     ["Is there a sound?", "No — the roll is visual, and the total is the result you can copy."],
   ),
@@ -48,7 +48,7 @@ export const playGuides: Record<string, ToolGuideCopy> = {
   "wheel-spinner": guide(
     "Four names, one a line, split the wheel into four equal slices. Spin rotates it, and the name at the top when it stops is the winner.",
     ["Are the slices equal?", "Yes. Each non-blank line gets the same angle."],
-    ["How is the winner chosen?", "From the angle the wheel stops at, not from a separate random pick after the animation."],
+    ["How is the winner chosen?", "From the angle the wheel stops at, using the list as it was when you pressed Spin. The numbered list is the slice order. Editing the list mid-spin does not change that result."],
     ["What if I prefer less motion?", "If the browser asks for reduced motion, the wheel jumps to the result instead of spinning."],
     ["Can I use it for anything other than names?", "Yes. Any short label works: tasks, lunch spots, or the next person to talk."],
   ),
@@ -72,7 +72,7 @@ export const playGuides: Record<string, ToolGuideCopy> = {
   ),
   "world-clock": guide(
     "The page shows the current time in Sydney, Tokyo, London, New York, Los Angeles, and UTC, using your computer’s clock.",
-    ["Can I add a city?", "Not on this page. The six zones are fixed. Use the Time Zone Meeting Planner to line up a longer list."],
+    ["Can I add a city?", "Not on this page. The six zones are fixed, and your own timezone is added as Here when it isn’t one of them. Use the Time Zone Meeting Planner to line up a longer list."],
     ["Does daylight saving apply?", "Yes. Each zone uses the timezone database, so London and New York move with daylight saving and Sydney does too."],
     ["Why might it differ from my phone by a second?", "It updates once a second from the time your computer reports. A clock that's set wrong will be wrong here as well."],
   ),
@@ -92,7 +92,7 @@ export const playGuides: Record<string, ToolGuideCopy> = {
   "mouse-tester": guide(
     "Move inside the pad and the coordinates follow the pointer. Hold the right button and it stays listed as held until you release. The wheel total is the sum of deltaY the browser reports.",
     ["Are the coordinates screen pixels?", "They're CSS pixels inside the test pad, from its top-left. That is not DPI."],
-    ["Does this measure polling rate or DPI?", "No. movementX/Y is what the browser reports for that event, not a measured sensor rate. The page will not invent either number."],
+    ["Does this measure polling rate or DPI?", "No. The events-per-second figure is how many pointer events this page received. movementX/Y is what the browser reports. Neither is the sensor’s polling rate or DPI."],
     ["Does a trackpad count?", "Yes, as a pointer. Touch on a phone is not a mouse, and the page says so."],
   ),
   "reaction-time": guide(
@@ -109,9 +109,9 @@ export const playGuides: Record<string, ToolGuideCopy> = {
   ),
   "sensitivity-converter": guide(
     "800 DPI and CS2 sensitivity 1.2 is about 43.30 cm per 360° and an eDPI of 960. Matching that feel in Valorant (documented yaw 0.07) is about 0.377 sensitivity. That conversion is exact for those yaws.",
-    ["What is yaw?", "The degrees the game turns for one count of mouse movement. Only games with a documented yaw are listed. Games without one are omitted rather than guessed."],
-    ["Is the conversion exact?", "Yes for the listed yaw values. It is not a measured camera. eDPI only compares when two games share a yaw."],
-    ["What is community convention vs exact?", "cm/360 from a documented yaw is exact for that yaw. Matching “feel” across FOV or ads sensitivity is approximate and is not offered here."],
+    ["What is yaw?", "The degrees the game turns for one count of mouse movement. Source-family games use the engine default m_yaw of 0.022. Valorant’s 0.07 and Overwatch 2’s 0.0066 are community conventions for the same formula. Call of Duty is left off — it is not one published yaw."],
+    ["Is the conversion exact?", "cm/360 is exact for the yaw number shown. It is not a measured camera. eDPI only compares when two games share a yaw. Matching feel across FOV or aim-down-sights is not included."],
+    ["What is community convention vs exact?", "An engine default is a cvar the game ships with, such as Source m_yaw 0.022. A community convention is a yaw players use to match cm/360 when the game does not publish one. Both are labelled on the result."],
   ),
   "edpi-calculator": guide(
     "800 DPI times a sensitivity of 0.4 is an eDPI of 320. In CS2 (yaw 0.022) that is about 129.9 cm per 360°.",
@@ -151,7 +151,7 @@ export const playGuides: Record<string, ToolGuideCopy> = {
   ),
   "crypto-momentum-scanner": guide(
     "On the 15-minute window, a coin printing 4.2× its 20-candle average volume, up 5.1% on the last closed candle, and closing above that window’s high, with a CoinGecko trending listing, lands near the top of the table with the reason “Volume 4.2x average, up 5.1% in 15m, breaking 20-candle high, trending on CoinGecko.”",
-    ["What is a crypto scanner?", "A screener that ranks coins on live market data instead of a single ticker. This one scores short-timeframe volume, the last candle’s move, a 20-candle breakout, and a free attention signal from CoinGecko trending."],
+    ["What is a crypto scanner?", "A screener that ranks many pairs instead of one ticker. This one scores short-window quote volume, the last closed candle’s move, a 20-candle breakout, and CoinGecko trending. The score describes that window. It is not a forecast and not a recommendation."],
     ["How often does the data update?", "The server caches Binance tickers and candles for about 60 seconds, and CoinGecko trending for about five minutes. Turn on auto-refresh to pull that cache about once a minute while the tab is visible."],
     ["Can this predict pumps?", "No. Unusual volume and a breakout describe what already happened on the last closed candle. It cannot tell you whether the next candle continues, stalls, or reverses."],
     ["Why Sydney, and what is the 451 fallback?", "Binance market-data endpoints refuse some regions, including many US IPs. The scan route prefers Vercel’s Sydney region. If Binance still errors, the page falls back to CoinGecko 24-hour movers and says short-timeframe volume is limited."],
@@ -161,19 +161,19 @@ export const playGuides: Record<string, ToolGuideCopy> = {
   "crypto-profit-calculator": guide(
     "Buy 0.4 of a coin at $90,000 and sell at $104,000, with a 0.1% fee on each side, and it costs you $36,000 and returns $41,600 before fees. The fees are $77.60, so your profit is $5,522.40 — about 15.34%.",
     ["Which fees are included?", "The percent you enter, applied once to the cost and once to the proceeds. A withdrawal or a network fee is extra unless you fold it into that percent."],
-    ["Are these live prices?", "Nope — this calculator doesn't pull from any market. You're in control: enter the prices you want to check, and we'll do the maths."],
-    ["Does this connect to a wallet?", "Not at all — no wallet, no tracking, no live data. Just quick, private maths right here in your browser."],
+    ["Are these live prices?", "No. You type the entry, the exit, and the fee. The result is only those figures."],
+    ["Does this connect to a wallet?", "No. There is no wallet, no seed phrase, and no market lookup. The arithmetic runs in the browser."],
   ),
   "crypto-dca-calculator": guide(
     "$100 a buy, 12 buys, and an average price of $80 means you've invested $1,200 and hold 15 coins. At a current price of $110 those coins are worth $1,650, so the profit is $450.",
     ["What is the average price?", "The average you paid per coin, which you enter. The page doesn't reconstruct it from a list of fills."],
-    ["Is the current price live?", "Nope — type the price you want to test. Nothing here reads a market."],
+    ["Is the current price live?", "No. Type the price you want to test. A zero buy amount is allowed and produces a zero result. An average price of zero is refused, because the coin count would be undefined."],
     ["Does this include fees?", "No. Subtract fees from the profit if your buys were charged."],
   ),
   "crypto-staking-calculator": guide(
-    "Put $1,000 at 5% APY for 365 days, without monthly compounding, and you earn $50. The balance is $1,050. Tick compound monthly and the earned amount rises a little, because each month’s interest starts earning too.",
-    ["Is the rate a promise?", "No. It's the APY you type, applied for the number of days you type."],
-    ["How does compounding work here?", "The APY is split into 12 monthly parts, then applied for the number of months in the period."],
+    "$1,000 at 5% APR for 365 days, with compounding set to None and no fee, earns $50. The balance is $1,050. Switch the rate to APY and the same 5% for a full year is still $50, because an APY is not compounded a second time.",
+    ["Is the rate a promise?", "No. It is the APR or APY you type, for the number of days you type. A fee percent, if you set one, is taken off that reward only."],
+    ["How does compounding work here?", "None means simple APR: amount × APR × days ÷ 365. Monthly or daily compounds that APR. If the rate is an APY, compounding is ignored, because the APY already includes it."],
     ["Does this stake anything?", "No. There's no wallet and no protocol. It only projects the numbers."],
   ),
   "crypto-position-size-calculator": guide(
@@ -192,18 +192,18 @@ export const playGuides: Record<string, ToolGuideCopy> = {
     "21,000 gas units at 20 gwei, with the coin at $4,000, is 0.00042 coin — that's $1.68.",
     ["What is a gwei?", "One billionth of the coin. The fee in coin is gas units × gwei × 0.000000001."],
     ["Is 21,000 the right gas limit?", "It's a common figure for a simple transfer. A contract call often uses more. Use the limit your wallet estimates."],
-    ["Is the gas price live?", "Nope — type the gwei and the coin price you want to test. Nothing here reads a network."],
+    ["Is the gas price live?", "No. Type the gwei and the coin price you want to test. Nothing here reads a network."],
   ),
   "crypto-apy-calculator": guide(
     "An 8% APR compounded 365 times a year is about an 8.33% APY. Flip the direction and you'll turn an APY back into the APR that would produce it.",
     ["What is the difference between APR and APY?", "APR is the rate before compounding. APY is what you earn over a year if that rate compounds as often as you set."],
     ["Which compounding matches a protocol?", "Use 365 for a daily compound and 12 for a monthly one. Some protocols compound every block, which this page doesn't model."],
-    ["Is the rate from a live pool?", "Nope — you type the rate. There's no pool lookup."],
+    ["Is the rate from a live pool?", "No. You type the rate. There's no pool lookup."],
   ),
   "crypto-converter": guide(
-    "1.5 of a coin priced at $4,000 each is 6,000 in the currency you name. The labels are yours. The maths is amount times the price of one.",
-    ["Does this use a market feed?", "Nope — the price of one is whatever you type, so the result is only as current as that number."],
-    ["Can I convert the other way?", "Put the amount you have in the first field and the price of one unit in the rate field. To go from dollars back to coins, use a rate of one divided by the coin price."],
+    "1.5 of a coin priced at 4,000 each is 6,000 in the unit you name. The labels are yours. Direction chooses amount × price, or amount ÷ price.",
+    ["Does this use a market feed?", "No. The price of one is whatever you type, so the result is only as current as that number."],
+    ["Can I convert the other way?", "Leave the price as the price of one From unit, and set Direction to Amount ÷ price. 6,000 AUD at a price of 4,000 is 1.5 ETH. Dividing by zero is refused."],
     ["Are the ticker labels checked?", "No. ETH and AUD are labels for the result line. They aren't looked up."],
   ),
   "impermanent-loss-calculator": guide(

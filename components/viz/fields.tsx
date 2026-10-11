@@ -7,6 +7,20 @@ import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import type { VizMeta } from "@/lib/viz/style"
 
+let colorLockUntil = 0
+
+export function colorPickerLocked() {
+  return Date.now() < colorLockUntil
+}
+
+function holdColorPicker(input?: HTMLInputElement | null) {
+  colorLockUntil = Date.now() + 1600
+  if (input) input.dataset.picking = "1"
+  window.setTimeout(() => {
+    if (input) input.dataset.picking = "0"
+  }, 1600)
+}
+
 export function ColorField({
   label,
   value,
@@ -24,8 +38,16 @@ export function ColorField({
         <input
           type="color"
           value={value}
-          onChange={(event) => onChange(event.target.value)}
-          className="size-7 cursor-pointer rounded-md border border-black/10 bg-white p-0.5"
+          onChange={(event) => {
+            holdColorPicker(event.currentTarget)
+            onChange(event.target.value)
+          }}
+          data-picking="0"
+          onPointerDown={(event) => {
+            event.stopPropagation()
+            holdColorPicker(event.currentTarget)
+          }}
+          className="size-8 cursor-pointer rounded-lg border border-black/10 bg-white p-0.5"
           aria-label={label}
         />
       </span>
@@ -105,7 +127,7 @@ export function Segmented<T extends string>({
             className={cn(
               "h-8 rounded-lg px-2.5 text-[13px]",
               value === option.id
-                ? "bg-[var(--nb-primary)] text-white"
+                ? "bg-[var(--nb-primary)] text-[var(--background)]"
                 : "bg-[var(--nb-accent)] text-[var(--nb-primary)]"
             )}
           >
@@ -128,19 +150,19 @@ export function MetaFields({
     <div className="flex flex-col gap-3">
       <label className="flex flex-col gap-1.5">
         <span className="text-[13px] font-medium text-[var(--nb-primary)]">Title</span>
-        <Input value={meta.title} onChange={(event) => onChange({ title: event.target.value })} className="h-9" />
+        <Input value={meta.title} onChange={(event) => onChange({ title: event.target.value })} className="h-8" />
       </label>
       <label className="flex flex-col gap-1.5">
         <span className="text-[13px] font-medium text-[var(--nb-primary)]">Subtitle</span>
         <Input
           value={meta.subtitle}
           onChange={(event) => onChange({ subtitle: event.target.value })}
-          className="h-9"
+          className="h-8"
         />
       </label>
       <label className="flex flex-col gap-1.5">
         <span className="text-[13px] font-medium text-[var(--nb-primary)]">Source</span>
-        <Input value={meta.source} onChange={(event) => onChange({ source: event.target.value })} className="h-9" />
+        <Input value={meta.source} onChange={(event) => onChange({ source: event.target.value })} className="h-8" />
       </label>
     </div>
   )

@@ -1,9 +1,10 @@
 Nice Tools
-Suite catalogue
-12 categories, 190 tools (174 live, 16 coming soon)
+14 categories, 242 tools (227 live, 15 coming soon)
 
 1. Calculators
-Quick, clean calculations for everyday numbers.
+Percentages, loans, pay, and other everyday maths. Enter the numbers and read the result.
+32 tools (32 live)
+
 - Percentage Calculator — /calculators/percentage-calculator
 - Percentage Increase Calculator — /calculators/percentage-increase-calculator
 - Percentage Decrease Calculator — /calculators/percentage-decrease-calculator
@@ -27,9 +28,20 @@ Quick, clean calculations for everyday numbers.
 - GPA Calculator — /calculators/gpa-calculator
 - Grade Calculator — /calculators/grade-calculator
 - Unit Converter — /calculators/unit-converter
+- Subscription Audit — /calculators/subscription-audit-calculator
+- Expense Splitter — /calculators/expense-splitter
+- Side Hustle Tracker — /calculators/side-hustle-tracker
+- BNPL True-Cost Calculator — /calculators/bnpl-cost-calculator
+- FIRE Calculator — /calculators/fire-calculator
+- Gig Economy Tax Estimator — /calculators/gig-tax-estimator
+- Round-up Investing Estimator — /calculators/round-up-investing-estimator
+- Net Worth Calculator — /calculators/net-worth-calculator
+- Debt Payoff Calculator — /calculators/debt-payoff-calculator
 
 2. Developer Tools
-Formatters, converters, and generators for building software.
+Format, convert, and generate text in the browser. Paste, edit, and copy.
+35 tools (34 live, 1 coming soon)
+
 - JSON Formatter — /developer/json-formatter
 - UUID Generator — /developer/uuid-generator
 - Regex Tester — /developer/regex-tester
@@ -46,46 +58,65 @@ Formatters, converters, and generators for building software.
 - HTML Encoder / Decoder — /developer/html-encoder
 - Code Beautifier — /developer/code-beautifier
 - JSON to CSV Converter — /developer/json-to-csv
+- JSON Schema Generator — /developer/json-schema-generator
+- Password Strength Checker — /developer/password-strength-checker
+- Email Header Analyzer — /developer/email-header-analyzer
+- AI Context Window Calculator — /developer/ai-context-window-calculator
+- Prompt Cost Calculator — /developer/prompt-cost-calculator
 - CSV to JSON Converter — /developer/csv-to-json
 - YAML Validator — /developer/yaml-validator
 - YAML to JSON Converter — /developer/yaml-to-json
 - Robots.txt Generator — /developer/robots-txt-generator
-- Domain Age Checker — /developer/domain-age-checker (coming soon)
+- Domain Age Checker [coming soon] — /developer/domain-age-checker
 - Chmod Calculator — /developer/chmod-calculator
 - Subnet Calculator — /developer/subnet-calculator
 - CIDR Calculator — /developer/cidr-calculator
 - JSONPath Tester — /developer/jsonpath-tester
 - CSP Header Generator — /developer/csp-header-generator
 - UTM Link Builder — /developer/utm-link-builder
+- Git Commit Message Generator — /developer/commit-message-generator
+- API Rate-Limit Calculator — /developer/rate-limit-calculator
+- Which AI Coding Tool Fits You — /developer/ai-tool-fit-quiz
 
 3. Files & Media
-Convert, compress, and clean up files and images.
+Compress, convert, merge, sign, and clean up files in the browser. Your files stay on your device.
+30 tools (18 live, 12 coming soon)
+
 - Image Compressor — /files-media/image-compressor
-- PDF Merger — /files-media/pdf-merger (coming soon)
+- PDF Merger — /files-media/pdf-merger
 - EXIF Stripper — /files-media/exif-stripper
-- PDF Splitter — /files-media/pdf-splitter (coming soon)
-- PDF Compressor — /files-media/pdf-compressor (coming soon)
-- PDF to Word — /files-media/pdf-to-word (coming soon)
-- Word to PDF — /files-media/word-to-pdf (coming soon)
-- PDF to JPG — /files-media/pdf-to-jpg (coming soon)
-- JPG to PDF — /files-media/jpg-to-pdf (coming soon)
+- PDF Splitter [coming soon] — /files-media/pdf-splitter
+- PDF Compressor [coming soon] — /files-media/pdf-compressor
+- PDF to Word [coming soon] — /files-media/pdf-to-word
+- Word to PDF [coming soon] — /files-media/word-to-pdf
+- PDF to JPG [coming soon] — /files-media/pdf-to-jpg
+- JPG to PDF [coming soon] — /files-media/jpg-to-pdf
 - Image Resizer — /files-media/image-resizer
 - Image Cropper — /files-media/image-cropper
 - JPG to PNG — /files-media/jpg-to-png
 - PNG to JPG — /files-media/png-to-jpg
 - WebP to JPG — /files-media/webp-to-jpg
-- HEIC to JPG — /files-media/heic-to-jpg (coming soon)
+- HEIC to JPG [coming soon] — /files-media/heic-to-jpg
 - SVG to PNG — /files-media/svg-to-png
 - Image to Base64 — /files-media/image-to-base64
-- Background Remover — /files-media/background-remover (coming soon)
-- Video Compressor — /files-media/video-compressor (coming soon)
-- MP4 to MP3 — /files-media/mp4-to-mp3 (coming soon)
-- Video to GIF — /files-media/video-to-gif (coming soon)
-- Audio Converter — /files-media/audio-converter (coming soon)
+- PDF Signer — /files-media/pdf-signer
+- PDF OCR / Text Extractor — /files-media/pdf-ocr
+- PDF to Text — /files-media/pdf-to-text
+- GIF Maker — /files-media/gif-maker
+- Video Trimmer — /files-media/video-trimmer
+- Audio Trimmer — /files-media/audio-trimmer
+- Screenshot Annotator — /files-media/screenshot-annotator
+- Screenshot Beautifier — /files-media/screenshot-beautifier
+- Background Remover [coming soon] — /files-media/background-remover
+- Video Compressor [coming soon] — /files-media/video-compressor
+- MP4 to MP3 [coming soon] — /files-media/mp4-to-mp3
+- Video to GIF [coming soon] — /files-media/video-to-gif
+- Audio Converter [coming soon] — /files-media/audio-converter
 
 4. Design & Creative
-Colour, gradient, and visual tools for designers.
-- Sankey Diagram Generator — /design-creative/sankey-generator
+Palettes, contrast, gradients, and CSS you can preview and copy.
+14 tools (13 live, 1 coming soon)
+
 - Colour Palette Generator — /design-creative/colour-palette-generator
 - Contrast Checker — /design-creative/contrast-checker
 - Gradient Generator — /design-creative/gradient-generator
@@ -95,13 +126,18 @@ Colour, gradient, and visual tools for designers.
 - Favicon Generator — /design-creative/favicon-generator
 - Aspect Ratio Calculator — /design-creative/aspect-ratio-calculator
 - PX to REM Converter — /design-creative/px-to-rem
-- Font Identifier — /design-creative/font-identifier (coming soon)
+- Font Identifier [coming soon] — /design-creative/font-identifier
 - Box Shadow Generator — /design-creative/box-shadow-generator
 - Border Radius Generator — /design-creative/border-radius-generator
+- CSS Grid Generator — /design-creative/css-grid-generator
+- Open Graph Image Generator — /design-creative/open-graph-image-generator
 
 5. Data Visualization
-Turn data into clean, shareable diagrams and charts.
+Paste a table and export a chart. Funnels, Gantt, bars, lines, pies, and simple diagrams.
+11 tools (11 live)
+
 - Funnel Chart — /data-viz/funnel-chart
+- Sankey Diagram Generator — /design-creative/sankey-generator
 - Gantt Chart — /data-viz/gantt-chart
 - Flowchart Generator — /data-viz/flowchart-generator
 - Bar Chart Generator — /data-viz/bar-chart-generator
@@ -109,16 +145,20 @@ Turn data into clean, shareable diagrams and charts.
 - Pie Chart Generator — /data-viz/pie-chart-generator
 - Timeline Generator — /data-viz/timeline-generator
 - Diagram Generator — /data-viz/diagram-generator
+- Scatter Plot Generator — /data-viz/scatter-plot
+- Waterfall Chart Generator — /data-viz/waterfall-chart
 
 6. Business Tools
-Invoices, quotes, and everyday business calculations.
+Invoices, quotes, fees, and margins from the numbers you enter.
+24 tools (23 live, 1 coming soon)
+
 - Invoice Generator — /business/invoice-generator
 - Quote Builder — /business/quote-builder
 - Margin Calculator — /business/margin-calculator
 - Resume Builder — /business/resume-builder
 - Cover Letter Generator — /business/cover-letter-generator
 - Receipt Generator — /business/receipt-generator
-- Link Shortener — /business/link-shortener (coming soon)
+- Link Shortener [coming soon] — /business/link-shortener
 - QR Code Generator — /business/qr-code-generator
 - Break-even Calculator — /business/break-even-calculator
 - Commission Calculator — /business/commission-calculator
@@ -135,9 +175,12 @@ Invoices, quotes, and everyday business calculations.
 - Fiverr Fee Calculator — /business/fiverr-fee-calculator
 - Gumroad Fee Calculator — /business/gumroad-fee-calculator
 - Kickstarter Fee Calculator — /business/kickstarter-fee-calculator
+- Resale Profit Calculator — /business/resale-profit-calculator
 
 7. Home & Trade
-Material estimates and tools for building and renovating.
+Paint, concrete, tiles, and material quantities from measurements you already have.
+19 tools (19 live)
+
 - Paint Calculator — /home-trade/paint-calculator
 - Material Estimator — /home-trade/material-estimator
 - Concrete Calculator — /home-trade/concrete-calculator
@@ -159,7 +202,9 @@ Material estimates and tools for building and renovating.
 - Construction Estimate Generator — /home-trade/construction-estimate-generator
 
 8. People & Teams
-Understand how you and your team actually work.
+Meetings, roles, and a short work-style quiz for working together.
+7 tools (7 live)
+
 - Work Style Quiz — /people-teams/work-style
 - Meeting Cost Calculator — /people-teams/meeting-cost
 - RACI Generator — /people-teams/raci-generator
@@ -169,7 +214,9 @@ Understand how you and your team actually work.
 - Team Icebreaker Generator — /people-teams/team-icebreaker
 
 9. Text Tools
-Count, clean, and compare text.
+Count, convert, clean, and compare text in the browser.
+13 tools (13 live)
+
 - Word Counter — /text-tools/word-counter
 - Diff Checker — /text-tools/diff-checker
 - Case Converter — /text-tools/case-converter
@@ -185,7 +232,9 @@ Count, clean, and compare text.
 - Text Cleaner — /text-tools/text-cleaner
 
 10. Everyday & Fun
-Small, useful tools for everyday moments.
+Timers, pickers, dice, and other small helpers.
+16 tools (16 live)
+
 - Dice Roller — /everyday-fun/dice-roller
 - Age Calculator — /everyday-fun/age-calculator
 - Countdown — /everyday-fun/countdown
@@ -198,24 +247,38 @@ Small, useful tools for everyday moments.
 - Cooking Timer — /everyday-fun/cooking-timer
 - Recipe Scaler — /everyday-fun/recipe-scaler
 - World Clock — /everyday-fun/world-clock
+- Time Zone Meeting Planner — /everyday-fun/time-zone-meeting-planner
+- Social Battery Check-in — /everyday-fun/social-battery-checkin
+- Screen Time Audit — /everyday-fun/screen-time-audit
+- Carbon Footprint Estimator — /everyday-fun/carbon-footprint-estimator
 
 11. Gaming & Hardware
-Test your gear and convert the numbers players actually use.
-- Online Gamepad Tester — /gaming-hardware/gamepad-tester
+Hardware testers, and calculators for the number a player needs.
+17 tools (17 live)
+
+- Gamepad Tester — /gaming-hardware/gamepad-tester
 - Keyboard Tester — /gaming-hardware/keyboard-tester
 - Mouse Tester — /gaming-hardware/mouse-tester
 - Reaction Time Test — /gaming-hardware/reaction-time
 - CPS Test — /gaming-hardware/cps-test
-- Gaming Sensitivity Converter — /gaming-hardware/sensitivity-converter
+- Sensitivity Converter — /gaming-hardware/sensitivity-converter
 - eDPI Calculator — /gaming-hardware/edpi-calculator
+- FOV Calculator — /gaming-hardware/fov-calculator
 - Monitor PPI Calculator — /gaming-hardware/monitor-ppi-calculator
 - Refresh Rate Tester — /gaming-hardware/refresh-rate-tester
 - Controller Dead-Zone Tester — /gaming-hardware/dead-zone-tester
 - Screen PPI Calculator — /gaming-hardware/screen-ppi-calculator
 - Battery Runtime Calculator — /gaming-hardware/battery-runtime-calculator
+- Loot Box Expected Value — /gaming-hardware/loot-box-calculator
+- PC Build Cost Estimator — /gaming-hardware/pc-build-cost-estimator
+- Steam Library Spend Calculator — /gaming-hardware/library-value-calculator
+- Esports Bracket Generator — /gaming-hardware/bracket-generator
 
 12. Crypto
-Profit, size, and yield from figures you type in. No wallet and no live prices.
+Profit, position size, and staking from numbers you type. The scanner shows its source and time. No wallet.
+13 tools (13 live)
+
+- Crypto Momentum Scanner — /crypto/crypto-momentum-scanner
 - Crypto Profit Calculator — /crypto/crypto-profit-calculator
 - Crypto DCA Calculator — /crypto/crypto-dca-calculator
 - Crypto Staking Calculator — /crypto/crypto-staking-calculator
@@ -226,3 +289,26 @@ Profit, size, and yield from figures you type in. No wallet and no live prices.
 - Crypto Converter — /crypto/crypto-converter
 - Impermanent Loss Calculator — /crypto/impermanent-loss-calculator
 - Bitcoin Halving Countdown — /crypto/bitcoin-halving-countdown
+- Crypto Tax Gain/Loss Calculator — /crypto/crypto-tax-calculator
+- Crypto DCA Backtest Calculator — /crypto/crypto-dca-backtest-calculator
+
+13. Creator Tools
+Rate cards, engagement, and posting windows. Starting points, not a promise of reach or income.
+7 tools (7 live)
+
+- Creator Rate Card Calculator — /creator/rate-card-calculator
+- Engagement Rate Calculator — /creator/engagement-rate-calculator
+- Best Time to Post — /creator/best-time-to-post
+- Thread Formatter — /creator/thread-formatter
+- Thumbnail A/B Preview — /creator/thumbnail-preview
+- Username Availability Checker — /creator/username-checker
+- Bio-Link Page Builder — /creator/bio-link-builder
+
+14. AI Tools
+Token counts and cost estimates from published prices, with the date those prices were checked.
+4 tools (4 live)
+
+- AI API Cost Calculator — /ai-tools/api-cost-calculator
+- Prompt Token Counter — /ai-tools/token-counter
+- AI Coding Tool Cost Calculator — /ai-tools/coding-tool-cost-calculator
+- Prompt Library — /ai-tools/prompt-library

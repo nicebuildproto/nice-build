@@ -12,6 +12,7 @@ import {
   useReducedMotion,
 } from "@/components/everyday/kit"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { clampCount, clampSides, diceCountMax, diceSidePresets, formatRoll, rollDie } from "@/lib/dice/roll"
 import { cn } from "@/lib/utils"
 import { Minus, Plus } from "lucide-react"
@@ -30,6 +31,7 @@ const pipSets: Record<number, number[]> = {
 
 export function DiceRoller() {
   const [sides, setSides] = useState(6)
+  const [sidesText, setSidesText] = useState("6")
   const [dice, setDice] = useState<Die[]>([
     { id: 1, face: 5 },
     { id: 2, face: 3 },
@@ -110,6 +112,7 @@ export function DiceRoller() {
     if (busy) return
     const value = clampSides(next)
     setSides(value)
+    setSidesText(String(value))
     setDice((current) => current.map((die) => ({ ...die, face: Math.min(die.face, value) })))
     setTotal(null)
   }
@@ -131,6 +134,24 @@ export function DiceRoller() {
         value={String(sides)}
         onChange={(value) => changeSides(Number(value))}
       />
+      <label className="mt-4 flex max-w-[8rem] flex-col gap-2 text-[13px] text-[var(--nb-secondary)]">
+        Custom sides
+        <Input
+          inputMode="numeric"
+          min={2}
+          max={100}
+          value={sidesText}
+          disabled={busy}
+          onChange={(event) => {
+            const raw = event.target.value
+            setSidesText(raw)
+            const value = Number(raw)
+            if (Number.isInteger(value) && value >= 2 && value <= 100) changeSides(value)
+          }}
+          onBlur={() => setSidesText(String(sides))}
+          className="h-10 tabular-nums"
+        />
+      </label>
 
       <div className="flex flex-wrap items-center justify-center gap-4 py-8">
         {dice.map((die) => (
@@ -197,6 +218,7 @@ export function DiceRoller() {
             onClick={() => {
               window.clearTimeout(timer.current)
               setSides(6)
+              setSidesText("6")
               setDice([
                 { id: 1, face: 1 },
                 { id: 2, face: 1 },
@@ -208,7 +230,8 @@ export function DiceRoller() {
           />
         </ActionBar>
         <Note>
-          Each face is equally likely. Rolls use the browser’s cryptographic random source, not a fake shuffle.
+          {total === null ? "The opening faces are an example until you roll. " : ""}
+          Each face is equally likely. Rolls use the browser’s cryptographic random source.
         </Note>
         <History items={history} label="Recent rolls" />
       </div>
@@ -236,7 +259,7 @@ function DieFace({
       aria-label={rolling ? "Die rolling" : `Die showing ${face} on a d${sides}. Roll this die again.`}
       className={cn(
         "grid size-24 place-items-center rounded-2xl border border-black/[0.08] bg-white text-[#111] shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-[opacity,transform] duration-150 ease-out disabled:cursor-default dark:border-white/15",
-        rolling ? "scale-[0.98] opacity-0" : "hover:border-black/20 dark:hover:border-white/40",
+        rolling ? "scale-[0.98] opacity-60" : "hover:border-black/20 dark:hover:border-white/40",
       )}
     >
       {pips ? (

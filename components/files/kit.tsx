@@ -201,13 +201,16 @@ export function FileDropzone({
     (list: File[]) => {
       const files = list.filter(Boolean)
       if (!files.length) return
-      const rejected = files.map((file) => rejectReason(file, accept, maxBytes)).find(Boolean)
-      if (rejected) {
-        setNote(rejected)
-        return
+      const accepted: File[] = []
+      const notes: string[] = []
+      for (const file of files) {
+        const reason = rejectReason(file, accept, maxBytes)
+        if (reason) notes.push(reason)
+        else accepted.push(file)
       }
-      setNote(null)
-      onFiles(multiple ? files : [files[0]])
+      setNote(notes.length ? notes.slice(0, 2).join(" ") : null)
+      if (!accepted.length) return
+      onFiles(multiple ? accepted : [accepted[0]])
     },
     [accept, maxBytes, multiple, onFiles],
   )
@@ -258,6 +261,7 @@ export function FileDropzone({
           type="file"
           accept={accept}
           multiple={multiple}
+          aria-label={prompt}
           className="sr-only"
           onChange={(event) => {
             take(Array.from(event.target.files ?? []))
@@ -265,7 +269,11 @@ export function FileDropzone({
           }}
         />
       </label>
-      {note ? <p className="text-sm text-destructive">{note}</p> : null}
+      {note ? (
+        <p className="text-sm text-destructive" role="alert">
+          {note}
+        </p>
+      ) : null}
     </div>
   )
 }
@@ -274,6 +282,7 @@ export function FileCard({
   name,
   meta,
   previewUrl,
+  beforeUrl,
   previewAlt,
   onRemove,
   children,
@@ -281,13 +290,28 @@ export function FileCard({
   name: string
   meta?: string
   previewUrl?: string
+  beforeUrl?: string
   previewAlt?: string
   onRemove?: () => void
   children?: ReactNode
 }) {
+  const compare = Boolean(beforeUrl && previewUrl)
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-border p-3 sm:flex-row sm:items-center">
-      {previewUrl ? (
+      {compare ? (
+        <div className="flex shrink-0 gap-2">
+          <figure className="flex flex-col gap-1">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={beforeUrl} alt="" className="h-16 w-16 rounded-lg object-cover" />
+            <figcaption className="text-[10px] text-[var(--nb-secondary)]">Original</figcaption>
+          </figure>
+          <figure className="flex flex-col gap-1">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={previewUrl} alt={previewAlt ?? name} className="h-16 w-16 rounded-lg object-cover" />
+            <figcaption className="text-[10px] text-[var(--nb-secondary)]">Result</figcaption>
+          </figure>
+        </div>
+      ) : previewUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={previewUrl} alt={previewAlt ?? name} className="h-16 w-16 shrink-0 rounded-lg object-cover" />
       ) : null}

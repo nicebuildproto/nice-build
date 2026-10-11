@@ -1,7 +1,7 @@
 import { PageShell } from "@/components/site/PageShell"
 import { catalogGrid } from "@/components/site/frame"
 import { ToolCard } from "@/components/ToolCard"
-import { categories, getCategory, getToolsByCategory, isCategory } from "@/lib/registry"
+import { categories, getCategory, getFeaturedTools, getToolsByCategory, isCategory } from "@/lib/registry"
 import { titleSuffix } from "@/lib/site"
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
@@ -33,6 +33,9 @@ export default async function CategoryPage({ params }: PageProps<"/category/[slu
   if (!category) notFound()
 
   const tools = getToolsByCategory(category.key)
+  const featured = getFeaturedTools(category.key, 3)
+  const rest = tools.filter((tool) => !featured.some((item) => item.slug === tool.slug))
+  const heading = "text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase"
 
   return (
     <PageShell backHref="/">
@@ -46,12 +49,33 @@ export default async function CategoryPage({ params }: PageProps<"/category/[slu
       </header>
 
       {tools.length === 0 ? (
-        <p className="text-sm text-[var(--nb-secondary)]">Nothing here yet.</p>
+        <p className="text-sm text-[var(--nb-secondary)]">No tools in this category yet.</p>
       ) : (
-        <div className={catalogGrid}>
-          {tools.map((tool) => (
-            <ToolCard key={tool.slug} tool={tool} />
-          ))}
+        <div className="flex flex-col gap-12">
+          {featured.length > 0 ? (
+            <section className="flex flex-col gap-4" aria-labelledby={`${category.key}-featured`}>
+              <h2 id={`${category.key}-featured`} className={heading}>
+                Featured tools
+              </h2>
+              <div className={catalogGrid}>
+                {featured.map((tool) => (
+                  <ToolCard key={tool.slug} tool={tool} />
+                ))}
+              </div>
+            </section>
+          ) : null}
+          {rest.length > 0 ? (
+            <section className="flex flex-col gap-4" aria-labelledby={`${category.key}-all`}>
+              <h2 id={`${category.key}-all`} className={heading}>
+                All tools
+              </h2>
+              <div className={catalogGrid}>
+                {rest.map((tool) => (
+                  <ToolCard key={tool.slug} tool={tool} />
+                ))}
+              </div>
+            </section>
+          ) : null}
         </div>
       )}
     </PageShell>

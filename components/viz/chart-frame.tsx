@@ -27,11 +27,12 @@ export const ChartFrame = forwardRef<
       ref={ref}
       viewBox={`0 0 ${width} ${total}`}
       width="100%"
-      role="img"
+      overflow="visible"
+      role="group"
       aria-label={description || title || "Chart"}
-      style={{ background: theme.background, maxHeight: 560 }}
+      data-export-background={theme.background}
+      style={{ background: "transparent", overflow: "visible" }}
     >
-      <rect width={width} height={total} fill={theme.background} />
       {title ? (
         <text
           x={24}

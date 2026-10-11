@@ -77,3 +77,22 @@ export function clamp(value: number, min: number, max: number) {
   if (!Number.isFinite(value)) return min
   return Math.min(max, Math.max(min, value))
 }
+
+export function takeBatch<T>(items: T[], currentCount: number, limit: number) {
+  const room = Math.max(0, limit - currentCount)
+  return { accepted: items.slice(0, room), skipped: Math.max(0, items.length - room) }
+}
+
+export function batchLimitNote(skipped: number, limit: number, noun: string) {
+  if (skipped <= 0) return null
+  return `Only ${limit} ${noun} at a time. ${skipped} not added.`
+}
+
+export function explainPdfError(error: unknown, fallback = "This file could not be read as a PDF. It may be damaged.") {
+  const message = error instanceof Error ? error.message : ""
+  if (/encrypt|password/i.test(message)) {
+    return "This PDF is password-protected. Remove the password, then try again."
+  }
+  if (/could not be read|password-protected|at least two/i.test(message)) return message
+  return fallback
+}

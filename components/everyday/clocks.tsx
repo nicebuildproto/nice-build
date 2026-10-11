@@ -23,35 +23,57 @@ export function WorldClock() {
   const localDate = mounted
     ? new Intl.DateTimeFormat("en-AU", { weekday: "short", day: "numeric", month: "short" }).format(now)
     : ""
+  const cities = mounted ? citiesForDevice() : worldCities
+  const copy = mounted
+    ? cities
+        .map((city) => {
+          const shown = formatWorldClock(now, city.zone)
+          return `${city.city} · ${shown.offset} · ${shown.time} · ${shown.date}`
+        })
+        .join("\n")
+    : ""
 
   return (
     <EverydayToolShell>
       <Note>Times follow this device’s clock, including daylight saving in each zone.</Note>
       <div className="grid gap-6 sm:grid-cols-2">
-        {worldCities.map((city) => {
+        {cities.map((city) => {
           const shown = mounted ? formatWorldClock(now, city.zone) : null
-          const otherDay = shown ? shown.date !== localDate : false
           return (
-            <div key={city.zone}>
+            <div key={`${city.city}-${city.zone}`}>
               <div className="text-xs text-[var(--nb-secondary)]">
                 {city.city}
                 {shown?.offset ? ` · ${shown.offset}` : ""}
               </div>
               <div className="mt-1 text-3xl font-semibold tabular-nums">{shown?.time ?? "—"}</div>
-              {otherDay ? <div className="mt-1 text-xs text-[var(--nb-secondary)]">{shown.date}</div> : null}
+              {shown && shown.date !== localDate ? (
+                <div className="mt-1 text-xs text-[var(--nb-secondary)]">{shown.date}</div>
+              ) : null}
             </div>
           )
         })}
       </div>
+      <ActionBar>
+        <CopyButton text={copy} label="Copy times" />
+      </ActionBar>
     </EverydayToolShell>
   )
 }
 
+function citiesForDevice() {
+  const zone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  if (!zone || worldCities.some((city) => city.zone === zone)) return worldCities
+  return [{ city: "Here", zone }, ...worldCities]
+}
+
 export function TimeZoneMeetingPlanner() {
-  const [date, setDate] = useState(localDateValue)
+  const [date, setDate] = useState("")
+  useEffect(() => {
+    setDate(localDateValue())
+  }, [])
   const [zones, setZones] = useState(["syd", "lon", "nyc"])
   const [pick, setPick] = useState("tok")
-  const rows = useMemo(() => plannerGrid(date, zones), [date, zones])
+  const rows = useMemo(() => (date ? plannerGrid(date, zones) : []), [date, zones])
   const overlap = useMemo(() => overlapHours(rows), [rows])
   const overlapLabel = overlap.length
     ? overlap.map((hour) => formatHour(hour)).join(", ")
@@ -115,9 +137,12 @@ export function TimeZoneMeetingPlanner() {
           </button>
         ))}
       </div>
-      {rows.length ? (
+      {!date ? (
+        <Note>Setting today’s date…</Note>
+      ) : rows.length ? (
         <div className="overflow-x-auto rounded-xl border border-border">
           <table className="min-w-[720px] w-full border-collapse text-[12px]">
+            <caption className="sr-only">Local hours. The first city sets the hours along the top.</caption>
             <thead>
               <tr className="bg-[var(--nb-accent)] text-left">
                 <th className="sticky left-0 bg-[var(--nb-accent)] px-2 py-2">City</th>
@@ -136,7 +161,9 @@ export function TimeZoneMeetingPlanner() {
                 <tr key={row.city.id} className="border-t border-border">
                   <th className="sticky left-0 bg-background px-2 py-2 text-left font-medium">
                     {row.city.city}
-                    {rowIndex === 0 ? <span className="block text-[10px] font-normal text-[var(--nb-secondary)]">grid</span> : null}
+                    {rowIndex === 0 ? (
+                      <span className="block text-[10px] font-normal text-[var(--nb-secondary)]">times along the top</span>
+                    ) : null}
                   </th>
                   {row.cells.map((cell) => (
                     <td
@@ -159,11 +186,13 @@ export function TimeZoneMeetingPlanner() {
       ) : (
         <Note>Add at least one city.</Note>
       )}
-      <Note>
-        {overlap.length
-          ? `Overlap in everyone’s 9:00–17:00: ${overlapLabel} (times in the first city).`
-          : "No hour sits inside 9:00–17:00 for every city. Try fewer places, or look for the paler local-work cells."}
-      </Note>
+      {date ? (
+        <Note>
+          {overlap.length
+            ? `Overlap in everyone’s 9:00–17:00: ${overlapLabel} (times in the first city).`
+            : "No hour sits inside 9:00–17:00 for every city. Try fewer places, or look for the paler local-work cells."}
+        </Note>
+      ) : null}
       <ActionBar>
         <CopyButton text={copy} label="Copy overlap" />
         <ResetButton

@@ -1,6 +1,7 @@
 "use client"
 
 import { CopyButton, FileDrop, TextArea } from "@/components/tools/ui"
+import { safeHref, threadPosts } from "@/lib/creator/thread"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react"
@@ -14,15 +15,18 @@ function uid() {
 
 export { BracketGenerator } from "@/components/gaming/views"
 
+const threadSample =
+  "A longer note that should break into numbered posts so each one stays inside the platform limit, with the count included. The number at the start of each post counts toward the cap, so the words stop earlier than a raw cut. Paste the cards into X or Threads yourself. Nothing on this page posts for you, and the 280 and 500 caps are the ones written here rather than a live read of either platform."
+
 export function ThreadFormatter() {
   const [platform, setPlatform] = useState<"x" | "threads">("x")
-  const [text, setText] = useState("A longer note that should break into numbered posts so each one stays inside the platform limit, with the count included.")
+  const [text, setText] = useState(threadSample)
   const limit = platform === "x" ? 280 : 500
-  const chunks = useMemo(() => splitThread(text, limit), [limit, text])
+  const posts = useMemo(() => threadPosts(text, limit), [limit, text])
   return (
     <div className="flex flex-col gap-6">
       <p className="max-w-xl text-sm leading-relaxed text-[var(--nb-secondary)]">
-        Paste a long note and split it into posts. X uses 280 characters and Threads uses 500. Each card is numbered 1/N, and that prefix counts toward the limit. Copy a card when you are ready to paste it.
+        Paste a long note and split it into posts. X uses 280 characters and Threads uses 500. Those caps are the ones on this page, not a live read of the platform. Each card is numbered 1/N, and that prefix counts toward the limit.
       </p>
       <label className="flex max-w-xs flex-col gap-2 text-[13px]">
         Platform
@@ -32,56 +36,37 @@ export function ThreadFormatter() {
         </select>
       </label>
       <TextArea label="Text" value={text} onChange={setText} rows={8} />
+      {posts.length === 0 ? <p className="text-sm text-[var(--nb-secondary)]">Paste a note to split it.</p> : null}
       <div className="flex flex-col gap-3">
-        {chunks.map((chunk) => (
-          <article key={chunk} className="flex flex-col gap-3 rounded-xl border border-border p-4">
-            <p className="text-sm leading-relaxed whitespace-pre-wrap">{chunk}</p>
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-xs text-[var(--nb-secondary)] tabular-nums">{chunk.length} characters</span>
-              <CopyButton text={chunk} />
+        {posts.map((post, index) => (
+          <article key={`${index}-${post.text}`} className="flex flex-col gap-3 rounded-xl border border-border p-4">
+            <p className="text-sm leading-relaxed whitespace-pre-wrap">{post.text}</p>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span className="text-xs text-[var(--nb-secondary)] tabular-nums">
+                {post.text.length} characters
+                {post.over ? " · over the limit, because one word is longer than the cap" : ""}
+              </span>
+              <CopyButton text={post.text} />
             </div>
           </article>
         ))}
       </div>
+      <div className="flex flex-wrap gap-2">
+        {posts.length > 0 ? <CopyButton text={posts.map((post) => post.text).join("\n\n")} label="Copy all" /> : null}
+        <Button type="button" variant="outline" className="h-10" onClick={() => setText(threadSample)}>
+          Reset
+        </Button>
+      </div>
     </div>
   )
-}
-
-function splitThread(text: string, limit: number) {
-  const words = text.trim().split(/\s+/).filter(Boolean)
-  if (!words.length) return []
-  let total = 1
-  let chunks = pack(words, limit, total)
-  let guard = 0
-  while (chunks.length !== total && guard < 20) {
-    total = chunks.length
-    chunks = pack(words, limit, total)
-    guard += 1
-  }
-  return chunks.map((body, index) => `${index + 1}/${chunks.length} ${body}`)
-}
-
-function pack(words: string[], limit: number, total: number) {
-  const chunks: string[] = []
-  let current: string[] = []
-  const prefix = (index: number) => `${index}/${total} `.length
-  let index = 1
-  for (const word of words) {
-    const next = [...current, word].join(" ")
-    if (prefix(index) + next.length > limit && current.length) {
-      chunks.push(current.join(" "))
-      current = [word]
-      index += 1
-    } else current.push(word)
-  }
-  if (current.length) chunks.push(current.join(" "))
-  return chunks
 }
 
 export function ThumbnailPreview() {
   const [title, setTitle] = useState("Saturday build log")
   const [channel, setChannel] = useState("Nice Tools")
   const [views, setViews] = useState("12K")
+  const [fit, setFit] = useState<"fill" | "fit">("fill")
+  const [dropKey, setDropKey] = useState(0)
   const [left, setLeft] = useState<string | null>(null)
   const [right, setRight] = useState<string | null>(null)
 
@@ -95,30 +80,53 @@ export function ThumbnailPreview() {
   return (
     <div className="flex flex-col gap-6">
       <p className="max-w-xl text-sm leading-relaxed text-[var(--nb-secondary)]">
-        Upload two images and see them side by side in a plain video-feed mock. The title, channel, and view count are placeholders you can edit. Nothing is uploaded.
+        Compare two stills in a plain 16:9 frame. Fill crops the image to the frame. Fit shows the whole image with empty space. The title, channel, and view count are placeholders. Nothing is uploaded.
       </p>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <label className="flex flex-col gap-2 text-[13px]">
           Title
-          <Input value={title} onChange={(event) => setTitle(event.target.value)} />
+          <Input value={title} onChange={(event) => setTitle(event.target.value)} className="h-11 sm:h-10" />
         </label>
         <label className="flex flex-col gap-2 text-[13px]">
           Channel
-          <Input value={channel} onChange={(event) => setChannel(event.target.value)} />
+          <Input value={channel} onChange={(event) => setChannel(event.target.value)} className="h-11 sm:h-10" />
         </label>
         <label className="flex flex-col gap-2 text-[13px]">
           Views
-          <Input value={views} onChange={(event) => setViews(event.target.value)} />
+          <Input value={views} onChange={(event) => setViews(event.target.value)} className="h-11 sm:h-10" />
+        </label>
+        <label className="flex flex-col gap-2 text-[13px]">
+          Frame
+          <select className={selectClass} value={fit} onChange={(event) => setFit(event.target.value as "fill" | "fit")}>
+            <option value="fill">Fill, cropped to 16:9</option>
+            <option value="fit">Fit, whole image</option>
+          </select>
         </label>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <FileDrop accept="image/*" idle="Thumbnail A" onFile={(file) => setLeft((current) => replaceUrl(current, file))} />
-        <FileDrop accept="image/*" idle="Thumbnail B" onFile={(file) => setRight((current) => replaceUrl(current, file))} />
+        <FileDrop key={`a-${dropKey}`} accept="image/*" idle="Thumbnail A" onFile={(file) => setLeft((current) => replaceUrl(current, file))} />
+        <FileDrop key={`b-${dropKey}`} accept="image/*" idle="Thumbnail B" onFile={(file) => setRight((current) => replaceUrl(current, file))} />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <FeedCard src={left} title={title} channel={channel} views={views} label="A" />
-        <FeedCard src={right} title={title} channel={channel} views={views} label="B" />
+        <FeedCard src={left} title={title} channel={channel} views={views} label="A" fit={fit} />
+        <FeedCard src={right} title={title} channel={channel} views={views} label="B" fit={fit} />
       </div>
+      <Button
+        type="button"
+        variant="outline"
+        className="h-10 w-fit"
+        onClick={() => {
+          setTitle("Saturday build log")
+          setChannel("Nice Tools")
+          setViews("12K")
+          setFit("fill")
+          setLeft(null)
+          setRight(null)
+          setDropKey((value) => value + 1)
+        }}
+      >
+        Reset
+      </Button>
     </div>
   )
 }
@@ -128,13 +136,27 @@ function replaceUrl(current: string | null, file: File) {
   return URL.createObjectURL(file)
 }
 
-function FeedCard({ src, title, channel, views, label }: { src: string | null; title: string; channel: string; views: string; label: string }) {
+function FeedCard({
+  src,
+  title,
+  channel,
+  views,
+  label,
+  fit,
+}: {
+  src: string | null
+  title: string
+  channel: string
+  views: string
+  label: string
+  fit: "fill" | "fit"
+}) {
   return (
     <article className="overflow-hidden rounded-xl border border-border">
       <div className="grid aspect-video place-items-center bg-[var(--nb-accent)] text-sm text-[var(--nb-secondary)]">
         {src ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={src} alt={`Thumbnail ${label}`} className="h-full w-full object-cover" />
+          <img src={src} alt={`Thumbnail ${label}`} className={fit === "fill" ? "h-full w-full object-cover" : "h-full w-full object-contain"} />
         ) : (
           `Thumbnail ${label}`
         )}
@@ -157,11 +179,19 @@ export function UsernameChecker() {
   const [error, setError] = useState<string | null>(null)
   const [results, setResults] = useState<{ id: string; label: string; status: CheckStatus }[] | null>(null)
 
+  const cleaned = name.trim().replace(/^@/, "")
+  const valid = /^[A-Za-z0-9._]{1,30}$/.test(cleaned)
+
   async function check() {
+    if (!valid) {
+      setResults(null)
+      setError("Use 1–30 letters, numbers, dots, or underscores.")
+      return
+    }
     setPending(true)
     setError(null)
     try {
-      const response = await fetch(`/api/username?u=${encodeURIComponent(name.trim())}`)
+      const response = await fetch(`/api/username?u=${encodeURIComponent(cleaned)}`)
       const data = (await response.json()) as { error?: string; results?: { id: string; label: string; status: CheckStatus }[] }
       if (!response.ok) {
         setResults(null)
@@ -183,9 +213,21 @@ export function UsernameChecker() {
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex min-w-56 flex-1 flex-col gap-2 text-[13px]">
           Username
-          <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="nicebuild" />
+          <Input
+            value={name}
+            onChange={(event) => {
+              setName(event.target.value)
+              setResults(null)
+              setError(null)
+            }}
+            placeholder="nicebuild"
+            className="h-11 sm:h-10"
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
+          />
         </label>
-        <Button type="button" className="h-10" disabled={pending} onClick={() => void check()}>
+        <Button type="button" className="h-11 sm:h-10" disabled={pending || !valid} onClick={() => void check()}>
           {pending ? "Checking" : "Check"}
         </Button>
       </div>
@@ -195,7 +237,7 @@ export function UsernameChecker() {
           {results.map((row) => (
             <li key={row.id} className="flex justify-between gap-4 border-b border-border py-2">
               <span>{row.label}</span>
-              <span className="text-[var(--nb-secondary)]">{row.status === "unknown" ? "Couldn't check" : row.status === "taken" ? "Taken" : "Looks free"}</span>
+              <span>{row.status === "unknown" ? "Couldn't check" : row.status === "taken" ? "Taken" : "Looks free — confirm on the signup form"}</span>
             </li>
           ))}
         </ul>
@@ -204,12 +246,14 @@ export function UsernameChecker() {
   )
 }
 
+const starterLinks = [
+  { id: "site", label: "Site", href: "https://example.com" },
+  { id: "news", label: "Newsletter", href: "https://example.com/news" },
+]
+
 export function BioLinkBuilder() {
   const [title, setTitle] = useState("Nice Tools")
-  const [links, setLinks] = useState([
-    { id: uid(), label: "Site", href: "https://example.com" },
-    { id: uid(), label: "Newsletter", href: "https://example.com/news" },
-  ])
+  const [links, setLinks] = useState(starterLinks)
   const html = bioHtml(title, links)
   return (
     <div className="flex flex-col gap-6">
@@ -218,34 +262,53 @@ export function BioLinkBuilder() {
       </p>
       <label className="flex flex-col gap-2 text-[13px]">
         Title
-        <Input value={title} onChange={(event) => setTitle(event.target.value)} />
+        <Input value={title} onChange={(event) => setTitle(event.target.value)} className="h-11 sm:h-10" />
       </label>
-      {links.map((link) => (
+      {links.map((link, index) => (
         <div key={link.id} className="grid gap-2 sm:grid-cols-[1fr_1.4fr_auto]">
-          <Input value={link.label} placeholder="Label" onChange={(event) => setLinks((current) => current.map((item) => (item.id === link.id ? { ...item, label: event.target.value } : item)))} />
-          <Input value={link.href} placeholder="https://" onChange={(event) => setLinks((current) => current.map((item) => (item.id === link.id ? { ...item, href: event.target.value } : item)))} />
-          <Button type="button" variant="outline" className="h-10" onClick={() => setLinks((current) => current.filter((item) => item.id !== link.id))}>
+          <Input aria-label={`Label ${index + 1}`} value={link.label} placeholder="Label" className="h-11 sm:h-10" onChange={(event) => setLinks((current) => current.map((item) => (item.id === link.id ? { ...item, label: event.target.value } : item)))} />
+          <Input aria-label={`Address ${index + 1}`} value={link.href} placeholder="https://" className="h-11 sm:h-10" onChange={(event) => setLinks((current) => current.map((item) => (item.id === link.id ? { ...item, href: event.target.value } : item)))} />
+          <Button type="button" variant="outline" className="h-11 sm:h-10" onClick={() => setLinks((current) => current.filter((item) => item.id !== link.id))}>
             Remove
           </Button>
         </div>
       ))}
       <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="outline" className="h-10" onClick={() => setLinks((current) => [...current, { id: uid(), label: "", href: "" }])}>
+        <Button type="button" variant="outline" className="h-11 sm:h-10" onClick={() => setLinks((current) => [...current, { id: uid(), label: "", href: "" }])}>
           Add link
         </Button>
         <CopyButton text={html} label="Copy HTML" />
-        <Button type="button" variant="outline" className="h-10" onClick={() => downloadHtml(html)}>
+        <Button type="button" variant="outline" className="h-11 sm:h-10" onClick={() => downloadHtml(html)}>
           Download HTML
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 sm:h-10"
+          onClick={() => {
+            setTitle("Nice Tools")
+            setLinks(starterLinks)
+          }}
+        >
+          Reset
         </Button>
       </div>
       <div className="mx-auto w-full max-w-sm rounded-2xl border border-border bg-[var(--nb-accent)] p-6">
         <h2 className="text-center text-xl font-semibold">{title || "Links"}</h2>
         <div className="mt-4 flex flex-col gap-2">
-          {links.filter((link) => link.label.trim()).map((link) => (
-            <a key={link.id} href={link.href || "#"} className="rounded-xl border border-border bg-background px-3 py-3 text-center text-sm">
-              {link.label}
-            </a>
-          ))}
+          {links.filter((link) => link.label.trim()).map((link) => {
+            const href = safeHref(link.href)
+            return href ? (
+              <a key={link.id} href={href} className="rounded-xl border border-border bg-background px-3 py-3 text-center text-sm">
+                {link.label}
+              </a>
+            ) : (
+              <p key={link.id} className="rounded-xl border border-dashed border-border px-3 py-3 text-center text-sm text-[var(--nb-secondary)]">
+                {link.label}
+                <span className="mt-1 block text-xs">Add an http or mailto address to make this a link.</span>
+              </p>
+            )
+          })}
         </div>
       </div>
     </div>
@@ -255,7 +318,10 @@ export function BioLinkBuilder() {
 function bioHtml(title: string, links: { label: string; href: string }[]) {
   const items = links
     .filter((link) => link.label.trim())
-    .map((link) => `<a href="${escapeAttr(link.href)}">${escapeText(link.label)}</a>`)
+    .map((link) => {
+      const href = safeHref(link.href)
+      return href ? `<a href="${escapeAttr(href)}">${escapeText(link.label)}</a>` : `<p>${escapeText(link.label)}</p>`
+    })
     .join("\n")
   return `<!doctype html>
 <html lang="en">

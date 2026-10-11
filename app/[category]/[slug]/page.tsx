@@ -1,16 +1,22 @@
 import { SoftwareApplicationJsonLd } from "@/components/seo/SoftwareApplicationJsonLd"
+import { StageBackProvider } from "@/components/stage/chrome"
+import { siteContainer } from "@/components/site/frame"
 import { PageShell } from "@/components/site/PageShell"
+import { SiteFooter } from "@/components/site/SiteFooter"
+import { SiteHeader } from "@/components/site/SiteHeader"
 import { ToolGuide } from "@/components/tools/ToolGuide"
 import { toolViews } from "@/components/tools/views"
 import { registry } from "@/lib/registry"
 import { siteUrl, titleSuffix } from "@/lib/site"
+import { cn } from "@/lib/utils"
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
+import type { ComponentType } from "react"
 
 export function generateStaticParams() {
   return Object.keys(toolViews).flatMap((slug) => {
     const tool = registry.find((item) => item.slug === slug)
-    if (!tool) return []
+    if (!tool || tool.route !== `/${tool.category}/${tool.slug}`) return []
     return [{ category: tool.category, slug }]
   })
 }
@@ -50,6 +56,33 @@ export default async function SimpleToolPage({
   if (!tool || !view) notFound()
 
   const View = view.View
+
+  if (view.stage) {
+    const StageView = View as ComponentType<{ title: string }>
+    return (
+      <>
+        <SoftwareApplicationJsonLd
+          name={tool.title}
+          description={tool.description}
+          path={tool.route}
+          webApplication={tool.slug === "crypto-momentum-scanner"}
+        />
+        <div className="flex min-h-full flex-1 flex-col">
+          <SiteHeader backHref={`/category/${tool.category}`} />
+          <StageBackProvider href={`/category/${tool.category}`}>
+            <StageView title={tool.title} />
+          </StageBackProvider>
+          <main className={cn(siteContainer, "pt-10 pb-20 sm:pt-14 sm:pb-24")}>
+            <p id="how-it-works" className="max-w-xl scroll-mt-24 text-sm text-[var(--nb-secondary)]">
+              {tool.description}
+            </p>
+            <ToolGuide slug={tool.slug} />
+          </main>
+          <SiteFooter />
+        </div>
+      </>
+    )
+  }
 
   return (
     <>

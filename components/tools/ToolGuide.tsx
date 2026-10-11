@@ -1,6 +1,7 @@
+import { catalogGrid } from "@/components/site/frame"
+import { ToolCard } from "@/components/ToolCard"
 import { registry, type ToolEntry } from "@/lib/registry"
 import { toolGuides } from "@/lib/tools/guides"
-import Link from "next/link"
 
 const heading = "text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase"
 
@@ -47,16 +48,11 @@ export function ToolGuide({ slug }: { slug: string }) {
           <h2 id={`${slug}-related`} className={heading}>
             {tool.category === "calculators" ? "Related calculators" : "Related tools"}
           </h2>
-          <ul className="flex flex-col gap-2">
-            {related.map((item) => (
-              <li key={item.slug}>
-                <Link href={item.route} className="text-[13px] text-[var(--nb-primary)] underline-offset-4 hover:underline">
-                  {item.title}
-                </Link>
-                <p className="text-[13px] text-[var(--nb-secondary)]">{item.description}</p>
-              </li>
+          <div className={catalogGrid}>
+            {related.slice(0, 4).map((item) => (
+              <ToolCard key={item.slug} tool={item} />
             ))}
-          </ul>
+          </div>
         </aside>
       ) : null}
     </>
@@ -70,7 +66,7 @@ function relatedTools(tool: ToolEntry) {
       .filter((item): item is ToolEntry => Boolean(item))
   }
   const live = registry.filter((item) => item.status === "live" && item.slug !== tool.slug)
-  if (tool.cluster) return live.filter((item) => item.cluster === tool.cluster)
+  if (tool.cluster) return live.filter((item) => item.cluster === tool.cluster).slice(0, 4)
   const sameCategory = registry.filter(
     (item) => item.status === "live" && item.category === tool.category && item.slug !== tool.slug,
   )

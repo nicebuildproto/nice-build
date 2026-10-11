@@ -1,11 +1,11 @@
-import { vizThemes, type VizTheme, type VizThemeId } from "./themes"
+import { stageById, stageSurfaces, themeById, type StageTone, type VizTheme, type VizThemeId } from "./themes"
 
 export type LegendPosition = "bottom" | "right" | "none"
 export type LabelWeight = 400 | 500 | 600
 
 export type VizStyle = {
   theme: VizThemeId
-  background: string
+  stage: StageTone
   showValues: boolean
   showLabels: boolean
   showPercent: boolean
@@ -19,8 +19,8 @@ export type VizStyle = {
 }
 
 export const defaultVizStyle: VizStyle = {
-  theme: "default",
-  background: "#ffffff",
+  theme: "ink",
+  stage: "white",
   showValues: true,
   showLabels: true,
   showPercent: true,
@@ -34,8 +34,19 @@ export const defaultVizStyle: VizStyle = {
 }
 
 export function resolveTheme(style: VizStyle): VizTheme {
-  const theme = vizThemes[style.theme]
-  return { ...theme, background: style.background || theme.background }
+  const theme = themeById(style.theme)
+  const stage = stageSurfaces[stageById(style.stage)]
+  return {
+    ...theme,
+    background: stage.background,
+    ink: stage.ink,
+    muted: stage.muted,
+    grid: stage.grid,
+    dot: stage.dot,
+    axis: stage.axis,
+    border: stage.border,
+    selected: stage.ink,
+  }
 }
 
 export type VizMeta = {

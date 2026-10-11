@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { CopyButton, ResetButton, selectClass } from "@/components/tools/ui"
 import { downloadBytes, downloadText } from "@/lib/tools/download"
-import { formatBytes, withSuffix } from "@/lib/files/format"
+import { batchLimitNote, explainPdfError, formatBytes, takeBatch, withSuffix } from "@/lib/files/format"
 import { mergePdfBytes, pageCount } from "@/lib/files/pdf"
 import { extractPdfText, looksScanned, openPdf, renderPage } from "@/lib/pdf/client"
 import { PDFDocument } from "pdf-lib"
@@ -39,22 +39,24 @@ export function PdfMerger() {
   const [items, setItems] = useState<MergeItem[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [resultName, setResultName] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+  const [result, setResult] = useState<{ bytes: Uint8Array; name: string; pages: number } | null>(null)
 
   async function addFiles(files: File[]) {
     setError(null)
-    const incoming: MergeItem[] = files.map((file) => ({ id: uid(), file, pages: null }))
-    setItems((current) => {
-      const room = Math.max(0, 20 - current.length)
-      return [...current, ...incoming.slice(0, room)]
-    })
+    setResult(null)
+    const { accepted, skipped } = takeBatch(files, items.length, 20)
+    setNotice(batchLimitNote(skipped, 20, "PDFs"))
+    const incoming: MergeItem[] = accepted.map((file) => ({ id: uid(), file, pages: null }))
+    if (!incoming.length) return
+    setItems((current) => [...current, ...incoming])
     for (const item of incoming) {
       try {
         const pages = await pageCount(await item.file.arrayBuffer())
         setItems((current) => current.map((row) => (row.id === item.id ? { ...row, pages } : row)))
-      } catch {
+      } catch (err) {
         setItems((current) =>
-          current.map((row) => (row.id === item.id ? { ...row, error: "This file could not be read as a PDF." } : row)),
+          current.map((row) => (row.id === item.id ? { ...row, error: explainPdfError(err) } : row)),
         )
       }
     }
@@ -72,10 +74,10 @@ export function PdfMerger() {
       const buffers = await Promise.all(ready.map((item) => item.file.arrayBuffer()))
       const bytes = await mergePdfBytes(buffers)
       const name = withSuffix(ready[0].file.name, "-merged", "pdf")
-      downloadBytes(bytes, name, "application/pdf")
-      setResultName(name)
+      const pages = ready.reduce((sum, item) => sum + (item.pages ?? 0), 0)
+      setResult({ bytes, name, pages })
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not merge those PDFs.")
+      setError(explainPdfError(err, "Could not merge those PDFs."))
     } finally {
       setBusy(false)
     }
@@ -140,19 +142,35 @@ export function PdfMerger() {
           </ul>
         </Section>
       ) : null}
+      {notice ? <p className="text-sm text-[var(--nb-secondary)]">{notice}</p> : null}
       <IssueList issues={error ? [error] : []} />
-      <StatusLine status={busy ? "processing" : resultName ? "complete" : "idle"}>
-        {busy ? "Merging in this browser…" : resultName ? `Saved as ${resultName}` : items.length ? `${items.length} files · ${totalPages} pages` : null}
+      <StatusLine status={busy ? "processing" : result ? "complete" : "idle"}>
+        {busy ? "Merging in this browser…" : items.length ? `${items.length} files · ${totalPages} pages` : null}
       </StatusLine>
+      {result ? (
+        <Section title="Result">
+          <ResultStats
+            items={[
+              { label: "Download", value: result.name },
+              { label: "Pages", value: String(result.pages || "—") },
+              { label: "Size", value: formatBytes(result.bytes.byteLength) },
+            ]}
+          />
+          <Button type="button" className="h-10 w-fit" onClick={() => downloadBytes(result.bytes, result.name, "application/pdf")}>
+            Download PDF
+          </Button>
+        </Section>
+      ) : null}
       <ActionBar>
         <Button type="button" className="h-10" disabled={busy || items.filter((item) => !item.error).length < 2} onClick={() => void merge()}>
-          {busy ? "Merging…" : "Merge and download"}
+          {busy ? "Merging…" : "Merge"}
         </Button>
         <ResetButton
           onClick={() => {
             setItems([])
             setError(null)
-            setResultName(null)
+            setNotice(null)
+            setResult(null)
           }}
         />
       </ActionBar>
@@ -304,17 +322,32 @@ export function PdfSigner() {
               onChange={(id) => setMode(id as typeof mode)}
             />
             {mode === "draw" ? (
-              <canvas
-                ref={drawRef}
-                width={640}
-                height={180}
-                aria-label="Draw a signature"
-                className="w-full max-w-xl cursor-crosshair rounded-xl border border-border bg-white touch-none"
-                onPointerDown={pointer}
-                onPointerMove={(event) => pointer(event)}
-                onPointerUp={(event) => pointer(event, true)}
-                onPointerLeave={(event) => pointer(event, true)}
-              />
+              <div className="flex flex-col gap-2">
+                <canvas
+                  ref={drawRef}
+                  width={640}
+                  height={180}
+                  aria-label="Draw a signature"
+                  className="h-auto w-full max-w-xl cursor-crosshair rounded-xl border border-border bg-white touch-none"
+                  onPointerDown={pointer}
+                  onPointerMove={(event) => pointer(event)}
+                  onPointerUp={(event) => pointer(event, true)}
+                  onPointerLeave={(event) => pointer(event, true)}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-9 w-fit"
+                  onClick={() => {
+                    const canvas = drawRef.current
+                    const context = canvas?.getContext("2d")
+                    if (canvas && context) context.clearRect(0, 0, canvas.width, canvas.height)
+                    setSignature(null)
+                  }}
+                >
+                  Clear drawing
+                </Button>
+              </div>
             ) : null}
             {mode === "type" ? (
               <div className="flex flex-wrap items-end gap-2">

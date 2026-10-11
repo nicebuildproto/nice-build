@@ -1,3 +1,4 @@
+import { positionSize, sameUnit, stakingYield, tradeProfit } from "@/lib/crypto/calc"
 import { addedSpecs } from "@/lib/tools/added-specs"
 import { parseJsonSource } from "@/lib/developer/json"
 import { money, num, percent } from "@/lib/tools/format"
@@ -1747,11 +1748,12 @@ export const toolSpecs: Record<string, ToolSpec> = {
     },
   },
   "crypto-profit-calculator": {
+    intro: "A buy then a sell. Every price is one you type, in whatever currency those prices use. There is no market feed.",
     columns: 2,
     fields: [
       number("quantity", "Quantity", "0.4"),
-      number("entry", "Entry price", "90000", "AUD"),
-      number("exit", "Exit price", "104000", "AUD"),
+      number("entry", "Entry price", "90000"),
+      number("exit", "Exit price", "104000"),
       number("fee", "Fee each side", "0.1", "%"),
     ],
     run: (values) => {
@@ -1760,83 +1762,118 @@ export const toolSpecs: Record<string, ToolSpec> = {
       const exit = read(values, "exit")
       const fee = read(values, "fee")
       if (quantity === null || entry === null || exit === null || fee === null) return null
-      const cost = quantity * entry
-      const proceeds = quantity * exit
-      const fees = (cost + proceeds) * (fee / 100)
-      const profit = proceeds - cost - fees
-      return stats([
-        ["Profit", money(profit)],
-        ["Return", cost ? `${num((profit / cost) * 100)}%` : "—"],
-      ])
+      if (quantity < 0) return { note: "Use a positive quantity. This page prices a buy, then a sell.", ok: false }
+      const result = tradeProfit(quantity, entry, exit, fee)
+      if (!result) return null
+      return stats(
+        [
+          ["Profit", sameUnit(result.profit), true],
+          ["Return on cost", result.returnPct === null ? "—" : `${num(result.returnPct)}%`],
+          ["Cost", sameUnit(result.cost)],
+          ["Proceeds", sameUnit(result.proceeds)],
+          ["Fees", sameUnit(result.fees)],
+        ],
+        { formula: "proceeds − cost − fee on each side", note: result.basis },
+      )
     },
   },
   "crypto-dca-calculator": {
     columns: 2,
     fields: [
-      number("each", "Each buy", "100", "AUD"),
+      number("each", "Each buy", "100"),
       number("buys", "Buys", "12"),
-      number("average", "Average price", "80", "AUD"),
-      number("current", "Current price", "110", "AUD"),
+      number("average", "Average price", "80"),
+      number("current", "Current price", "110"),
     ],
+    intro: "You supply the average price and the price to test. Nothing is read from a market, and fees are not included.",
     run: (values) => {
       const each = read(values, "each")
       const buys = read(values, "buys")
       const average = read(values, "average")
       const current = read(values, "current")
-      if (!each || !buys || !average || current === null) return null
+      if (each === null || buys === null || average === null || current === null) return null
+      if (each < 0 || buys < 0 || current < 0) return { note: "Use amounts and prices that are zero or above.", ok: false }
+      if (average <= 0) return { note: "Average price has to be above zero, or the coin count cannot be worked out.", ok: false }
       const invested = each * buys
       const coins = invested / average
       const value = coins * current
-      return stats([
-        ["Invested", money(invested)],
-        ["Value", money(value)],
-        ["Profit", money(value - invested)],
-      ])
+      return stats(
+        [
+          ["Profit", sameUnit(value - invested), true],
+          ["Value", sameUnit(value)],
+          ["Invested", sameUnit(invested)],
+          ["Coins", num(coins, 6)],
+        ],
+        { formula: "coins = invested ÷ average price; value = coins × current price", note: "Fees are not in this result. Subtract them yourself if the buys were charged." },
+      )
     },
   },
   "crypto-staking-calculator": {
+    intro: "The rate is whatever you type. Compounding applies only to an APR, and only when you choose it. An APY is not compounded again. Nothing is staked.",
     columns: 2,
-    fields: [number("amount", "Amount", "1000", "AUD"), number("apy", "APY", "5", "%"), number("days", "Days", "365"), check("compound", "Compound monthly")],
+    fields: [
+      number("amount", "Amount", "1000"),
+      select("kind", "Rate is", "apr", [["apr", "APR"], ["apy", "APY"]]),
+      number("rate", "Rate", "5", "%", null),
+      number("days", "Days", "365"),
+      select("compound", "Compounding", "none", [["none", "None"], ["12", "Monthly"], ["365", "Daily"]]),
+      number("fee", "Fee on the reward", "0", "%"),
+    ],
     run: (values) => {
       const amount = read(values, "amount")
-      const apy = read(values, "apy")
+      const rate = read(values, "rate")
       const days = read(values, "days")
-      if (amount === null || apy === null || days === null) return null
-      const earned = values.compound === "yes" ? amount * (1 + apy / 100 / 12) ** (days / 30.437) - amount : amount * (apy / 100) * (days / 365)
-      return stats([
-        ["Earned", money(earned)],
-        ["Balance", money(amount + earned)],
-      ])
+      const fee = read(values, "fee")
+      if (amount === null || rate === null || days === null || fee === null) return null
+      const kind = values.kind === "apy" ? "apy" : "apr"
+      const periods = kind === "apr" && values.compound !== "none" ? Number(values.compound) : 1
+      const result = stakingYield({ amount, ratePercent: rate, days, kind, periods, feePercent: fee })
+      if (!result) return { note: "Amount and days need to be zero or above, and the fee between 0 and 100.", ok: false }
+      const ignored = kind === "apy" && values.compound !== "none" ? " Compounding was left unused because an APY already includes it." : ""
+      return stats(
+        [
+          ["Reward after fee", sameUnit(result.net), true],
+          ["Balance", sameUnit(result.balance)],
+          ["Reward before fee", sameUnit(result.gross)],
+          ["Fee", sameUnit(result.fee)],
+        ],
+        { note: result.basis + ignored },
+      )
     },
   },
   "crypto-position-size-calculator": {
     columns: 2,
     fields: [
-      number("account", "Account", "10000", "AUD"),
+      number("account", "Account", "10000"),
       number("risk", "Risk", "1", "%"),
-      number("entry", "Entry", "100", "AUD"),
-      number("stop", "Stop", "95", "AUD"),
+      number("entry", "Entry", "100"),
+      number("stop", "Stop", "95"),
     ],
+    intro: "How many units fit a loss you choose, if the stop is hit. No exchange and no order.",
     run: (values) => {
       const account = read(values, "account")
       const risk = read(values, "risk")
       const entry = read(values, "entry")
       const stop = read(values, "stop")
-      if (account === null || risk === null || !entry || stop === null || entry === stop) return null
-      const riskAmount = account * (risk / 100)
-      const units = riskAmount / Math.abs(entry - stop)
-      return stats([
-        ["Risk", money(riskAmount)],
-        ["Size", num(units, 4)],
-        ["Notional", money(units * entry)],
-      ])
+      if (account === null || risk === null || entry === null || stop === null) return null
+      const result = positionSize(account, risk, entry, stop)
+      if (!result) return { note: "Entry and stop have to differ. Account and risk need to be zero or above.", ok: false }
+      return stats(
+        [
+          ["Size", num(result.units, 4), true],
+          ["Risk if the stop hits", sameUnit(result.riskAmount)],
+          ["Stop distance", sameUnit(result.distance)],
+          ["Notional at entry", sameUnit(result.notional)],
+        ],
+        { formula: "risk amount ÷ |entry − stop|", note: "The distance is absolute, so a stop above the entry uses the same size. This does not include fees or slippage." },
+      )
     },
   },
   "crypto-liquidation-calculator": {
     intro: "A simplified isolated-margin estimate. Exchanges add fees and their own maintenance schedule, so treat this as a range.",
     columns: 2,
     fields: [
-      number("entry", "Entry", "100", "AUD"),
+      number("entry", "Entry", "100"),
       number("leverage", "Leverage", "10", "×"),
       number("maintenance", "Maintenance", "0.5", "%"),
       select("side", "Side", "long", [["long", "Long"], ["short", "Short"]]),
@@ -1845,25 +1882,33 @@ export const toolSpecs: Record<string, ToolSpec> = {
       const entry = read(values, "entry")
       const leverage = read(values, "leverage")
       const maintenance = read(values, "maintenance")
-      if (!entry || !leverage || maintenance === null) return null
+      if (entry === null || leverage === null || maintenance === null) return null
+      if (leverage <= 0) return { note: "Leverage has to be above zero.", ok: false }
       const price = liquidationPrice(entry, leverage, maintenance, values.side)
-      if (price === null) return { note: "Maintenance is higher than the margin, so this leverage does not hold." }
-      return stats([["Liquidation", money(price)]])
+      if (price === null) return { note: "Maintenance is higher than the margin, so this leverage does not hold.", ok: false }
+      const move = 1 / leverage - maintenance / 100
+      return stats([["Liquidation", sameUnit(price), true]], {
+        formula: values.side === "short" ? "entry × (1 + (1/leverage − maintenance ÷ 100))" : "entry × (1 − (1/leverage − maintenance ÷ 100))",
+        note: `The move used here is ${(move * 100).toFixed(2)}% of the entry. Exchanges add fees and their own maintenance schedule, so this is a simplified isolated-margin estimate, not their number.`,
+      })
     },
   },
   "crypto-gas-calculator": {
     columns: 3,
-    fields: [number("gas", "Gas units", "21000"), number("gwei", "Gas price", "20", "gwei"), number("price", "Coin price", "4000", "AUD")],
+    fields: [number("gas", "Gas units", "21000"), number("gwei", "Gas price", "20", "gwei"), number("price", "Coin price", "4000")],
     run: (values) => {
       const gas = read(values, "gas")
       const gwei = read(values, "gwei")
       const price = read(values, "price")
       if (gas === null || gwei === null || price === null) return null
       const coins = gas * gwei * 1e-9
-      return stats([
-        ["Fee", `${num(coins, 6)} coin`],
-        ["In money", money(coins * price)],
-      ])
+      return stats(
+        [
+          ["Fee in coin", `${num(coins, 6)}`, true],
+          ["In the price you typed", sameUnit(coins * price)],
+        ],
+        { formula: "gas units × gwei × 10⁻⁹", note: "Gwei and the coin price are the ones you typed. This does not read a network." },
+      )
     },
   },
   "crypto-apy-calculator": {
@@ -1878,23 +1923,40 @@ export const toolSpecs: Record<string, ToolSpec> = {
       const periods = Number(values.periods)
       if (rate === null) return null
       const result = values.direction === "apr" ? apyFromApr(rate, periods) * 100 : aprFromApy(rate, periods) * 100
-      return stats([[values.direction === "apr" ? "APY" : "APR", `${num(result, 2)}%`]])
+      const label = values.direction === "apr" ? "APY" : "APR"
+      return stats([[label, `${num(result, 2)}%`, true]], {
+        formula: values.direction === "apr" ? "(1 + APR ÷ n)^n − 1" : "n × ((1 + APY)^(1 ÷ n) − 1)",
+        note: `n is ${periods} compounds a year, which you chose. Block-by-block compounding is not modelled. The rate is the one you typed.`,
+      })
     },
   },
   "crypto-converter": {
-    intro: "Uses the rate you type — there's no live market feed.",
+    intro: "Uses the rate you type. Labels such as BTC, ETH, or AUD are names only — they are not looked up, and there is no live feed.",
     columns: 2,
     fields: [
       number("amount", "Amount", "1.5"),
       field("from", "From", "text", "ETH"),
-      number("rate", "Price of 1", "4000", "AUD"),
+      number("rate", "Price of 1 From, in To", "4000"),
       field("to", "To", "text", "AUD"),
+      select("direction", "Direction", "quote", [["quote", "Amount × price"], ["base", "Amount ÷ price"]]),
     ],
     run: (values) => {
       const amount = read(values, "amount")
       const rate = read(values, "rate")
       if (amount === null || rate === null) return null
-      return stats([[`${values.from || "From"} in ${values.to || "to"}`, num(amount * rate, 4)]])
+      const from = values.from.trim() || "From"
+      const to = values.to.trim() || "To"
+      if (values.direction === "base") {
+        if (rate === 0) return { note: "The price has to be above zero to divide.", ok: false }
+        return stats([[`${amount} ${to} in ${from}`, num(amount / rate, 8), true]], {
+          formula: "amount ÷ price of 1",
+          note: "This turns the To amount back into From units, using the price you typed.",
+        })
+      }
+      return stats([[`${amount} ${from} in ${to}`, num(amount * rate, 4), true]], {
+        formula: "amount × price of 1",
+        note: "The result is only as current as the price you typed.",
+      })
     },
   },
   "impermanent-loss-calculator": {
@@ -1902,9 +1964,14 @@ export const toolSpecs: Record<string, ToolSpec> = {
     fields: [number("change", "Price change", "100", "%", null)],
     run: (values) => {
       const change = read(values, "change")
-      if (change === null || change <= -100) return null
+      if (change === null) return null
+      if (change <= -100) return { note: "A drop of 100% or more leaves no price to compare.", ok: false }
       const loss = impermanentLoss(1 + change / 100) * 100
-      return stats([["Versus holding", `${num(loss, 2)}%`]])
+      const words = loss < 0 ? `${num(Math.abs(loss), 2)}% less than holding` : loss > 0 ? `${num(loss, 2)}% more than holding` : "the same as holding"
+      return stats([["Versus holding", words, true]], {
+        formula: "2 × √price ratio ÷ (1 + price ratio) − 1",
+        note: "Fees you earned are not included, so they can offset this gap. The gap shrinks if the price returns. Not a prediction.",
+      })
     },
   },
   ...addedSpecs,

@@ -2,7 +2,7 @@ import { guide, type ToolGuideCopy } from "@/lib/tools/guides/types"
 
 export const batchGuides: Record<string, ToolGuideCopy> = {
   "pdf-merger": guide(
-    "Drop contract-a.pdf then appendix.pdf, move the appendix below the contract if needed, merge, and download contract-a-merged.pdf. Page counts show on each file before you combine them.",
+    "Drop contract-a.pdf then appendix.pdf, move the appendix below the contract if needed, merge, then download contract-a-merged.pdf. Page counts show on each file before you combine them.",
     ["Is the PDF uploaded?", "No. Your files stay on your device. Pages are copied into a new PDF in this browser."],
     ["Can I change the order?", "Yes. Use Up and Down on each file. The merged document follows the list from top to bottom."],
     ["What if one file fails?", "A damaged or password-protected PDF is flagged on that row. Remove it, or replace it, then merge the rest."],
@@ -44,7 +44,7 @@ export const batchGuides: Record<string, ToolGuideCopy> = {
     ["Is the audio uploaded?", "No. Your files stay on your device."],
   ),
   "screenshot-annotator": guide(
-    "Paste a screenshot, crop the extra chrome, draw an arrow at the button, blur an email address, and download screenshot-annotated.png.",
+    "Paste a screenshot, crop the extra chrome, draw an arrow at the button, blur an email address, and download screenshot-annotated.png at the original pixel size.",
     ["Can I paste?", "Yes. Focus the page and paste from the clipboard. You can also browse for a file."],
     ["What does blur do?", "It pixel-averages a rectangle. It is a redaction aid, not a cryptographic wipe."],
     ["Is the image uploaded?", "No. Your files stay on your device."],
@@ -125,12 +125,12 @@ export const batchGuides: Record<string, ToolGuideCopy> = {
     "Valorant’s 103° horizontal on 16:9 is about 70.5° vertical and about 110.5° diagonal. Switching the input to vertical and typing 70.5 returns about 103° horizontal.",
     ["What do horizontal, vertical, and diagonal mean?", "Horizontal is left-to-right, vertical is up-and-down, and diagonal is the corner-to-corner angle. They are linked by aspect ratio."],
     ["Are game presets measured?", "They use advertised FOV values, not a photographed camera. CS2’s 90° is a 4:3 figure."],
-    ["What is hor+?", "Source games keep the 4:3 vertical FOV and widen the horizontal angle on a wider monitor. On 16:9, 90° 4:3 is about 106.3° horizontal. That is a community convention. Typing 90° as horizontal on 16:9 is a narrower view."],
+    ["What is hor+?", "Source games keep the 4:3 vertical FOV and widen the horizontal angle on a wider monitor. For a CS2 or Source preset, the lead number is that 16:9 horizontal — about 106.3° from a 90° 4:3 setting. That is a community convention. The cards underneath are the angle you typed at the aspect you selected."],
     ["What is the optional screen width?", "Viewing distance and screen width give the angle that screen subtends to your eyes — not the game’s FOV setting."],
   ),
   "time-zone-meeting-planner": guide(
     "Sydney, London, and New York on 5 October 2026. Green cells are hours that sit inside 9:00–17:00 for every city. A +1 under a cell means that city is already on the next calendar day.",
-    ["Whose clock is the header?", "The first city in the list is the grid. Other rows show the matching local hour."],
+    ["Whose clock is the header?", "The first city in the list sets the hours along the top. Other rows show the matching local hour. The date is this device’s today until you change it."],
     ["What counts as a working hour?", "9:00 inclusive to 17:00 exclusive, in that city’s local time, including daylight saving from the browser’s timezone data."],
     ["Can I add any timezone?", "The list is a set of common cities. There is no free-text IANA field in this version."],
     ["Does copy include the date?", "Yes. Copy overlap starts with the date, then each city’s overlapping local hours."],

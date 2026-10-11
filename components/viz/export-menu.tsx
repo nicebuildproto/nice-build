@@ -59,7 +59,7 @@ export function ExportMenu({
   return (
     <div className="flex items-center gap-2">
       <DropdownMenu>
-        <DropdownMenuTrigger render={<Button size="sm" />}>
+        <DropdownMenuTrigger render={<Button className="h-8" />}>
           Export
           <ChevronDown />
         </DropdownMenuTrigger>

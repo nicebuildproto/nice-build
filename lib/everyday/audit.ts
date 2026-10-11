@@ -9,6 +9,14 @@ export const screenLabels: Record<ScreenKey, string> = {
   other: "Other",
 }
 
+export function parseHourField(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed) return 0
+  const hours = Number(trimmed)
+  if (!Number.isFinite(hours) || hours < 0) return null
+  return hours
+}
+
 export function screenTime(hours: Record<ScreenKey, number>) {
   const parts = screenKeys.map((key) => ({ key, label: screenLabels[key], hours: hours[key] ?? 0 }))
   const day = parts.reduce((sum, part) => sum + part.hours, 0)

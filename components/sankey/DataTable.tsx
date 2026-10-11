@@ -11,19 +11,13 @@ type Col = "source" | "target" | "value"
 
 export function DataTable({
   rows,
-  flowColors,
-  defaultFlowColor,
   onChange,
-  onFlowColor,
   onAdd,
   onDelete,
   onDuplicate,
 }: {
   rows: SankeyRow[]
-  flowColors: Record<string, string>
-  defaultFlowColor: string
   onChange: (id: string, key: Col, value: string) => void
-  onFlowColor: (id: string, color: string) => void
   onAdd: () => void
   onDelete: (id: string) => void
   onDuplicate: (id: string) => void
@@ -78,7 +72,6 @@ export function DataTable({
               <th className="px-2 py-2 font-medium">Source</th>
               <th className="px-2 py-2 font-medium">Target</th>
               <th className="w-24 px-2 py-2 font-medium">Value</th>
-              <th className="w-16 px-2 py-2 font-medium">Colour</th>
               <th className="w-16 px-1 py-2">
                 <span className="sr-only">Row actions</span>
               </th>
@@ -120,21 +113,12 @@ export function DataTable({
                       onKeyDown={(event) => onKeyDown(event, index, "value")}
                     />
                   </td>
-                  <td className="border-l border-black/[0.06] px-2">
-                    <input
-                      type="color"
-                      aria-label={`Flow colour for row ${index + 1}`}
-                      value={flowColors[row.id] ?? defaultFlowColor}
-                      onChange={(event) => onFlowColor(row.id, event.target.value)}
-                      className="size-7 cursor-pointer rounded-md border border-black/10 bg-white p-0.5"
-                    />
-                  </td>
                   <td className="border-l border-black/[0.06] px-1">
                     <div className="flex items-center justify-end">
                       <Button
                         type="button"
                         variant="ghost"
-                        size="icon-xs"
+                        size="icon"
                         aria-label="Duplicate row"
                         onClick={() => onDuplicate(row.id)}
                       >
@@ -143,7 +127,7 @@ export function DataTable({
                       <Button
                         type="button"
                         variant="ghost"
-                        size="icon-xs"
+                        size="icon"
                         aria-label="Delete row"
                         onClick={() => onDelete(row.id)}
                       >
@@ -158,7 +142,7 @@ export function DataTable({
         </table>
       </div>
 
-      <Button type="button" variant="ghost" size="sm" className="-ml-2 w-fit" onClick={onAdd}>
+      <Button type="button" variant="ghost" className="h-8 w-fit" onClick={onAdd}>
         <Plus />
         Add row
       </Button>
@@ -206,7 +190,7 @@ export function NodeColorTable({
                     aria-label={`${name} colour`}
                     value={colors[name] ?? fallback}
                     onChange={(event) => onChange(name, event.target.value)}
-                    className="size-7 cursor-pointer rounded-md border border-black/10 bg-white p-0.5"
+                    className="size-8 cursor-pointer rounded-lg border border-black/10 bg-white p-0.5"
                   />
                 </td>
               </tr>
@@ -246,7 +230,7 @@ function Cell({
       onChange={(event) => onChange(event.target.value)}
       onKeyDown={onKeyDown}
       className={cn(
-        "h-9 rounded-none border-0 bg-transparent px-2 shadow-none focus-visible:ring-1",
+        "h-8 rounded-none border-0 bg-transparent px-2 shadow-none focus-visible:ring-1",
         invalid && "bg-destructive/5"
       )}
     />

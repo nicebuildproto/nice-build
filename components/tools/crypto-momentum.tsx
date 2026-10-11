@@ -70,6 +70,7 @@ export function CryptoMomentumScanner() {
 
   useEffect(() => {
     const controller = new AbortController()
+    setPending(true)
     async function run() {
       try {
         const params = new URLSearchParams({
@@ -82,7 +83,6 @@ export function CryptoMomentumScanner() {
         const body = (await response.json()) as ScanResponse & { error?: string }
         if (controller.signal.aborted) return
         if (!response.ok) {
-          setData(null)
           setError(body.error ?? "The scan failed.")
         } else {
           setData(body)
@@ -92,7 +92,6 @@ export function CryptoMomentumScanner() {
         if (controller.signal.aborted) return
         const aborted = cause instanceof DOMException && cause.name === "AbortError"
         if (aborted) return
-        setData(null)
         setError("Couldn't reach the scanner. Check the connection and try again.")
       } finally {
         if (!controller.signal.aborted) setPending(false)
@@ -205,11 +204,22 @@ export function CryptoMomentumScanner() {
           Auto-refresh every 60s
         </label>
         <p className="text-[13px] leading-relaxed text-[var(--nb-secondary)]">
-          Momentum signals only, not financial advice. Crypto is volatile and short-term moves can reverse quickly.
+          The score describes the last closed candle. It is not a forecast, and it is not a suggestion to buy or sell.
         </p>
-        <p className="text-[12px] text-[var(--nb-secondary)]">
-          Last updated {data ? formatUpdated(data.updatedAt) : "—"}
-          {data?.source === "coingecko" ? " · CoinGecko fallback" : data ? " · Binance" : ""}
+        <p className="text-[12px] leading-relaxed text-[var(--nb-secondary)]">
+          {error && data ? "Refresh failed, so this is the last successful scan. " : ""}
+          {data
+            ? pending
+              ? `Refreshing. The table is still the scan from ${formatUpdated(data.updatedAt)}.`
+              : `Scan time ${formatUpdated(data.updatedAt)}.`
+            : pending
+              ? "Waiting for the first scan."
+              : "No scan yet."}
+          {data?.source === "coingecko"
+            ? " Source: CoinGecko 24-hour movers, cached about 5 minutes. Quote currency follows that feed. Short-window candles are limited on this fallback."
+            : data
+              ? " Source: Binance USDT spot. Candles and tickers are cached about 60 seconds, so this is not a live tick. Prices are USDT."
+              : ""}
         </p>
       </div>
 
@@ -247,9 +257,9 @@ export function CryptoMomentumScanner() {
                 <tr className="border-b border-border text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
                   <th className="py-2 pr-3 font-medium">#</th>
                   <th className="py-2 pr-3 font-medium">Coin</th>
-                  <th className="py-2 pr-3 font-medium">Price</th>
+                  <th className="py-2 pr-3 font-medium">Price (USDT)</th>
                   <th className="py-2 pr-3 font-medium">{timeframe}</th>
-                  <th className="py-2 pr-3 font-medium">Vol</th>
+                  <th className="py-2 pr-3 font-medium">Vol ratio</th>
                   <th className="min-w-28 py-2 pr-3 font-medium">Score</th>
                   <th className="py-2 pr-3 font-medium">Flags</th>
                   <th className="py-2 font-medium">Reason</th>
@@ -287,7 +297,7 @@ export function CryptoMomentumScanner() {
         <div className="mt-3 flex flex-col gap-2 text-[13px] leading-relaxed text-[var(--nb-secondary)]">
           <p>Each coin uses the last closed candle against the previous 20 on the timeframe you pick.</p>
           <p>Volume score is how far the last candle&apos;s quote volume sits above that 20-candle average (8× averages maps to 100). Price score is the candle&apos;s percent change, capped at +8%. Breakout is 100 if the close is above the prior 20 highs, otherwise 0.</p>
-          <p>Those three mix as 50% volume, 30% price, 20% breakout. CoinGecko trending (and Reddit mentions, if enabled) then lift that base by up to 25%. A coin that is not moving stays near zero even if it is trending.</p>
+          <p>Those three mix as 50% volume, 30% price, 20% breakout. CoinGecko trending (and Reddit mentions, if enabled) then lift that base by up to 25%. A coin that is not moving stays near zero even if it is trending. A high score is not a prediction that the next candle continues.</p>
           <p>Badges are not part of the score. Extended means the window move is over 15%. Low liquidity means 24h USDT volume is under $1M.</p>
         </div>
       </details>
@@ -403,8 +413,9 @@ function ScanTableRow({
           {row.name ? <span className="ml-2 text-[var(--nb-secondary)]">{row.name}</span> : null}
         </td>
         <td className="py-3 pr-3 tabular-nums">{formatPrice(row.price)}</td>
-        <td className={cn("py-3 pr-3 tabular-nums", row.priceChangePct >= 0 ? "text-[var(--nb-primary)]" : "text-[var(--nb-secondary)]")}>
+        <td className="py-3 pr-3 tabular-nums">
           {formatChange(row.priceChangePct)}
+          <span className="sr-only">{row.priceChangePct >= 0 ? " up" : " down"}</span>
         </td>
         <td className="py-3 pr-3 tabular-nums">{row.volRatio.toFixed(1)}x</td>
         <td className="py-3 pr-3">
@@ -453,7 +464,7 @@ function ScanCard({
       </div>
       <dl className="grid grid-cols-2 gap-2 text-[13px]">
         <div>
-          <dt className="text-[var(--nb-secondary)]">Price</dt>
+          <dt className="text-[var(--nb-secondary)]">Price (USDT)</dt>
           <dd className="tabular-nums">{formatPrice(row.price)}</dd>
         </div>
         <div>

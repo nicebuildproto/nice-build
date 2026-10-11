@@ -98,15 +98,17 @@ export function layoutSankey(
     byLayer.set(layer, list)
   }
 
-  let maxLayerNeed = 0
+  let maxValueSum = 0
+  let longest = 1
   for (const list of byLayer.values()) {
     const valueSum = list.reduce((sum, name) => sum + (values.get(name) ?? 0), 0)
-    const spacing = style.nodeSpacing * Math.max(0, list.length - 1)
-    maxLayerNeed = Math.max(maxLayerNeed, valueSum + spacing)
+    maxValueSum = Math.max(maxValueSum, valueSum)
+    longest = Math.max(longest, list.length)
   }
 
   const usable = Math.max(80, height - PAD_Y * 2)
-  const pxPerUnit = Math.max(0.2, (usable - style.nodeSpacing * 2) / maxLayerNeed)
+  const spacing = style.nodeSpacing * Math.max(0, longest - 1)
+  const pxPerUnit = maxValueSum > 0 ? Math.max(40, usable - spacing) / maxValueSum : 1
 
   const nodes: LaidNode[] = []
   const nodeMap = new Map<string, LaidNode>()

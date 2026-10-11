@@ -5,11 +5,23 @@ const nextConfig: NextConfig = {
   transpilePackages: ["pdfjs-dist", "tesseract.js", "gifenc"],
   async redirects() {
     return [
-      ...registry.map((tool) => ({
-        source: `/${tool.slug}`,
-        destination: `/${tool.category}/${tool.slug}`,
+      ...registry
+        .filter((tool) => tool.slug !== "sankey-generator")
+        .map((tool) => ({
+          source: `/${tool.slug}`,
+          destination: tool.route,
+          permanent: true,
+        })),
+      {
+        source: "/sankey-generator",
+        destination: "/design-creative/sankey-generator",
         permanent: true,
-      })),
+      },
+      {
+        source: "/data-viz/sankey-generator",
+        destination: "/design-creative/sankey-generator",
+        permanent: true,
+      },
       {
         source: "/sankey",
         destination: "/design-creative/sankey-generator",

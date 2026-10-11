@@ -66,9 +66,46 @@ export function raciCsv(tasks: string[], people: string[], grid: Record<string, 
   ].join("\n")
 }
 
-export function workingAgreement(values: { team: string; hours: string; response: string; decisions: string }) {
+export function workingAgreement(values: {
+  team: string
+  hours: string
+  response: string
+  decisions: string
+  meetings?: string
+}) {
   const team = values.team.trim() || "Team"
-  return `${team} working agreement\n\nHours\n${values.hours.trim() || "—"}\n\nResponse\n${values.response.trim() || "—"}\n\nDecisions\n${values.decisions.trim() || "—"}`
+  return [
+    `${team} working agreement`,
+    "",
+    "Hours",
+    values.hours.trim() || "—",
+    "",
+    "Response",
+    values.response.trim() || "—",
+    "",
+    "How we meet",
+    values.meetings?.trim() || "—",
+    "",
+    "Decisions",
+    values.decisions.trim() || "—",
+  ].join("\n")
+}
+
+export function rememberPrompt(recent: string[], next: string, poolSize: number) {
+  const bag = [...recent, next]
+  if (bag.length >= poolSize) return [next]
+  return bag
+}
+
+export function raciSummary(rows: { cells: string[]; issues: string[] }[]) {
+  const started = rows.filter((row) => row.cells.some(Boolean))
+  if (!started.length) return null
+  const problems = started.filter((row) => row.issues.length)
+  if (!problems.length) {
+    return "Every task you’ve started has one accountable person and someone doing the work."
+  }
+  const count = problems.length === 1 ? "1 task still needs a look" : `${problems.length} tasks still need a look`
+  return `${count}. Aim for one accountable person, and someone responsible.`
 }
 
 export function meetingAgenda(title: string, when: string, items: string) {

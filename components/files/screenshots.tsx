@@ -35,6 +35,7 @@ export function ScreenshotAnnotator() {
   const [draft, setDraft] = useState<Shape | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
+  const [revision, setRevision] = useState(0)
   const [name, setName] = useState("screenshot-annotated.png")
   const [label, setLabel] = useState("")
 
@@ -48,6 +49,7 @@ export function ScreenshotAnnotator() {
       imageRef.current = image
       setShapes([])
       setDraft(null)
+      setRevision((value) => value + 1)
       setReady(true)
       setError(null)
       setName(withSuffix(file.name, "-annotated", "png"))
@@ -60,23 +62,26 @@ export function ScreenshotAnnotator() {
     const canvas = canvasRef.current
     const image = imageRef.current
     if (!canvas || !image) return
-    const max = 900
-    const scale = Math.min(1, max / image.width)
-    canvas.width = Math.round(image.width * scale)
-    canvas.height = Math.round(image.height * scale)
+    const scale = Math.min(1, 960 / image.width)
+    canvas.width = Math.max(1, Math.round(image.width * scale))
+    canvas.height = Math.max(1, Math.round(image.height * scale))
     const context = canvas.getContext("2d")
     if (!context) return
     context.drawImage(image, 0, 0, canvas.width, canvas.height)
-    for (const shape of [...shapes, ...(draft ? [draft] : [])]) drawShape(context, shape)
-  }, [shapes, draft, ready])
+    const view = canvas.width / image.width
+    for (const shape of [...shapes, ...(draft ? [draft] : [])]) drawShape(context, scaleShape(shape, view))
+  }, [shapes, draft, ready, revision])
 
   function pos(event: React.PointerEvent<HTMLCanvasElement>) {
     const canvas = canvasRef.current
     if (!canvas) return { x: 0, y: 0 }
+    const image = imageRef.current
     const rect = canvas.getBoundingClientRect()
+    const width = image?.width || canvas.width
+    const height = image?.height || canvas.height
     return {
-      x: ((event.clientX - rect.left) / rect.width) * canvas.width,
-      y: ((event.clientY - rect.top) / rect.height) * canvas.height,
+      x: ((event.clientX - rect.left) / rect.width) * width,
+      y: ((event.clientY - rect.top) / rect.height) * height,
     }
   }
 
@@ -116,38 +121,52 @@ export function ScreenshotAnnotator() {
   }
 
   function applyCrop(shape: Extract<Shape, { kind: "crop" }>) {
-    const canvas = canvasRef.current
     const image = imageRef.current
-    if (!canvas || !image) return
+    if (!image) return
     const x = Math.min(shape.x, shape.x + shape.w)
     const y = Math.min(shape.y, shape.y + shape.h)
     const w = Math.max(8, Math.abs(shape.w))
     const h = Math.max(8, Math.abs(shape.h))
+    const full = document.createElement("canvas")
+    full.width = image.width
+    full.height = image.height
+    const fullContext = full.getContext("2d")
+    if (!fullContext) return
+    fullContext.drawImage(image, 0, 0)
+    const pixelScale = image.width / Math.min(image.width, 960)
+    for (const item of shapes) drawShape(fullContext, item, pixelScale)
     const next = document.createElement("canvas")
-    next.width = w
-    next.height = h
+    next.width = Math.round(w)
+    next.height = Math.round(h)
     const context = next.getContext("2d")
     if (!context) return
-    context.drawImage(canvas, x, y, w, h, 0, 0, w, h)
+    context.drawImage(full, x, y, w, h, 0, 0, next.width, next.height)
     const cropped = new Image()
     cropped.onload = () => {
       imageRef.current = cropped
       setShapes([])
-      setReady((value) => !value)
-      setReady(true)
+      setRevision((value) => value + 1)
     }
     cropped.src = next.toDataURL("image/png")
   }
 
   async function save() {
-    const canvas = canvasRef.current
-    if (!canvas) return
+    const image = imageRef.current
+    if (!image) return
+    const canvas = document.createElement("canvas")
+    canvas.width = image.width
+    canvas.height = image.height
+    const context = canvas.getContext("2d")
+    if (!context) return
+    context.drawImage(image, 0, 0)
+    const pixelScale = image.width / Math.min(image.width, 960)
+    for (const shape of shapes) drawShape(context, shape, pixelScale)
     downloadBlob(await canvasToBlob(canvas), name)
   }
 
   return (
     <FileToolShell>
-      <PrivacyNote>Your files stay on your device. Paste or upload a screenshot, then crop, arrow, box, blur, or label it.</PrivacyNote>
+      <PrivacyNote>Your files stay on your device. Paste or upload a screenshot, then crop, arrow, box, blur, or label it. The download keeps the original pixel size.</PrivacyNote>
       <Section title="Screenshot">
         <FileDropzone accept="image/*" acceptLabel="PNG, JPEG, or WebP" paste idle="Drop a screenshot here, or paste" maxBytes={12 * 1024 * 1024} onFiles={(files) => void onFile(files[0])} />
       </Section>
@@ -174,7 +193,7 @@ export function ScreenshotAnnotator() {
           ) : null}
           <canvas
             ref={canvasRef}
-            className="max-w-full cursor-crosshair touch-none rounded-xl border border-border"
+            className="h-auto w-full max-w-3xl cursor-crosshair touch-none rounded-xl border border-border"
             onPointerDown={down}
             onPointerMove={move}
             onPointerUp={up}
@@ -203,30 +222,39 @@ export function ScreenshotAnnotator() {
   )
 }
 
-function drawShape(context: CanvasRenderingContext2D, shape: Shape) {
+function scaleShape(shape: Shape, scale: number): Shape {
+  if (shape.kind === "arrow") {
+    return { ...shape, x1: shape.x1 * scale, y1: shape.y1 * scale, x2: shape.x2 * scale, y2: shape.y2 * scale }
+  }
+  if (shape.kind === "text") return { ...shape, x: shape.x * scale, y: shape.y * scale }
+  return { ...shape, x: shape.x * scale, y: shape.y * scale, w: shape.w * scale, h: shape.h * scale }
+}
+
+function drawShape(context: CanvasRenderingContext2D, shape: Shape, pixelScale = 1) {
   context.save()
   if (shape.kind === "arrow") {
     context.strokeStyle = "#e11d48"
     context.fillStyle = "#e11d48"
-    context.lineWidth = 4
+    context.lineWidth = 4 * pixelScale
     context.beginPath()
     context.moveTo(shape.x1, shape.y1)
     context.lineTo(shape.x2, shape.y2)
     context.stroke()
     const angle = Math.atan2(shape.y2 - shape.y1, shape.x2 - shape.x1)
+    const head = 16 * pixelScale
     context.beginPath()
     context.moveTo(shape.x2, shape.y2)
-    context.lineTo(shape.x2 - 16 * Math.cos(angle - 0.4), shape.y2 - 16 * Math.sin(angle - 0.4))
-    context.lineTo(shape.x2 - 16 * Math.cos(angle + 0.4), shape.y2 - 16 * Math.sin(angle + 0.4))
+    context.lineTo(shape.x2 - head * Math.cos(angle - 0.4), shape.y2 - head * Math.sin(angle - 0.4))
+    context.lineTo(shape.x2 - head * Math.cos(angle + 0.4), shape.y2 - head * Math.sin(angle + 0.4))
     context.closePath()
     context.fill()
   } else if (shape.kind === "rect" || shape.kind === "crop") {
     context.strokeStyle = shape.kind === "crop" ? "#2563eb" : "#e11d48"
-    context.lineWidth = 3
+    context.lineWidth = 3 * pixelScale
     context.strokeRect(shape.x, shape.y, shape.w, shape.h)
   } else if (shape.kind === "text") {
     context.fillStyle = "#e11d48"
-    context.font = "600 22px ui-sans-serif, system-ui, sans-serif"
+    context.font = `600 ${Math.round(22 * pixelScale)}px ui-sans-serif, system-ui, sans-serif`
     context.fillText(shape.text, shape.x, shape.y)
   } else if (shape.kind === "blur") {
     const x = Math.min(shape.x, shape.x + shape.w)
@@ -235,7 +263,7 @@ function drawShape(context: CanvasRenderingContext2D, shape: Shape) {
     const h = Math.max(1, Math.abs(shape.h))
     const slice = context.getImageData(x, y, w, h)
     const copy = context.createImageData(w, h)
-    const radius = 6
+    const radius = Math.min(14, Math.max(4, Math.round(6 * pixelScale)))
     for (let py = 0; py < h; py++) {
       for (let px = 0; px < w; px++) {
         let r = 0,
@@ -371,11 +399,15 @@ export function ScreenshotBeautifier() {
           <ResultStats
             items={[
               { label: "Capture", value: `${image.width}×${image.height}` },
-              { label: "Export", value: name },
+              {
+                label: "Export",
+                value: `${image.width + Math.max(24, Number(padding) || 64) * 2}×${image.height + Math.max(24, Number(padding) || 64) * 2 + (chrome ? 36 : 0)}`,
+              },
+              { label: "File", value: name },
             ]}
           />
           <StatusLine status="complete">Preview updates as you change the frame.</StatusLine>
-          <canvas ref={canvasRef} className="max-w-full rounded-xl border border-border" />
+          <canvas ref={canvasRef} className="h-auto w-full max-w-3xl rounded-xl border border-border" />
           <ActionBar>
             <Button
               type="button"

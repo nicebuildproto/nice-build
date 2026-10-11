@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: siteName,
   description:
-    "Free, fast tools for everyday tasks — calculators, converters, generators, and more. No sign-up, no clutter, just the tool you need.",
+    "Calculators, converters, and small utilities. Open a tool, enter your numbers, and copy the result. No account.",
 }
 
 const themeBoot = `(function(){try{if(localStorage.getItem("nb-theme")==="dark")document.documentElement.classList.add("dark")}catch(e){}})()`

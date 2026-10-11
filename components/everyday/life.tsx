@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  CopyButton,
   CopyResetShare,
   EverydayToolShell,
   Note,
@@ -10,15 +11,18 @@ import {
 import { NumberField, Stat, TextArea } from "@/components/tools/ui"
 import { Input } from "@/components/ui/input"
 import { ageDetails, formatAge, localDateValue } from "@/lib/everyday/age"
-import { carbonEstimate, screenKeys, screenLabels, screenTime, type ScreenKey } from "@/lib/everyday/audit"
+import { carbonEstimate, parseHourField, screenKeys, screenLabels, screenTime, type ScreenKey } from "@/lib/everyday/audit"
 import { batteryQuestions, batteryRead } from "@/lib/everyday/battery"
 import { sampleRecipe, scaledRecipe } from "@/lib/everyday/recipe"
 import { num } from "@/lib/tools/format"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 export function AgeCalculator() {
   const [dob, setDob] = useState("1994-06-12")
-  const [asOf, setAsOf] = useState(() => localDateValue())
+  const [asOf, setAsOf] = useState("")
+  useEffect(() => {
+    setAsOf(localDateValue())
+  }, [])
   const result = ageDetails(dob, asOf)
   const copy = result
     ? `${formatAge(result)}. ${result.totalDays.toLocaleString("en-AU")} days. Next birthday ${result.nextBirthdayLabel}${result.daysUntilBirthday === 0 ? " — that’s today." : ` in ${result.daysUntilBirthday} days.`}`
@@ -52,7 +56,7 @@ export function AgeCalculator() {
             </p>
           </div>
         ) : (
-          <Note>The as-of date has to be on or after the date of birth.</Note>
+          <Note>{asOf ? "The as-of date has to be on or after the date of birth." : "Setting today’s date…"}</Note>
         )}
       </div>
       <CopyResetShare
@@ -104,9 +108,10 @@ export function RecipeScaler() {
 }
 
 export function SocialBatteryCheckin() {
-  const [step, setStep] = useState(0)
-  const [rests, setRests] = useState(0)
+  const [answers, setAnswers] = useState<boolean[]>([])
+  const step = answers.length
   const done = step >= batteryQuestions.length
+  const rests = answers.filter(Boolean).length
 
   if (done) {
     const copy = batteryRead(rests)
@@ -114,13 +119,20 @@ export function SocialBatteryCheckin() {
       <EverydayToolShell>
         <ResultDisplay>{copy.title}</ResultDisplay>
         <Note>{copy.note}</Note>
-        <ResetButton
-          onClick={() => {
-            setStep(0)
-            setRests(0)
-          }}
-          label="Start again"
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <CopyButton text={`${copy.title} ${copy.note}`} />
+          <ResetButton
+            onClick={() => setAnswers([])}
+            label="Start again"
+          />
+          <button
+            type="button"
+            className="text-sm text-[var(--nb-secondary)] underline-offset-4 hover:underline"
+            onClick={() => setAnswers((current) => current.slice(0, -1))}
+          >
+            Back
+          </button>
+        </div>
       </EverydayToolShell>
     )
   }
@@ -129,25 +141,31 @@ export function SocialBatteryCheckin() {
   return (
     <EverydayToolShell>
       <Note>Three short questions about how social plans feel right now. The reply is a light nudge, not a score.</Note>
-      <p className="text-sm text-[var(--nb-secondary)]">
+      <p className="text-sm text-[var(--nb-secondary)]" aria-live="polite">
         {step + 1} of {batteryQuestions.length}
       </p>
       <h2 className="text-2xl font-semibold tracking-[-0.03em]">{question.prompt}</h2>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2" role="group" aria-label={question.prompt}>
         {question.options.map((option) => (
           <button
             key={option.label}
             type="button"
-            className="rounded-xl border border-border px-4 py-3 text-left text-[15px] transition-colors hover:bg-[var(--nb-accent)]"
-            onClick={() => {
-              if (option.rest) setRests((value) => value + 1)
-              setStep((value) => value + 1)
-            }}
+            className="rounded-xl border border-border px-4 py-3 text-left text-[15px] outline-none hover:bg-[var(--nb-accent)] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            onClick={() => setAnswers((current) => [...current, option.rest])}
           >
             {option.label}
           </button>
         ))}
       </div>
+      {step > 0 ? (
+        <button
+          type="button"
+          className="w-fit text-sm text-[var(--nb-secondary)] underline-offset-4 hover:underline"
+          onClick={() => setAnswers((current) => current.slice(0, -1))}
+        >
+          Back
+        </button>
+      ) : null}
     </EverydayToolShell>
   )
 }
@@ -162,8 +180,10 @@ const screenDefaults: Record<ScreenKey, string> = {
 
 export function ScreenTimeAudit() {
   const [values, setValues] = useState(screenDefaults)
-  const hours = Object.fromEntries(screenKeys.map((key) => [key, Number(values[key]) || 0])) as Record<ScreenKey, number>
-  const result = screenTime(hours)
+  const parsed = screenKeys.map((key) => parseHourField(values[key]))
+  const hoursOk = parsed.every((value): value is number => value !== null)
+  const hours = Object.fromEntries(screenKeys.map((key, index) => [key, parsed[index] ?? 0])) as Record<ScreenKey, number>
+  const result = hoursOk ? screenTime(hours) : null
   const copy = result
     ? `${num(result.day)} hours a day · ${num(result.week)} hours a week · ${num(result.year, 0)} hours a year (${num(result.yearDays, 0)} twenty-four-hour days).`
     : ""
@@ -192,7 +212,9 @@ export function ScreenTimeAudit() {
         <Note>
           That’s about {num(result.percentDay, 0)}% of a 24-hour day, or {num(result.yearDays, 0)} full days across a year.
         </Note>
-      ) : null}
+      ) : (
+        <Note>Use hours as numbers, including decimals. Blank counts as zero.</Note>
+      )}
       <CopyResetShare
         text={copy}
         title="Screen time"

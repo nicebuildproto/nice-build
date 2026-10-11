@@ -36,14 +36,21 @@ function usePad() {
   useEffect(() => {
     let id = 0
     const loop = () => {
+      id = 0
+      if (document.visibilityState === "hidden") return
       const live = navigator.getGamepads?.().find((item) => item) ?? null
       const next = live ? snapshotPad(live) : null
       setPad((current) => (padsEqual(current, next) ? current : next))
       id = requestAnimationFrame(loop)
     }
+    const wake = () => {
+      if (document.visibilityState === "visible" && !id) id = requestAnimationFrame(loop)
+    }
     id = requestAnimationFrame(loop)
+    document.addEventListener("visibilitychange", wake)
     return () => {
       cancelAnimationFrame(id)
+      document.removeEventListener("visibilitychange", wake)
     }
   }, [])
   return pad
@@ -203,8 +210,8 @@ export function DeadZoneTester() {
         </div>
       ) : null}
       <Note>
-        This does not change the controller. Radial cutoff zeros the stick inside the circle; scaled remaps the rest of
-        the throw to 0–1.
+        No extra permission. This does not change the controller. Radial cutoff zeros the stick inside the circle;
+        scaled remaps the rest of the throw to 0–1.
       </Note>
     </GamingToolShell>
   )
@@ -263,6 +270,7 @@ export function KeyboardTester() {
                     held && "bg-[var(--nb-primary)] text-background",
                   )}
                 >
+                  <span className="sr-only">{held ? "held " : ""}</span>
                   {key.label}
                   {held ? " ●" : ""}
                 </span>
@@ -271,6 +279,9 @@ export function KeyboardTester() {
           </div>
         ))}
       </div>
+      <p className="text-sm text-[var(--nb-secondary)]" aria-live="polite">
+        Held: {down.length ? down.join(", ") : "none"}
+      </p>
       <p className="text-sm text-[var(--nb-secondary)]">
         {last
           ? `Last: key “${last.key}” · code ${last.code} · ${last.location}${last.repeat ? " · repeat" : ""}${last.mods.length ? ` · ${last.mods.join("+")}` : ""}`
@@ -288,6 +299,23 @@ export function MouseTester() {
   const [clicks, setClicks] = useState(0)
   const [last, setLast] = useState("—")
   const [wheel, setWheel] = useState(0)
+  const [eventsPerSecond, setEventsPerSecond] = useState(0)
+  const [heldMs, setHeldMs] = useState<number | null>(null)
+  const pending = useRef(point)
+  const frame = useRef(0)
+  const moves = useRef(0)
+  const downAt = useRef(0)
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setEventsPerSecond(moves.current)
+      moves.current = 0
+    }, 1000)
+    return () => {
+      window.clearInterval(id)
+      cancelAnimationFrame(frame.current)
+    }
+  }, [])
 
   return (
     <GamingToolShell>
@@ -299,19 +327,29 @@ export function MouseTester() {
           className="grid h-full place-items-center text-center"
           onPointerMove={(event) => {
             const rect = event.currentTarget.getBoundingClientRect()
-            setPoint({
+            moves.current += 1
+            pending.current = {
               x: Math.round(event.clientX - rect.left),
               y: Math.round(event.clientY - rect.top),
               movementX: event.movementX,
               movementY: event.movementY,
+            }
+            if (frame.current) return
+            frame.current = requestAnimationFrame(() => {
+              frame.current = 0
+              setPoint(pending.current)
             })
           }}
           onPointerDown={(event) => {
+            downAt.current = performance.now()
             setHeld((current) => (current.includes(event.button) ? current : [...current, event.button]))
             setClicks((count) => count + 1)
             setLast(mouseButtonName(event.button))
           }}
-          onPointerUp={(event) => setHeld((current) => current.filter((button) => button !== event.button))}
+          onPointerUp={(event) => {
+            if (downAt.current) setHeldMs(Math.round(performance.now() - downAt.current))
+            setHeld((current) => current.filter((button) => button !== event.button))
+          }}
           onPointerLeave={() => setHeld([])}
           onContextMenu={(event) => event.preventDefault()}
           onWheel={(event) => {
@@ -325,16 +363,17 @@ export function MouseTester() {
             </p>
             <p className="mt-2 text-sm text-[var(--nb-secondary)]">
               {last} · {clicks} clicks · held {held.length ? held.map(mouseButtonName).join(", ") : "none"}
+              {heldMs !== null ? ` · last click held ${heldMs} ms` : ""}
             </p>
             <p className="mt-1 text-sm text-[var(--nb-secondary)]">
-              movement {point.movementX}, {point.movementY} · wheel {Math.round(wheel)}
+              movement {point.movementX}, {point.movementY} · wheel {Math.round(wheel)} · {eventsPerSecond} pointer events/s
             </p>
           </div>
         </div>
       </TestArea>
       <Note>
-        Coordinates are pixels inside the pad, not screen DPI. movementX/Y is what the browser reports, not a measured
-        sensor rate.
+        Coordinates are pixels inside the pad, not screen DPI. Pointer events per second are what this page received,
+        not the sensor’s polling rate. movementX/Y is what the browser reports.
       </Note>
       <ResetButton
         onClick={() => {
@@ -342,6 +381,9 @@ export function MouseTester() {
           setWheel(0)
           setLast("—")
           setHeld([])
+          setHeldMs(null)
+          moves.current = 0
+          setEventsPerSecond(0)
         }}
       />
     </GamingToolShell>
@@ -463,6 +505,7 @@ export function CpsTest() {
         {done ? `${cps?.toFixed(1)} CPS` : running ? `${((left ?? 0) / 1000).toFixed(1)}s` : "—"}
       </ResultDisplay>
       <ActionBar>
+        <CopyButton text={done && cps !== null ? `${cps.toFixed(1)} clicks per second over 5 seconds (${clicks} clicks)` : ""} />
         <ResetButton
           onClick={() => {
             setEndsAt(null)
@@ -477,8 +520,8 @@ export function CpsTest() {
 export function RefreshRateTester() {
   const [fps, setFps] = useState<number | null>(null)
   const [ms, setMs] = useState<number | null>(null)
-  const [offset, setOffset] = useState(0)
   const coarse = useCoarsePointer()
+  const bar = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     let frames = 0
@@ -486,6 +529,8 @@ export function RefreshRateTester() {
     let id = 0
     let lastDraw = 0
     const loop = (now: number) => {
+      id = 0
+      if (document.visibilityState === "hidden") return
       frames += 1
       if (now - mark >= 500) {
         const span = now - mark
@@ -494,14 +539,21 @@ export function RefreshRateTester() {
         frames = 0
         mark = now
       }
-      if (now - lastDraw >= 32) {
-        setOffset(((now / 8) % 100))
+      if (bar.current && now - lastDraw >= 32) {
+        bar.current.style.marginLeft = `${(now / 8) % 80}%`
         lastDraw = now
       }
       id = requestAnimationFrame(loop)
     }
+    const wake = () => {
+      if (document.visibilityState === "visible" && !id) id = requestAnimationFrame(loop)
+    }
     id = requestAnimationFrame(loop)
-    return () => cancelAnimationFrame(id)
+    document.addEventListener("visibilitychange", wake)
+    return () => {
+      cancelAnimationFrame(id)
+      document.removeEventListener("visibilitychange", wake)
+    }
   }, [])
 
   return (
@@ -514,7 +566,7 @@ export function RefreshRateTester() {
       <ResultDisplay label="Frames per second">{fps ?? "—"} <span className="text-lg font-medium text-[var(--nb-secondary)]">fps</span></ResultDisplay>
       <MetricCard label="Frame interval" value={ms !== null ? `${ms} ms` : "—"} />
       <div className="h-2 overflow-hidden rounded-full bg-[var(--nb-accent)]" aria-hidden>
-        <div className="h-full w-1/5 rounded-full bg-[var(--nb-primary)]" style={{ marginLeft: `${offset}%` }} />
+        <div ref={bar} className="h-full w-1/5 rounded-full bg-[var(--nb-primary)]" />
       </div>
     </GamingToolShell>
   )

@@ -97,7 +97,7 @@ export function HomeCatalog() {
           digital toolkit.
         </h1>
         <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-[var(--nb-secondary)]">
-          Grab a calculator, converter, or generator and get the answer in a few taps. No sign-up, no clutter — just the tool you need.
+          Calculators, converters, and small utilities. Open one, enter your numbers, and copy the result. No account.
         </p>
 
         <div className="relative mt-8 max-w-2xl sm:mt-10">
@@ -158,7 +158,7 @@ export function HomeCatalog() {
               className="absolute top-[calc(100%+0.5rem)] right-0 left-0 z-30 overflow-hidden rounded-2xl border border-border bg-popover shadow-[0_16px_40px_-24px_rgba(0,0,0,0.45)] animate-in fade-in slide-in-from-top-1 duration-150 motion-reduce:animate-none"
             >
               <p className="px-4 pt-3 pb-1 text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
-                {isSearching ? "Results" : "Live"}
+                {isSearching ? "Results" : "All tools"}
               </p>
               {results.length === 0 ? (
                 <p className="px-4 py-6 text-sm text-[var(--nb-secondary)]">
@@ -192,7 +192,7 @@ export function HomeCatalog() {
                             </span>
                           </span>
                           <span className="shrink-0 pt-0.5 text-[12px] text-[var(--nb-secondary)]">
-                            {liveTool ? category?.label : "Soon"}
+                            {liveTool ? category?.label : "Coming soon"}
                           </span>
                         </button>
                       </li>

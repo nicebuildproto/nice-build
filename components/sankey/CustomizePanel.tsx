@@ -4,6 +4,8 @@ import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ColorField, Segmented } from "@/components/viz/fields"
+import { stageSurfaces, vizThemes, type StageTone, type VizThemeId } from "@/lib/viz/themes"
 import type { StyleSettings } from "@/lib/sankey/types"
 
 export function CustomizePanel({
@@ -22,20 +24,34 @@ export function CustomizePanel({
       </TabsList>
 
       <TabsContent value="appearance" className="flex flex-col gap-5 pt-5">
+        <Segmented
+          label="Stage"
+          value={style.stage}
+          options={[
+            { id: "white", label: "White" },
+            { id: "dusk", label: "Dusk" },
+          ]}
+          onChange={(stage: StageTone) => {
+            const surface = stageSurfaces[stage]
+            onChange({ stage, background: surface.background, labelColor: surface.ink })
+          }}
+        />
+        <Segmented
+          label="Theme"
+          value={style.theme}
+          options={Object.values(vizThemes).map((theme) => ({ id: theme.id, label: theme.label }))}
+          onChange={(theme: VizThemeId) => {
+            const next = vizThemes[theme]
+            onChange({
+              theme,
+              nodeColor: next.series[0],
+            })
+          }}
+        />
         <ColorField
           label="Node colour"
           value={style.nodeColor}
           onChange={(nodeColor) => onChange({ nodeColor })}
-        />
-        <ColorField
-          label="Flow colour"
-          value={style.flowColor}
-          onChange={(flowColor) => onChange({ flowColor })}
-        />
-        <ColorField
-          label="Background"
-          value={style.background}
-          onChange={(background) => onChange({ background })}
         />
         <ColorField
           label="Label colour"
@@ -79,8 +95,8 @@ export function CustomizePanel({
         <SliderField
           label="Flow opacity"
           value={Math.round(style.flowOpacity * 100)}
-          min={8}
-          max={80}
+          min={20}
+          max={100}
           onChange={(value) => onChange({ flowOpacity: value / 100 })}
         />
         <ToggleField
@@ -98,7 +114,7 @@ export function CustomizePanel({
                 onClick={() => onChange({ labelPosition: position })}
                 className={`h-8 rounded-lg px-2.5 text-[13px] capitalize ${
                   style.labelPosition === position
-                    ? "bg-[var(--nb-primary)] text-white"
+                    ? "bg-[var(--nb-primary)] text-[var(--background)]"
                     : "bg-[var(--nb-accent)] text-[var(--nb-primary)]"
                 }`}
               >
@@ -134,7 +150,7 @@ export function CustomizePanel({
                 onClick={() => onChange({ labelWeight: weight })}
                 className={`h-8 rounded-lg px-2.5 text-[13px] ${
                   style.labelWeight === weight
-                    ? "bg-[var(--nb-primary)] text-white"
+                    ? "bg-[var(--nb-primary)] text-[var(--background)]"
                     : "bg-[var(--nb-accent)] text-[var(--nb-primary)]"
                 }`}
               >
@@ -145,32 +161,6 @@ export function CustomizePanel({
         </fieldset>
       </TabsContent>
     </Tabs>
-  )
-}
-
-function ColorField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string
-  value: string
-  onChange: (value: string) => void
-}) {
-  return (
-    <label className="flex items-center justify-between gap-3">
-      <span className="text-[13px] font-medium text-[var(--nb-primary)]">{label}</span>
-      <span className="flex items-center gap-2 text-[13px] text-[var(--nb-secondary)] tabular-nums">
-        {value}
-        <input
-          type="color"
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          className="size-7 cursor-pointer rounded-md border border-black/10 bg-white p-0.5"
-          aria-label={label}
-        />
-      </span>
-    </label>
   )
 }
 

@@ -3,8 +3,11 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ChartFrame } from "@/components/viz/chart-frame"
+import { MarkPopover, useMarks } from "@/components/viz/mark-editor"
 import { VizCustomize } from "@/components/viz/customize"
+import { badNumber, cellInput, DataError, DataLead } from "@/components/viz/data-entry"
 import { EmptyViz, ExampleList, VizStudio } from "@/components/viz/studio"
+import { cn } from "@/lib/utils"
 import { scatterExamples, scatterPoint, type ScatterPoint } from "@/lib/viz/examples"
 import { vizId } from "@/lib/viz/id"
 import { inferTable, parseNumber, parseTable, rowsToCsv } from "@/lib/viz/parse"
@@ -14,7 +17,7 @@ import { seriesColor } from "@/lib/viz/themes"
 import { Plus, Trash2 } from "lucide-react"
 import { useMemo, useRef, useState } from "react"
 
-export function ScatterPlotGenerator() {
+export function ScatterPlotGenerator({ title = "Scatter Plot Generator" }: { title?: string }) {
   const first = scatterExamples[0]
   const svgRef = useRef<SVGSVGElement>(null)
   const [points, setPoints] = useState<ScatterPoint[]>(() => first.data.map((point) => ({ ...point, id: vizId() })))
@@ -23,6 +26,7 @@ export function ScatterPlotGenerator() {
   const [xLabel, setXLabel] = useState("X")
   const [yLabel, setYLabel] = useState("Y")
   const [hover, setHover] = useState<string | null>(null)
+  const marks = useMarks()
   const [fileNote, setFileNote] = useState<string | null>(null)
   const theme = resolveTheme(style)
 
@@ -70,9 +74,13 @@ export function ScatterPlotGenerator() {
   const sx = (value: number) => pad.l + ((value - xExtent.min) / (xExtent.max - xExtent.min || 1)) * (width - pad.l - pad.r)
   const sy = (value: number) => pad.t + (1 - (value - yExtent.min) / (yExtent.max - yExtent.min || 1)) * (height - pad.t - pad.b)
 
+  const invalidPoint = points.some((point) => badNumber(point.x) || badNumber(point.y))
+
   const data = (
     <div className="flex flex-col gap-4">
-      <ExampleList examples={scatterExamples} onLoad={(data, title) => { setPoints(data.map((point) => ({ ...point, id: vizId() }))); setMeta((current) => ({ ...current, title })) }} />
+      <DataLead hint="Each row is an X value, a Y value, and a series name. You can paste a table or upload a CSV.">
+        <ExampleList examples={scatterExamples} onLoad={(data, title) => { setPoints(data.map((point) => ({ ...point, id: vizId() }))); setMeta((current) => ({ ...current, title })) }} />
+      </DataLead>
       <div className="overflow-x-auto rounded-lg border border-black/[0.08]">
         <table className="w-full text-[13px]">
           <thead>
@@ -92,15 +100,17 @@ export function ScatterPlotGenerator() {
                     <Input
                       value={point[key]}
                       aria-label={key}
+                      inputMode={key === "x" || key === "y" ? "decimal" : undefined}
+                      aria-invalid={(key === "x" || key === "y") && badNumber(point[key]) ? true : undefined}
                       onChange={(event) =>
                         setPoints((current) => current.map((item) => (item.id === point.id ? { ...item, [key]: event.target.value } : item)))
                       }
-                      className="h-9 rounded-none border-0"
+                      className={cn(cellInput, (key === "x" || key === "y") && badNumber(point[key]) && "text-red-600")}
                     />
                   </td>
                 ))}
                 <td>
-                  <Button type="button" variant="ghost" size="icon-xs" aria-label="Delete point" onClick={() => setPoints((current) => current.filter((item) => item.id !== point.id || current.length === 1))}>
+                  <Button type="button" variant="ghost" size="icon" aria-label="Delete point" onClick={() => setPoints((current) => current.filter((item) => item.id !== point.id || current.length === 1))}>
                     <Trash2 />
                   </Button>
                 </td>
@@ -110,10 +120,10 @@ export function ScatterPlotGenerator() {
         </table>
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="outline" size="sm" onClick={() => setPoints((current) => [...current, scatterPoint("", "", current[0]?.series || "Series 1")])}>
+        <Button type="button" variant="outline" className="h-8" onClick={() => setPoints((current) => [...current, scatterPoint("", "", current[0]?.series || "Series 1")])}>
           <Plus /> Add point
         </Button>
-        <Button type="button" variant="ghost" size="xs" onClick={() => setPoints([scatterPoint("", "", "Series 1")])}>
+        <Button type="button" variant="ghost" className="h-8" onClick={() => setPoints([scatterPoint("", "", "Series 1")])}>
           Clear
         </Button>
         <label className="text-[12px] text-[var(--nb-secondary)]">
@@ -135,16 +145,41 @@ export function ScatterPlotGenerator() {
           <span className="cursor-pointer underline-offset-4 hover:underline">Upload CSV</span>
         </label>
       </div>
-      {fileNote ? <p className="text-[12px] text-red-600">{fileNote}</p> : null}
-      <p className="text-[12px] text-[var(--nb-secondary)]">Paste or upload X, Y, optional series and label.</p>
+      {fileNote ? <p className="text-[13px] text-red-600">{fileNote}</p> : null}
+      <DataError show={invalidPoint} />
     </div>
   )
 
   const hovered = numeric.find((point) => point.id === hover)
 
+  const stats =
+    ys.length === 0
+      ? []
+      : [
+          { label: "Points", value: String(numeric.length) },
+          { label: "Min", value: formatValue(Math.min(...ys)) },
+          { label: "Max", value: formatValue(Math.max(...ys)) },
+        ]
+
+  function reset() {
+    setPoints(first.data.map((point) => ({ ...point, id: vizId() })))
+    setStyle({ ...defaultVizStyle, showPercent: false })
+    setMeta({ ...emptyMeta, title: first.title })
+    setXLabel("X")
+    setYLabel("Y")
+    setHover(null)
+    marks.reset()
+    setFileNote(null)
+  }
+
   return (
+    <>
     <VizStudio
+      title={title}
       filename="scatter-plot"
+      surface={{ background: theme.background, dot: theme.dot }}
+      stats={stats}
+      onReset={reset}
       csv={csv}
       svgRef={svgRef}
       data={data}
@@ -179,15 +214,22 @@ export function ScatterPlotGenerator() {
             </text>
             {numeric.map((point) => {
               const seriesIndex = series.indexOf(point.series.trim() || "Series 1")
+              const mark = marks.of(point.id)
+              const selected = marks.selected?.id === point.id
               return (
                 <circle
                   key={point.id}
                   cx={sx(point.nx)}
                   cy={sy(point.ny)}
-                  r={hover === point.id ? 7 : 5}
-                  fill={seriesColor(theme, Math.max(0, seriesIndex))}
+                  r={hover === point.id || selected ? 7 : 5}
+                  fill={mark.color ?? seriesColor(theme, Math.max(0, seriesIndex))}
+                  opacity={mark.opacity ?? 1}
+                  stroke={selected ? theme.selected : "transparent"}
+                  strokeWidth={selected ? 2 : 0}
+                  className="cursor-pointer"
                   onMouseEnter={() => setHover(point.id)}
                   onMouseLeave={() => setHover(null)}
+                  onPointerDown={(event) => marks.select(point.id, point.label || "Point", event)}
                 />
               )
             })}
@@ -231,5 +273,14 @@ export function ScatterPlotGenerator() {
         />
       }
     />
+    <MarkPopover
+      selected={marks.selected}
+      value={marks.selected ? marks.of(marks.selected.id) : {}}
+      color={marks.selected ? (marks.of(marks.selected.id).color ?? theme.series[0]) : theme.series[0]}
+      fields={["label"]}
+      onChange={marks.update}
+      onClose={marks.close}
+    />
+    </>
   )
 }

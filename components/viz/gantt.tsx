@@ -3,9 +3,11 @@
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { ChartFrame } from "@/components/viz/chart-frame"
+import { MarkPopover, useMarks } from "@/components/viz/mark-editor"
 import { Segmented } from "@/components/viz/fields"
 import { VizCustomize } from "@/components/viz/customize"
 import { VizDataTable } from "@/components/viz/data-table"
+import { DataLead } from "@/components/viz/data-entry"
 import { EmptyViz, ExampleList, VizStudio } from "@/components/viz/studio"
 import { ganttExamples, ganttTask, type GanttTask } from "@/lib/viz/examples"
 import { addDays, ganttTicks, isoDate, layoutGantt, type GanttScale } from "@/lib/viz/gantt"
@@ -13,22 +15,25 @@ import { vizId } from "@/lib/viz/id"
 import { inferTable, rowsToCsv } from "@/lib/viz/parse"
 import { defaultVizStyle, emptyMeta, resolveTheme, type VizMeta, type VizStyle } from "@/lib/viz/style"
 import { seriesColor } from "@/lib/viz/themes"
-import { useMemo, useRef, useState } from "react"
+import { StageZoomContext } from "@/components/stage/useStageLayout"
+import { useContext, useMemo, useRef, useState } from "react"
 
 const first = ganttExamples[0]
 const day = 86_400_000
 
-export function GanttChart() {
+export function GanttChart({ title = "Gantt Chart" }: { title?: string }) {
   const svgRef = useRef<SVGSVGElement>(null)
   const [tasks, setTasks] = useState<GanttTask[]>(() => first.data.map((task) => ({ ...task, id: vizId() })))
   const [style, setStyle] = useState<VizStyle>(defaultVizStyle)
   const [meta, setMeta] = useState<VizMeta>({ ...emptyMeta, title: first.title })
   const [scale, setScale] = useState<GanttScale>("week")
   const [today] = useState(() => Date.now())
-  const drag = useRef<{ id: string; mode: "move" | "start" | "end"; originX: number; start: string; end: string } | null>(null)
+  const drag = useRef<{ id: string; mode: "move" | "start" | "end"; originX: number; originY: number; start: string; end: string } | null>(null)
+  const marks = useMarks()
 
   const layout = useMemo(() => layoutGantt(tasks), [tasks])
   const theme = resolveTheme(style)
+  const zoom = useContext(StageZoomContext)
   const ticks = ganttTicks(layout.min, layout.max, scale)
   const span = layout.max - layout.min || day
 
@@ -40,14 +45,14 @@ export function GanttChart() {
     event.preventDefault()
     const task = tasks.find((item) => item.id === id)
     if (!task) return
-    drag.current = { id, mode, originX: event.clientX, start: task.start, end: task.end }
+    drag.current = { id, mode, originX: event.clientX, originY: event.clientY, start: task.start, end: task.end }
     event.currentTarget.setPointerCapture(event.pointerId)
   }
 
   function onBarMove(event: React.PointerEvent, plotW: number) {
     const active = drag.current
     if (!active) return
-    const days = Math.round(((event.clientX - active.originX) / plotW) * (span / day))
+    const days = Math.round(((event.clientX - active.originX) / zoom / plotW) * (span / day))
     if (active.mode === "move") {
       setCell(active.id, "start", addDays(active.start, days))
       setCell(active.id, "end", addDays(active.end, days))
@@ -84,13 +89,15 @@ export function GanttChart() {
 
   const data = (
     <div className="flex flex-col gap-4" onPaste={onPaste}>
-      <ExampleList
-        examples={ganttExamples}
-        onLoad={(next, title) => {
-          setTasks(next.map((task) => ({ ...task, id: vizId() })))
-          setMeta((current) => ({ ...current, title }))
-        }}
-      />
+      <DataLead hint="Each row is a task, a start date, and an end date. You can paste those columns from a spreadsheet.">
+        <ExampleList
+          examples={ganttExamples}
+          onLoad={(next, title) => {
+            setTasks(next.map((task) => ({ ...task, id: vizId() })))
+            setMeta((current) => ({ ...current, title }))
+          }}
+        />
+      </DataLead>
       <VizDataTable
         columns={[
           { key: "name", label: "Task", placeholder: "Design" },
@@ -136,10 +143,10 @@ export function GanttChart() {
           </label>
         ))}
       </div>
-      <Button type="button" variant="ghost" size="xs" onClick={() => setTasks([ganttTask("", "", "")])}>
+      <Button type="button" variant="ghost" className="h-8" onClick={() => setTasks([ganttTask("", "", "")])}>
         Clear
       </Button>
-      <p className="text-[12px] text-[var(--nb-secondary)]">Paste columns of task, start, end. Drag a bar to move it; drag an end to resize.</p>
+      <p className="text-[13px] text-[var(--nb-secondary)]">Drag a bar to move it. Drag an end to change the date.</p>
     </div>
   )
 
@@ -171,7 +178,9 @@ export function GanttChart() {
         const y = 36 + index * rowH
         const x = left + ((item.start - layout.min) / span) * plotW
         const w = Math.max(item.milestone ? 10 : 8, ((item.end - item.start) / span) * plotW)
-        const fill = seriesColor(theme, item.group ? Math.abs(item.group.length) % 4 : 0)
+        const mark = marks.of(item.id)
+        const selected = marks.selected?.id === item.id
+        const fill = mark.color ?? seriesColor(theme, item.group ? Math.abs(item.group.length) % 4 : 0)
         return (
           <g key={item.id}>
             <text x={16} y={y + 14} fill={theme.ink} fontSize={style.labelSize} fontWeight={style.labelWeight}>
@@ -185,18 +194,27 @@ export function GanttChart() {
               <polygon
                 points={`${x},${y + 4} ${x + 8},${y + 14} ${x},${y + 24} ${x - 8},${y + 14}`}
                 fill={fill}
+                opacity={mark.opacity ?? 1}
+                stroke={selected ? theme.selected : "transparent"}
+                strokeWidth={selected ? 2 : 0}
+                className="cursor-pointer"
+                onPointerDown={(event) => marks.select(item.id, item.name || "Milestone", event)}
               />
             ) : (
               <g
                 onPointerDown={(event) => onBarPointer(item.id, "move", event)}
                 onPointerMove={(event) => onBarMove(event, plotW)}
-                onPointerUp={() => {
+                onPointerUp={(event) => {
+                  const active = drag.current
+                  if (active && Math.hypot(event.clientX - active.originX, event.clientY - active.originY) < 6) {
+                    marks.select(item.id, item.name || "Task", event)
+                  }
                   drag.current = null
                 }}
                 style={{ cursor: "grab" }}
               >
-                <rect x={x} y={y + 4} width={w} height={18} rx={4} fill={fill} opacity={0.2} />
-                <rect x={x} y={y + 4} width={w * (item.progress / 100)} height={18} rx={4} fill={fill} />
+                <rect x={x} y={y + 4} width={w} height={18} rx={4} fill={fill} opacity={(mark.opacity ?? 1) * 0.2} stroke={selected ? theme.selected : "transparent"} strokeWidth={selected ? 2 : 0} />
+                <rect x={x} y={y + 4} width={w * (item.progress / 100)} height={18} rx={4} fill={fill} opacity={mark.opacity ?? 1} />
                 <rect
                   x={x - 3}
                   y={y + 4}
@@ -228,9 +246,31 @@ export function GanttChart() {
     </ChartFrame>
   )
 
+  const spanDays = Math.max(1, Math.round((layout.max - layout.min) / day))
+  const stats = empty
+    ? []
+    : [
+        { label: "Tasks", value: String(layout.items.length) },
+        { label: "Span", value: `${spanDays} days` },
+      ]
+
+  function reset() {
+    setTasks(first.data.map((task) => ({ ...task, id: vizId() })))
+    setStyle(defaultVizStyle)
+    setMeta({ ...emptyMeta, title: first.title })
+    setScale("week")
+    marks.reset()
+  }
+
   return (
+    <>
     <VizStudio
+      title={title}
       filename="gantt-chart"
+      surface={{ background: theme.background, dot: theme.dot }}
+      stats={stats}
+      spatial
+      onReset={reset}
       csv={csv}
       svgRef={svgRef}
       data={data}
@@ -257,5 +297,14 @@ export function GanttChart() {
         />
       }
     />
+    <MarkPopover
+      selected={marks.selected}
+      value={marks.selected ? marks.of(marks.selected.id) : {}}
+      color={marks.selected ? (marks.of(marks.selected.id).color ?? theme.series[0]) : theme.series[0]}
+      fields={[]}
+      onChange={marks.update}
+      onClose={marks.close}
+    />
+    </>
   )
 }

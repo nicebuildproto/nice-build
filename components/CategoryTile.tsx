@@ -51,7 +51,7 @@ export function CategoryTile({ category }: { category: CategoryItem }) {
       icon={
         <Icon
           aria-hidden
-          className="size-4 shrink-0 text-[var(--nb-secondary)] transition-colors duration-150 group-hover/tool:text-[#ff0101]"
+          className="size-4 shrink-0 text-[var(--nb-secondary)] transition-colors duration-150 group-hover/tool:text-[var(--nb-yellow)]"
         />
       }
       trailing={

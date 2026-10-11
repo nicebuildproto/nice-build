@@ -1,3 +1,6 @@
+import type { StageTone, VizThemeId } from "@/lib/viz/themes"
+import { stageSurfaces, vizThemes } from "@/lib/viz/themes"
+
 export interface SankeyRow {
   id: string
   source: string
@@ -15,6 +18,8 @@ export interface ValidFlow {
 }
 
 export interface StyleSettings {
+  theme: VizThemeId
+  stage: StageTone
   nodeColor: string
   flowColor: string
   background: string
@@ -64,16 +69,18 @@ export interface SankeyLayout {
 }
 
 export const defaultStyle: StyleSettings = {
-  nodeColor: "#111111",
-  flowColor: "#111111",
-  background: "#ffffff",
-  labelColor: "#111111",
+  theme: "signal",
+  stage: "white",
+  nodeColor: vizThemes.signal.series[0],
+  flowColor: vizThemes.signal.series[1],
+  background: stageSurfaces.white.background,
+  labelColor: stageSurfaces.white.ink,
   showValues: true,
   showLabels: true,
   nodeWidth: 14,
   nodeSpacing: 18,
   minNodeHeight: 16,
-  flowOpacity: 0.28,
+  flowOpacity: 0.75,
   labelPosition: "outside",
   autoLayout: true,
   labelSize: 12,

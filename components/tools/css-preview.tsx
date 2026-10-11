@@ -238,7 +238,6 @@ export function PxToRem() {
   const pxNumber = Number(px)
   const rootNumber = Number(root)
   const rem = pxToRem(pxNumber, rootNumber)
-  const parsedColour = parseHex("#111111")
 
   return (
     <CreativeShell>
@@ -246,9 +245,9 @@ export function PxToRem() {
         <NumberField label="Pixels" value={px} onChange={setPx} suffix="px" min={0} />
         <NumberField label="Root size" value={root} onChange={setRoot} suffix="px" min={0} />
       </div>
-      <PreviewCanvas className="px-6 py-10" label="Type sample">
+      <PreviewCanvas className="bg-background px-6 py-10 text-[var(--nb-primary)]" label="Type sample">
         {rem !== null ? (
-          <p style={{ fontSize: `${pxNumber}px`, color: parsedColour ?? undefined }} className="leading-tight tracking-[-0.03em]">
+          <p style={{ fontSize: `${pxNumber}px` }} className="leading-tight tracking-[-0.03em] text-[var(--nb-primary)]">
             The quick brown fox
           </p>
         ) : (
@@ -257,7 +256,6 @@ export function PxToRem() {
       </PreviewCanvas>
       {rem !== null ? (
         <>
-          <p className="font-mono text-2xl font-semibold tracking-[-0.03em]">{formatRem(rem)}</p>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[20rem] text-left text-[13px]">
               <thead>

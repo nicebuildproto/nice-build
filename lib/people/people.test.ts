@@ -13,6 +13,8 @@ import {
   nextRaci,
   oneOnOneAgenda,
   raciCsv,
+  raciSummary,
+  rememberPrompt,
   taskIssues,
   workingAgreement,
 } from "./team.ts"
@@ -59,8 +61,20 @@ test("RACI flags missing and duplicate accountable", () => {
   assert.equal(raciCsv(["Brief"], ["Alex"], { "Brief|Alex": "R" }), `"Task","Alex"\n"Brief","R"`)
 })
 
+test("raciSummary only speaks about tasks that have a role", () => {
+  assert.equal(raciSummary([{ cells: ["", ""], issues: [] }]), null)
+  assert.match(raciSummary([{ cells: ["A", "R"], issues: [] }]) ?? "", /one accountable/)
+  assert.match(raciSummary([{ cells: ["A", "A"], issues: ["More than one accountable"] }]) ?? "", /1 task/)
+})
+
+test("rememberPrompt keeps the latest prompt out of the next draw", () => {
+  assert.deepEqual(rememberPrompt(["a", "b"], "c", 4), ["a", "b", "c"])
+  assert.deepEqual(rememberPrompt(["a", "b"], "c", 3), ["c"])
+})
+
 test("documents keep the existing shape", () => {
   assert.match(workingAgreement({ team: "Studio", hours: "10–15", response: "Same day", decisions: "Propose, then commit" }), /Studio working agreement/)
+  assert.match(workingAgreement({ team: "Studio", hours: "10–15", response: "Same day", decisions: "Propose, then commit", meetings: "45 minutes" }), /How we meet\n45 minutes/)
   assert.equal(
     meetingAgenda("Weekly studio", "Monday 10:00", "What shipped\n\nWhat is stuck"),
     "Weekly studio\nMonday 10:00\n\n1. What shipped\n2. What is stuck",

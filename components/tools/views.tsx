@@ -99,6 +99,7 @@ import {
   SensitivityConverter,
   SteamLibraryCalculator,
 } from "@/components/gaming/views"
+import { EngagementRateCalculator, PostingTime, RateCardCalculator } from "@/components/creator/views"
 import { CryptoDcaBacktest } from "@/components/tools/dca-backtest"
 import {
   AiToolFitQuiz,
@@ -154,7 +155,7 @@ function specView(slug: string): ComponentType {
   }
 }
 
-export const toolViews: Record<string, { View: ComponentType; width?: "narrow" | "tool" | "wide" }> = {
+export const toolViews: Record<string, { View: ComponentType; width?: "narrow" | "tool" | "wide"; stage?: boolean }> = {
   "tip-calculator": { View: TipCalculator },
   "json-formatter": { View: JsonFormatter, width: "tool" },
   "uuid-generator": { View: UuidGenerator, width: "tool" },
@@ -172,8 +173,8 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "border-radius-generator": { View: BorderRadiusGenerator, width: "tool" },
   "aspect-ratio-calculator": { View: AspectRatioCalculator, width: "tool" },
   "px-to-rem": { View: PxToRem, width: "tool" },
-  "funnel-chart": { View: FunnelChart, width: "wide" },
-  "gantt-chart": { View: GanttChart, width: "wide" },
+  "funnel-chart": { View: FunnelChart, width: "wide", stage: true },
+  "gantt-chart": { View: GanttChart, width: "wide", stage: true },
   "invoice-generator": { View: InvoiceGenerator, width: "tool" },
   "quote-builder": { View: QuoteBuilder, width: "tool" },
   "margin-calculator": { View: MarginCalculator, width: "tool" },
@@ -235,12 +236,12 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "image-to-base64": { View: ImageToBase64, width: "tool" },
   "favicon-generator": { View: FaviconGenerator, width: "tool" },
   "qr-code-generator": { View: QrCodeGenerator },
-  "flowchart-generator": { View: FlowchartGenerator, width: "wide" },
-  "bar-chart-generator": { View: BarChartGenerator, width: "wide" },
-  "line-chart-generator": { View: LineChartGenerator, width: "wide" },
-  "pie-chart-generator": { View: PieChartGenerator, width: "wide" },
-  "timeline-generator": { View: TimelineGenerator, width: "wide" },
-  "diagram-generator": { View: DiagramGenerator, width: "wide" },
+  "flowchart-generator": { View: FlowchartGenerator, width: "wide", stage: true },
+  "bar-chart-generator": { View: BarChartGenerator, width: "wide", stage: true },
+  "line-chart-generator": { View: LineChartGenerator, width: "wide", stage: true },
+  "pie-chart-generator": { View: PieChartGenerator, width: "wide", stage: true },
+  "timeline-generator": { View: TimelineGenerator, width: "wide", stage: true },
+  "diagram-generator": { View: DiagramGenerator, width: "wide", stage: true },
   "resume-builder": { View: ResumeBuilder, width: "tool" },
   "cover-letter-generator": { View: CoverLetterGenerator, width: "tool" },
   "receipt-generator": { View: ReceiptGenerator, width: "tool" },
@@ -267,6 +268,9 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "loot-box-calculator": { View: LootBoxCalculator, width: "tool" },
   "library-value-calculator": { View: SteamLibraryCalculator, width: "tool" },
   "bracket-generator": { View: BracketGenerator, width: "tool" },
+  "rate-card-calculator": { View: RateCardCalculator, width: "tool" },
+  "engagement-rate-calculator": { View: EngagementRateCalculator, width: "tool" },
+  "best-time-to-post": { View: PostingTime, width: "tool" },
   "thread-formatter": { View: ThreadFormatter, width: "tool" },
   "thumbnail-preview": { View: ThumbnailPreview, width: "tool" },
   "username-checker": { View: UsernameChecker },
@@ -292,8 +296,8 @@ export const toolViews: Record<string, { View: ComponentType; width?: "narrow" |
   "email-header-analyzer": { View: EmailHeaderAnalyzer, width: "tool" },
   "css-grid-generator": { View: CssGridGenerator, width: "tool" },
   "open-graph-image-generator": { View: OpenGraphImageGenerator, width: "tool" },
-  "scatter-plot": { View: ScatterPlotGenerator, width: "wide" },
-  "waterfall-chart": { View: WaterfallChartGenerator, width: "wide" },
+  "scatter-plot": { View: ScatterPlotGenerator, width: "wide", stage: true },
+  "waterfall-chart": { View: WaterfallChartGenerator, width: "wide", stage: true },
   "net-worth-calculator": { View: NetWorthCalculator, width: "tool" },
   "debt-payoff-calculator": { View: DebtPayoffCalculator },
   "ai-context-window-calculator": { View: AiContextWindowCalculator, width: "tool" },

@@ -17,7 +17,7 @@ const soonCardClass =
 
 export function CategoryPill({ label }: { label: string }) {
   return (
-    <span className="inline-flex w-fit max-w-full items-center rounded-full bg-[var(--nb-yellow)]/10 px-2 py-0.5 text-[11px] leading-4 font-medium tracking-[-0.01em] text-[var(--nb-yellow)]">
+    <span className="inline-flex w-fit max-w-full items-center rounded-full bg-[var(--nb-yellow)] px-2 py-0.5 text-[11px] leading-4 font-medium tracking-[-0.01em] text-[#10211e]">
       {label}
     </span>
   )

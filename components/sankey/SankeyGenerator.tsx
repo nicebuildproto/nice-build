@@ -1,10 +1,10 @@
 "use client"
 
-import { BrandLink } from "@/components/BrandLink"
-import { HeaderActions } from "@/components/site/HeaderActions"
+import { ToolStage } from "@/components/stage/ToolStage"
 import { CustomizePanel } from "@/components/sankey/CustomizePanel"
 import { DataTable, NodeColorTable } from "@/components/sankey/DataTable"
 import { ExampleCards } from "@/components/sankey/ExampleCards"
+import { FlowEditor } from "@/components/sankey/FlowEditor"
 import { SankeySvg } from "@/components/sankey/SankeySvg"
 import { Button } from "@/components/ui/button"
 import {
@@ -13,13 +13,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
-import { defaultExample, type SankeyExample } from "@/lib/sankey/examples"
+import { DataLead } from "@/components/viz/data-entry"
+import { defaultExample, sankeyExamples, type SankeyExample } from "@/lib/sankey/examples"
 import { downloadBlob, downloadText, serializeSvg, svgToPngBlob } from "@/lib/sankey/export"
 import { layoutSankey } from "@/lib/sankey/layout"
 import { parsePastedTable, validFlows } from "@/lib/sankey/parse"
@@ -30,24 +25,33 @@ import {
   type SankeyRow,
   type StyleSettings,
 } from "@/lib/sankey/types"
-import { ChevronDown, Minus, Plus, RotateCcw, SlidersHorizontal, Table2 } from "lucide-react"
+import { stageSurfaces, vizThemes } from "@/lib/viz/themes"
+import { ChevronDown, RotateCcw } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 
-export function SankeyGenerator() {
+function nodePalette(source: SankeyRow[], series: string[]) {
+  const names: string[] = []
+  for (const row of source) {
+    if (row.source && !names.includes(row.source)) names.push(row.source)
+    if (row.target && !names.includes(row.target)) names.push(row.target)
+  }
+  return Object.fromEntries(names.map((name, index) => [name, series[index % series.length]]))
+}
+
+export function SankeyGenerator({ title = "Sankey Diagram Generator" }: { title?: string }) {
   const [rows, setRows] = useState<SankeyRow[]>(() => defaultExample.rows.map((row) => ({ ...row, id: newRow().id })))
   const [style, setStyle] = useState<StyleSettings>(defaultStyle)
   const [offsets, setOffsets] = useState<Record<string, NodeOffset>>({})
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
   const [selectedLink, setSelectedLink] = useState<string | null>(null)
-  const [nodeColors, setNodeColors] = useState<Record<string, string>>({})
-  const [flowColors, setFlowColors] = useState<Record<string, string>>({})
+  const [editor, setEditor] = useState<{ kind: "node" | "link"; id: string; x: number; y: number } | null>(null)
+  const [nodeColors, setNodeColors] = useState<Record<string, string>>(() =>
+    nodePalette(defaultExample.rows, vizThemes[defaultStyle.theme].series)
+  )
   const [hoveredLink, setHoveredLink] = useState<string | null>(null)
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
-  const [frame, setFrame] = useState({ width: 720, height: 480 })
-  const [dataOpen, setDataOpen] = useState(false)
-  const [styleOpen, setStyleOpen] = useState(false)
-  const [examplesOpen, setExamplesOpen] = useState(false)
+  const [frame, setFrame] = useState({ width: 720, height: 380 })
 
   const canvasRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
@@ -56,6 +60,7 @@ export function SankeyGenerator() {
     startX: number
     startY: number
     origin: NodeOffset
+    moved: boolean
   } | null>(null)
 
   const flows = useMemo(() => validFlows(rows), [rows])
@@ -73,13 +78,28 @@ export function SankeyGenerator() {
   )
 
   useEffect(() => {
+    setNodeColors((current) => {
+      const series = vizThemes[style.theme].series
+      let changed = false
+      const next = { ...current }
+      nodeNames.forEach((name, index) => {
+        if (!next[name]) {
+          next[name] = series[index % series.length]
+          changed = true
+        }
+      })
+      return changed ? next : current
+    })
+  }, [nodeNames, style.theme])
+
+  useEffect(() => {
     const el = canvasRef.current
     if (!el) return
 
     const update = () => {
       setFrame({
         width: Math.max(320, el.clientWidth),
-        height: Math.max(240, el.clientHeight),
+        height: Math.min(380, Math.max(260, el.clientHeight)),
       })
     }
     update()
@@ -93,21 +113,21 @@ export function SankeyGenerator() {
   }
 
   function loadExample(example: SankeyExample) {
-    setRows(example.rows.map((row) => ({ ...row, id: newRow().id })))
+    const next = example.rows.map((row) => ({ ...row, id: newRow().id }))
+    setRows(next)
     setOffsets({})
     setSelectedNode(null)
     setSelectedLink(null)
-    setNodeColors({})
-    setFlowColors({})
+    setNodeColors(nodePalette(next, vizThemes[style.theme].series))
+    setEditor(null)
     setZoom(1)
     setPan({ x: 0, y: 0 })
-    setExamplesOpen(false)
-    setDataOpen(false)
   }
 
   function resetAll() {
     loadExample(defaultExample)
     setStyle(defaultStyle)
+    setNodeColors(nodePalette(defaultExample.rows, vizThemes[defaultStyle.theme].series))
   }
 
   function onPaste(event: React.ClipboardEvent) {
@@ -120,32 +140,89 @@ export function SankeyGenerator() {
     setOffsets({})
   }
 
+  function renameNode(from: string, to: string) {
+    if (from === to) return
+    setRows((current) =>
+      current.map((row) => ({
+        ...row,
+        source: row.source === from ? to : row.source,
+        target: row.target === from ? to : row.target,
+      }))
+    )
+    setNodeColors((current) => {
+      if (!(from in current)) return current
+      const next = { ...current, [to]: current[from] }
+      delete next[from]
+      return next
+    })
+    setOffsets((current) => {
+      if (!(from in current)) return current
+      const next = { ...current, [to]: current[from] }
+      delete next[from]
+      return next
+    })
+    setSelectedNode(to)
+    setEditor((current) => (current?.kind === "node" && current.id === from ? { ...current, id: to } : current))
+  }
+
+  function addTarget(source: string) {
+    const row = { ...newRow(), source, target: "", value: "" }
+    setRows((current) => [...current, row])
+    if (editor?.kind === "link") {
+      setSelectedLink(row.id)
+      setEditor({ kind: "link", id: row.id, x: editor.x, y: editor.y })
+    }
+  }
+
+  function deleteFlow(id: string) {
+    setRows((current) => (current.length === 1 ? [newRow()] : current.filter((row) => row.id !== id)))
+    setSelectedLink((current) => (current === id ? null : current))
+    setEditor((current) => (current?.kind === "link" && current.id === id ? null : current))
+  }
+
+  function duplicateFlow(id: string) {
+    setRows((current) => {
+      const index = current.findIndex((row) => row.id === id)
+      if (index === -1) return current
+      const copy = { ...current[index], id: newRow().id }
+      return [...current.slice(0, index + 1), copy, ...current.slice(index + 1)]
+    })
+  }
+
   function onNodePointerDown(id: string, event: React.PointerEvent) {
     event.preventDefault()
     event.stopPropagation()
     setSelectedNode(id)
     setSelectedLink(null)
+    setEditor(null)
     const origin = offsets[id] ?? { x: 0, y: 0 }
-    dragRef.current = { id, startX: event.clientX, startY: event.clientY, origin }
+    dragRef.current = { id, startX: event.clientX, startY: event.clientY, origin, moved: false }
   }
 
   useEffect(() => {
     function onMove(event: PointerEvent) {
       const drag = dragRef.current
       if (!drag) return
-      const dx = (event.clientX - drag.startX) / zoom
-      const dy = (event.clientY - drag.startY) / zoom
+      const dx = event.clientX - drag.startX
+      const dy = event.clientY - drag.startY
+      if (!drag.moved && Math.hypot(dx, dy) < 4) return
+      drag.moved = true
       setOffsets((current) => ({
         ...current,
         [drag.id]: {
-          x: style.autoLayout ? 0 : drag.origin.x + dx,
-          y: drag.origin.y + dy,
+          x: style.autoLayout ? 0 : drag.origin.x + dx / zoom,
+          y: drag.origin.y + dy / zoom,
         },
       }))
     }
 
-    function onUp() {
+    function onUp(event: PointerEvent) {
+      const drag = dragRef.current
       dragRef.current = null
+      if (!drag || drag.moved) return
+      setSelectedNode(drag.id)
+      setSelectedLink(null)
+      setEditor({ kind: "node", id: drag.id, x: event.clientX, y: event.clientY })
     }
 
     window.addEventListener("pointermove", onMove)
@@ -178,103 +255,102 @@ export function SankeyGenerator() {
   }
 
   const dataPanel = (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="mb-5 flex items-center justify-between gap-3">
-        <h2 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
-          Data
-        </h2>
-        <div className="flex gap-1">
-          <Button type="button" variant="ghost" size="xs" onClick={() => setExamplesOpen((open) => !open)}>
-            Examples
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
-            onClick={() => {
-              setRows([newRow(), newRow(), newRow()])
-              setOffsets({})
-            }}
-          >
-            Clear
-          </Button>
+    <div className="flex flex-col gap-3" onPaste={onPaste}>
+      <DataLead hint="Each row is where a flow starts, where it goes, and how much moves. You can paste a table from a spreadsheet.">
+        <div className="flex flex-col gap-2">
+          <p className="text-[11px] font-medium tracking-[0.08em] text-[var(--nb-secondary)] uppercase">Templates</p>
+        <div className="flex flex-wrap gap-1.5">
+          {sankeyExamples.map((example) => (
+            <button
+              key={example.id}
+              type="button"
+              title={example.description}
+              onClick={() => loadExample(example)}
+              className="h-8 rounded-lg bg-[var(--nb-accent)] px-2.5 text-[13px] font-medium text-[var(--nb-primary)] transition-colors hover:bg-[var(--nb-primary)] hover:text-white"
+            >
+              {example.title}
+            </button>
+          ))}
         </div>
-      </div>
-      <div className="min-h-0 flex-1 overflow-y-auto pr-1" onPaste={onPaste}>
-        {examplesOpen ? (
-          <div className="mb-6">
-            <ExampleCards onLoad={loadExample} />
-          </div>
-        ) : null}
+        </div>
+      </DataLead>
+      <Button
+        type="button"
+        variant="ghost"
+        className="h-8 w-fit"
+        onClick={() => {
+          setRows([newRow(), newRow(), newRow()])
+          setOffsets({})
+          setNodeColors({})
+        }}
+      >
+        Clear
+      </Button>
         <DataTable
           rows={rows}
-          flowColors={flowColors}
-          defaultFlowColor={style.flowColor}
           onChange={updateRow}
-          onFlowColor={(id, color) => setFlowColors((current) => ({ ...current, [id]: color }))}
           onAdd={() => setRows((current) => [...current, newRow()])}
-          onDelete={(id) =>
-            setRows((current) => (current.length === 1 ? [newRow()] : current.filter((row) => row.id !== id)))
-          }
-          onDuplicate={(id) =>
-            setRows((current) => {
-              const index = current.findIndex((row) => row.id === id)
-              if (index === -1) return current
-              const copy = { ...current[index], id: newRow().id }
-              return [...current.slice(0, index + 1), copy, ...current.slice(index + 1)]
-            })
-          }
+          onDelete={deleteFlow}
+          onDuplicate={duplicateFlow}
         />
-        <NodeColorTable
-          nodes={nodeNames}
-          colors={nodeColors}
-          fallback={style.nodeColor}
-          onChange={(name, color) => setNodeColors((current) => ({ ...current, [name]: color }))}
-        />
-        <p className="mt-4 text-[12px] leading-relaxed text-[var(--nb-secondary)]">
-          Paste from Excel or Sheets. Each row is source, target, value.
-        </p>
-      </div>
     </div>
   )
 
   const stylePanel = (
-    <div className="flex h-full min-h-0 flex-col">
-      <h2 className="mb-5 text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
-        Customize
-      </h2>
-      <div className="min-h-0 flex-1 overflow-y-auto pr-1">
-        <CustomizePanel style={style} onChange={(next) => setStyle((current) => ({ ...current, ...next }))} />
-      </div>
+    <div className="flex flex-col gap-4">
+      <CustomizePanel
+        style={style}
+        onChange={(next) => {
+          setStyle((current) => ({ ...current, ...next }))
+          if (next.theme) setNodeColors(nodePalette(rows, vizThemes[next.theme].series))
+        }}
+      />
+      <NodeColorTable
+        nodes={nodeNames}
+        colors={nodeColors}
+        fallback={style.nodeColor}
+        onChange={(name, color) => setNodeColors((current) => ({ ...current, [name]: color }))}
+      />
     </div>
   )
 
   const empty = flows.length === 0
+  const totalFlow = flows.reduce((sum, flow) => sum + flow.value, 0)
+  const stats = empty
+    ? []
+    : [
+        { label: "Total flow", value: totalFlow.toLocaleString("en-AU") },
+        { label: "Nodes", value: String(nodeNames.length) },
+        { label: "Links", value: String(flows.length) },
+      ]
 
   return (
-    <div className="flex h-dvh min-h-0 flex-col bg-background text-[var(--nb-primary)]">
-      <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-6">
-        <div className="flex min-w-0 items-center gap-4">
-          <BrandLink logoClassName="h-6" />
-          <div className="min-w-0">
-            <h1 className="text-[15px] font-medium tracking-[-0.01em]">Sankey Diagram Generator</h1>
-            <p className="hidden text-[13px] text-[var(--nb-secondary)] sm:block">
-              Visualize how quantities flow from one stage to another.
-            </p>
-          </div>
-        </div>
-        <div className="ml-auto flex flex-wrap items-center justify-end gap-1.5">
-          <Button type="button" variant="ghost" size="sm" onClick={() => setStyleOpen(true)}>
-            <SlidersHorizontal />
-            Customize
-          </Button>
-          <Button type="button" variant="ghost" size="sm" onClick={resetAll}>
-            Reset
-          </Button>
+    <ToolStage
+      toolId="sankey-generator"
+      dataOpen={false}
+      title={title}
+      stats={stats}
+      left={dataPanel}
+      right={stylePanel}
+      view={{ zoom, setZoom, pan, setPan }}
+      fill
+      surface={{ background: stageSurfaces[style.stage].background, dot: stageSurfaces[style.stage].dot }}
+      tools={[
+        {
+          id: "reset-layout",
+          label: "Reset layout",
+          icon: <RotateCcw />,
+          onClick: () => {
+            setOffsets({})
+            setZoom(1)
+            setPan({ x: 0, y: 0 })
+          },
+        },
+      ]}
+      actions={
+        <>
           <DropdownMenu>
-            <DropdownMenuTrigger
-              render={<Button variant="default" size="sm" />}
-            >
+            <DropdownMenuTrigger render={<Button variant="default" className="h-8" />}>
               Export
               <ChevronDown />
             </DropdownMenuTrigger>
@@ -284,113 +360,78 @@ export function SankeyGenerator() {
               <DropdownMenuItem onClick={copyDiagram}>Copy image</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <span aria-hidden className="mx-1 hidden h-4 w-px bg-border sm:block" />
-          <HeaderActions />
-        </div>
-      </header>
-
-      <div className="grid min-h-0 flex-1 md:grid-cols-[minmax(440px,1.05fr)_minmax(0,1fr)]">
-        <aside className="hidden min-h-0 border-r border-black/[0.06] p-4 md:flex">{dataPanel}</aside>
-
-        <section className="relative flex min-h-0 flex-col">
-          <div ref={canvasRef} className="relative min-h-0 flex-1">
-            {empty ? (
-              <div className="absolute inset-0 flex items-center justify-center p-6">
-                <div className="w-full max-w-xl">
-                  <p className="mb-4 text-[13px] text-[var(--nb-secondary)]">
-                    Load an example to see a diagram, or type flows on the left.
-                  </p>
-                  <ExampleCards onLoad={loadExample} />
-                </div>
-              </div>
-            ) : (
-              <SankeySvg
-                layout={layout}
-                style={style}
-                selectedNode={selectedNode}
-                selectedLink={selectedLink}
-                hoveredLink={hoveredLink}
-                nodeColors={nodeColors}
-                flowColors={flowColors}
-                zoom={zoom}
-                pan={pan}
-                onSelectNode={setSelectedNode}
-                onSelectLink={setSelectedLink}
-                onHoverLink={setHoveredLink}
-                onNodePointerDown={onNodePointerDown}
-                svgRef={svgRef}
-              />
-            )}
-          </div>
-
-          <div className="pointer-events-none absolute right-4 bottom-4 left-4 flex items-end justify-between gap-3">
-            <div className="pointer-events-auto flex gap-2">
-              <Button type="button" variant="outline" size="sm" className="md:hidden" onClick={() => setDataOpen(true)}>
-                <Table2 />
-                Data
-              </Button>
-            </div>
-            <div className="pointer-events-auto ml-auto flex items-center gap-1 rounded-lg border border-black/[0.06] bg-white/90 p-1 backdrop-blur-sm">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                aria-label="Zoom out"
-                onClick={() => setZoom((current) => Math.max(0.5, Number((current - 0.1).toFixed(2))))}
-              >
-                <Minus />
-              </Button>
-              <span className="min-w-10 text-center text-[12px] text-[var(--nb-secondary)] tabular-nums">
-                {Math.round(zoom * 100)}%
-              </span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                aria-label="Zoom in"
-                onClick={() => setZoom((current) => Math.min(2.4, Number((current + 0.1).toFixed(2))))}
-              >
-                <Plus />
-              </Button>
-              <Button type="button" variant="ghost" size="xs" onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }) }}>
-                Fit
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                aria-label="Reset layout"
-                onClick={() => {
-                  setOffsets({})
-                  setZoom(1)
-                  setPan({ x: 0, y: 0 })
-                }}
-              >
-                <RotateCcw />
-              </Button>
+          <Button type="button" variant="ghost" className="h-8" onClick={resetAll}>
+            Reset
+          </Button>
+        </>
+      }
+    >
+      <div ref={canvasRef} className="relative h-full w-full">
+        {empty ? (
+          <div className="absolute inset-0 flex items-center justify-center p-6">
+            <div className="w-full max-w-xl">
+              <p className="mb-4 text-[13px] text-[var(--nb-secondary)]">
+                Load an example to see a diagram, or type flows on the left.
+              </p>
+              <ExampleCards onLoad={loadExample} />
             </div>
           </div>
-        </section>
-
+        ) : (
+          <SankeySvg
+            layout={layout}
+            style={style}
+            selectedNode={selectedNode}
+            selectedLink={selectedLink}
+            hoveredLink={hoveredLink}
+            nodeColors={nodeColors}
+            zoom={zoom}
+            pan={pan}
+            onSelectNode={(id) => {
+              setSelectedNode(id)
+              if (!id) setEditor(null)
+            }}
+            onSelectLink={(id, point) => {
+              setSelectedLink(id)
+              setSelectedNode(null)
+              if (id && point) setEditor({ kind: "link", id, x: point.clientX, y: point.clientY })
+              else setEditor(null)
+            }}
+            onHoverLink={setHoveredLink}
+            onNodePointerDown={onNodePointerDown}
+            svgRef={svgRef}
+          />
+        )}
       </div>
-
-      <Sheet open={dataOpen} onOpenChange={setDataOpen}>
-        <SheetContent side="left" className="w-full max-w-xl p-5">
-          <SheetHeader className="p-0 pb-4">
-            <SheetTitle>Data</SheetTitle>
-          </SheetHeader>
-          {dataPanel}
-        </SheetContent>
-      </Sheet>
-
-      <Sheet open={styleOpen} onOpenChange={setStyleOpen}>
-        <SheetContent side="right" className="w-full max-w-md p-5">
-          <SheetHeader className="p-0 pb-4">
-            <SheetTitle>Customize</SheetTitle>
-          </SheetHeader>
-          {stylePanel}
-        </SheetContent>
-      </Sheet>
-    </div>
+      {editor ? (
+        <FlowEditor
+          title={editor.kind === "node" ? editor.id || "Node" : "Flow"}
+          x={editor.x}
+          y={editor.y}
+          source={editor.kind === "node" ? editor.id : (rows.find((row) => row.id === editor.id)?.source ?? "")}
+          onSource={(value) => {
+            if (editor.kind === "node") renameNode(editor.id, value)
+            else updateRow(editor.id, "source", value)
+          }}
+          targets={
+            editor.kind === "node"
+              ? rows.filter((row) => row.source === editor.id).map((row) => ({ id: row.id, target: row.target, value: row.value }))
+              : rows.filter((row) => row.id === editor.id).map((row) => ({ id: row.id, target: row.target, value: row.value }))
+          }
+          onTarget={(id, value) => updateRow(id, "target", value)}
+          onValue={(id, value) => updateRow(id, "value", value)}
+          onDelete={deleteFlow}
+          onDuplicate={duplicateFlow}
+          onAddTarget={() => addTarget(editor.kind === "node" ? editor.id : (rows.find((row) => row.id === editor.id)?.source ?? ""))}
+          color={editor.kind === "node" ? (nodeColors[editor.id] ?? style.nodeColor) : undefined}
+          recent={[...new Set(nodeNames.map((name) => nodeColors[name] ?? style.nodeColor))]}
+          onColor={
+            editor.kind === "node"
+              ? (color) => setNodeColors((current) => ({ ...current, [editor.id]: color }))
+              : undefined
+          }
+          onClose={() => setEditor(null)}
+        />
+      ) : null}
+    </ToolStage>
   )
 }

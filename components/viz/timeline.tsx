@@ -2,9 +2,11 @@
 
 import { Button } from "@/components/ui/button"
 import { ChartFrame } from "@/components/viz/chart-frame"
+import { MarkPopover, useMarks } from "@/components/viz/mark-editor"
 import { Segmented } from "@/components/viz/fields"
 import { VizCustomize } from "@/components/viz/customize"
 import { VizDataTable } from "@/components/viz/data-table"
+import { DataLead } from "@/components/viz/data-entry"
 import { EmptyViz, ExampleList, VizStudio } from "@/components/viz/studio"
 import { parseFlexibleDate } from "@/lib/viz/dates"
 import { timelineEvent, timelineExamples, type TimelineEvent } from "@/lib/viz/examples"
@@ -16,7 +18,7 @@ import { useMemo, useRef, useState } from "react"
 
 const first = timelineExamples[0]
 
-export function TimelineGenerator() {
+export function TimelineGenerator({ title = "Timeline Generator" }: { title?: string }) {
   const svgRef = useRef<SVGSVGElement>(null)
   const [events, setEvents] = useState<TimelineEvent[]>(() => first.data.map((event) => ({ ...event, id: vizId() })))
   const [style, setStyle] = useState<VizStyle>(defaultVizStyle)
@@ -24,6 +26,7 @@ export function TimelineGenerator() {
   const [orientation, setOrientation] = useState<"vertical" | "horizontal">("vertical")
   const [autoSort, setAutoSort] = useState(true)
   const theme = resolveTheme(style)
+  const marks = useMarks()
 
   const ordered = useMemo(() => {
     const parsed = events.map((event) => ({ event, date: parseFlexibleDate(event.date) }))
@@ -55,13 +58,15 @@ export function TimelineGenerator() {
 
   const data = (
     <div className="flex flex-col gap-4" onPaste={onPaste}>
-      <ExampleList
-        examples={timelineExamples}
-        onLoad={(next, title) => {
-          setEvents(next.map((event) => ({ ...event, id: vizId() })))
-          setMeta((current) => ({ ...current, title }))
-        }}
-      />
+      <DataLead hint="Each row is a date and an event. A date can be a year, a quarter, a month, or a day.">
+        <ExampleList
+          examples={timelineExamples}
+          onLoad={(next, title) => {
+            setEvents(next.map((event) => ({ ...event, id: vizId() })))
+            setMeta((current) => ({ ...current, title }))
+          }}
+        />
+      </DataLead>
       <VizDataTable
         columns={[
           { key: "date", label: "Date", placeholder: "Q1 2026" },
@@ -83,12 +88,9 @@ export function TimelineGenerator() {
         }
         addLabel="Add event"
       />
-      <Button type="button" variant="ghost" size="xs" onClick={() => setEvents([timelineEvent("", "")])}>
+      <Button type="button" variant="ghost" className="h-8" onClick={() => setEvents([timelineEvent("", "")])}>
         Clear
       </Button>
-      <p className="text-[12px] text-[var(--nb-secondary)]">
-        Dates can be a year, a quarter, a month, or a day — “2026”, “Q1 2026”, “March 2026”, or “10 March 2026”.
-      </p>
     </div>
   )
 
@@ -108,19 +110,23 @@ export function TimelineGenerator() {
           {ordered.map(({ event, date }, index) => {
             const y = 28 + index * 88
             const cats = [...new Set(events.map((item) => item.category).filter(Boolean))]
-            const fill = seriesColor(theme, Math.max(0, cats.indexOf(event.category)))
+            const mark = marks.of(event.id)
+            const selected = marks.selected?.id === event.id
+            const fill = mark.color ?? seriesColor(theme, Math.max(0, cats.indexOf(event.category)))
             return (
-              <g key={event.id}>
-                <circle cx={40} cy={y} r={6} fill={fill} />
-                {style.showLabels ? (
+              <g key={event.id} className="cursor-pointer" onPointerDown={(eventPointer) => marks.select(event.id, event.title || "Event", eventPointer)}>
+                <circle cx={40} cy={y} r={14} fill="transparent" />
+                <circle cx={40} cy={y} r={selected ? 8 : 6} fill={fill} opacity={mark.opacity ?? 1} stroke={selected ? theme.selected : "transparent"} strokeWidth={selected ? 2 : 0} />
+                {style.showLabels && mark.showLabel !== false ? (
                   <text x={64} y={y - 8} fill={theme.muted} fontSize={style.valueSize}>
                     {event.date}
-                    {date ? "" : event.date ? "" : ""}
                   </text>
                 ) : null}
-                <text x={64} y={y + 10} fill={theme.ink} fontSize={style.labelSize} fontWeight={style.labelWeight}>
-                  {event.title}
-                </text>
+                {mark.showLabel !== false ? (
+                  <text x={64} y={y + 10} fill={theme.ink} fontSize={style.labelSize} fontWeight={style.labelWeight}>
+                    {event.title}
+                  </text>
+                ) : null}
                 {event.description ? (
                   <text x={64} y={y + 28} fill={theme.muted} fontSize={11}>
                     {event.description}
@@ -136,11 +142,14 @@ export function TimelineGenerator() {
           {ordered.map(({ event }, index) => {
             const x = 48 + index * ((width - 96) / Math.max(ordered.length - 1, 1))
             const cats = [...new Set(events.map((item) => item.category).filter(Boolean))]
-            const fill = seriesColor(theme, Math.max(0, cats.indexOf(event.category)))
+            const mark = marks.of(event.id)
+            const selected = marks.selected?.id === event.id
+            const fill = mark.color ?? seriesColor(theme, Math.max(0, cats.indexOf(event.category)))
             const up = index % 2 === 0
             return (
-              <g key={event.id}>
-                <circle cx={x} cy={120} r={6} fill={fill} />
+              <g key={event.id} className="cursor-pointer" onPointerDown={(eventPointer) => marks.select(event.id, event.title || "Event", eventPointer)}>
+                <circle cx={x} cy={120} r={14} fill="transparent" />
+                <circle cx={x} cy={120} r={selected ? 8 : 6} fill={fill} opacity={mark.opacity ?? 1} stroke={selected ? theme.selected : "transparent"} strokeWidth={selected ? 2 : 0} />
                 <line x1={x} x2={x} y1={120} y2={up ? 72 : 168} stroke={theme.grid} />
                 <text x={x} y={up ? 48 : 188} textAnchor="middle" fill={theme.muted} fontSize={style.valueSize}>
                   {event.date}
@@ -156,9 +165,34 @@ export function TimelineGenerator() {
     </ChartFrame>
   )
 
+  const dated = ordered.filter((item) => item.date)
+  const spanLabel =
+    dated.length >= 2 ? `${dated[0].event.date} – ${dated[dated.length - 1].event.date}` : dated[0]?.event.date || "—"
+  const stats = empty
+    ? []
+    : [
+        { label: "Events", value: String(ordered.length) },
+        { label: "Span", value: spanLabel },
+      ]
+
+  function reset() {
+    setEvents(first.data.map((event) => ({ ...event, id: vizId() })))
+    setStyle(defaultVizStyle)
+    setMeta({ ...emptyMeta, title: first.title })
+    setOrientation("vertical")
+    setAutoSort(true)
+    marks.reset()
+  }
+
   return (
+    <>
     <VizStudio
+      title={title}
       filename="timeline"
+      stats={stats}
+      spatial
+      surface={{ background: theme.background, dot: theme.dot }}
+      onReset={reset}
       csv={csv}
       svgRef={svgRef}
       data={data}
@@ -195,5 +229,14 @@ export function TimelineGenerator() {
         />
       }
     />
+    <MarkPopover
+      selected={marks.selected}
+      value={marks.selected ? marks.of(marks.selected.id) : {}}
+      color={marks.selected ? (marks.of(marks.selected.id).color ?? theme.series[0]) : theme.series[0]}
+      fields={["label"]}
+      onChange={marks.update}
+      onClose={marks.close}
+    />
+    </>
   )
 }

@@ -7,6 +7,7 @@ import {
   IssueList,
   PreviewFrame,
   PrivacyNote,
+  RangeControl,
   ResultStats,
   Section,
   StatusLine,
@@ -14,7 +15,7 @@ import {
 } from "@/components/files/kit"
 import { Button } from "@/components/ui/button"
 import { NumberField, ResetButton } from "@/components/tools/ui"
-import { formatBytes, withSuffix } from "@/lib/files/format"
+import { batchLimitNote, formatBytes, takeBatch, withSuffix } from "@/lib/files/format"
 import { downloadBlob } from "@/lib/tools/download"
 import { canvasToBlob, loadImageFile } from "@/lib/tools/image"
 import { clampRange, encodeWav } from "@/lib/tools/wav"
@@ -28,8 +29,9 @@ export function GifMaker() {
   const [frames, setFrames] = useState<Frame[]>([])
   const [delay, setDelay] = useState("120")
   const [preview, setPreview] = useState<string | null>(null)
-  const [previewBytes, setPreviewBytes] = useState(0)
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [sourceName, setSourceName] = useState("animation")
 
@@ -51,9 +53,14 @@ export function GifMaker() {
           throw new Error(`${file.name} isn’t an image or a video this browser can read.`)
         }
       }
-      setFrames((current) => [...current, ...next].slice(0, 80))
+      setFrames((current) => {
+        const batch = takeBatch(next, current.length, 80)
+        window.setTimeout(() => setNotice(batchLimitNote(batch.skipped, 80, "frames")), 0)
+        return [...current, ...batch.accepted]
+      })
       if (preview) URL.revokeObjectURL(preview)
       setPreview(null)
+      setPreviewBlob(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not read those files.")
     }
@@ -71,7 +78,7 @@ export function GifMaker() {
       const blob = await encodeGif(frames, ms)
       if (preview) URL.revokeObjectURL(preview)
       setPreview(URL.createObjectURL(blob))
-      setPreviewBytes(blob.size)
+      setPreviewBlob(blob)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not build that GIF.")
     } finally {
@@ -107,7 +114,19 @@ export function GifMaker() {
                 <button type="button" className="text-white" aria-label="Move later" onClick={() => setFrames((current) => move(current, index, 1))}>
                   <ArrowDown className="size-3.5" />
                 </button>
-                <button type="button" className="text-white" aria-label="Remove" onClick={() => setFrames((current) => current.filter((item) => item.id !== frame.id))}>
+                <button
+                  type="button"
+                  className="text-white"
+                  aria-label="Remove"
+                  onClick={() => {
+                    URL.revokeObjectURL(frame.url)
+                    frame.bitmap?.close()
+                    setFrames((current) => current.filter((item) => item.id !== frame.id))
+                    if (preview) URL.revokeObjectURL(preview)
+                    setPreview(null)
+                    setPreviewBlob(null)
+                  }}
+                >
                   <Trash2 className="size-3.5" />
                 </button>
               </div>
@@ -120,16 +139,23 @@ export function GifMaker() {
       <div className="max-w-xs">
         <NumberField label="Frame delay" value={delay} onChange={setDelay} suffix="ms" min={20} step="10" />
       </div>
+      {notice ? <p className="text-sm text-[var(--nb-secondary)]">{notice}</p> : null}
       <IssueList issues={error ? [error] : []} />
       <StatusLine status={busy ? "processing" : preview ? "complete" : "idle"}>
-        {busy ? "Building GIF…" : preview ? `Ready · ${formatBytes(previewBytes)}` : frames.length ? `${frames.length} frame${frames.length === 1 ? "" : "s"}` : null}
+        {busy
+          ? "Building GIF…"
+          : previewBlob
+            ? `Ready · ${formatBytes(previewBlob.size)} · ${downloadName}`
+            : frames.length
+              ? `${frames.length} frame${frames.length === 1 ? "" : "s"} · ${(frames.length * (Number(delay) || 120) / 1000).toFixed(1)}s`
+              : null}
       </StatusLine>
       <ActionBar>
         <Button type="button" className="h-10" disabled={busy || !frames.length} onClick={() => void generate()}>
           {busy ? "Building GIF…" : "Generate GIF"}
         </Button>
         {preview ? (
-          <Button type="button" variant="outline" className="h-10" onClick={async () => downloadBlob(await (await fetch(preview)).blob(), downloadName)}>
+          <Button type="button" variant="outline" className="h-10" onClick={() => previewBlob && downloadBlob(previewBlob, downloadName)}>
             Download GIF
           </Button>
         ) : null}
@@ -139,6 +165,8 @@ export function GifMaker() {
             if (preview) URL.revokeObjectURL(preview)
             setFrames([])
             setPreview(null)
+            setPreviewBlob(null)
+            setNotice(null)
             setError(null)
           }}
         />
@@ -163,8 +191,8 @@ export function VideoTrimmer() {
   const [end, setEnd] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const [result, setResult] = useState<string | null>(null)
-  const [resultBytes, setResultBytes] = useState(0)
+  const [result, setResult] = useState<Blob | null>(null)
+  const [resultUrl, setResultUrl] = useState<string | null>(null)
 
   function onFile(file: File) {
     if (!file.type.startsWith("video/")) {
@@ -172,13 +200,14 @@ export function VideoTrimmer() {
       return
     }
     if (url) URL.revokeObjectURL(url)
-    if (result) URL.revokeObjectURL(result)
+    if (resultUrl) URL.revokeObjectURL(resultUrl)
     const next = URL.createObjectURL(file)
     setUrl(next)
     setFileSize(file.size)
     setName(withSuffix(file.name, "-trim", "webm"))
     setError(null)
     setResult(null)
+    setResultUrl(null)
   }
 
   const clip = Math.max(0, end - start)
@@ -216,14 +245,8 @@ export function VideoTrimmer() {
             ]}
           />
           <div className="grid max-w-xl gap-4 sm:grid-cols-2">
-            <label className="flex flex-col gap-2 text-[13px]">
-              Start
-              <input type="range" min={0} max={duration} step={0.1} value={start} onChange={(event) => setStart(Math.min(Number(event.target.value), end - 0.1))} />
-            </label>
-            <label className="flex flex-col gap-2 text-[13px]">
-              End
-              <input type="range" min={0} max={duration} step={0.1} value={end} onChange={(event) => setEnd(Math.max(Number(event.target.value), start + 0.1))} />
-            </label>
+            <RangeControl label="Start" value={start} min={0} max={duration} step={0.1} display={`${start.toFixed(1)}s`} onChange={(value) => setStart(Math.min(value, end - 0.1))} />
+            <RangeControl label="End" value={end} min={0} max={duration} step={0.1} display={`${end.toFixed(1)}s`} onChange={(value) => setEnd(Math.max(value, start + 0.1))} />
             <Button
               type="button"
               variant="outline"
@@ -249,7 +272,7 @@ export function VideoTrimmer() {
       ) : null}
       <IssueList issues={error ? [error] : []} />
       <StatusLine status={busy ? "processing" : result ? "complete" : "idle"}>
-        {busy ? "Exporting clip…" : result ? `Clip ready · ${formatBytes(resultBytes)} · ${name}` : null}
+        {busy ? "Exporting clip…" : result ? `Clip ready · ${formatBytes(result.size)} · ${name}` : null}
       </StatusLine>
       <ActionBar>
         <Button
@@ -263,9 +286,9 @@ export function VideoTrimmer() {
             setError(null)
             try {
               const blob = await recordRange(video, start, end)
-              if (result) URL.revokeObjectURL(result)
-              setResult(URL.createObjectURL(blob))
-              setResultBytes(blob.size)
+              if (resultUrl) URL.revokeObjectURL(resultUrl)
+              setResult(blob)
+              setResultUrl(URL.createObjectURL(blob))
             } catch (err) {
               setError(err instanceof Error ? err.message : "Could not export that clip. Try Chrome or Edge.")
             } finally {
@@ -276,21 +299,27 @@ export function VideoTrimmer() {
           {busy ? "Exporting…" : "Export clip"}
         </Button>
         {result ? (
-          <Button type="button" variant="outline" className="h-10" onClick={async () => downloadBlob(await (await fetch(result)).blob(), name)}>
+          <Button type="button" variant="outline" className="h-10" onClick={() => downloadBlob(result, name)}>
             Download
           </Button>
         ) : null}
         <ResetButton
           onClick={() => {
             if (url) URL.revokeObjectURL(url)
-            if (result) URL.revokeObjectURL(result)
+            if (resultUrl) URL.revokeObjectURL(resultUrl)
             setUrl(null)
             setResult(null)
+            setResultUrl(null)
             setDuration(0)
             setError(null)
           }}
         />
       </ActionBar>
+      {resultUrl ? (
+        <Section title="Clip">
+          <video src={resultUrl} controls className="w-full max-w-2xl rounded-xl border border-border" />
+        </Section>
+      ) : null}
     </FileToolShell>
   )
 }
@@ -305,8 +334,8 @@ export function AudioTrimmer() {
   const [end, setEnd] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const [result, setResult] = useState<string | null>(null)
-  const [resultBytes, setResultBytes] = useState(0)
+  const [result, setResult] = useState<Blob | null>(null)
+  const [resultUrl, setResultUrl] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(false)
 
   async function onFile(file: File) {
@@ -317,10 +346,12 @@ export function AudioTrimmer() {
     setError(null)
     try {
       const context = new AudioContext()
-      const data = await file.arrayBuffer()
-      const buffer = await context.decodeAudioData(data)
-      bufferRef.current = buffer
+      try {
+        const data = await file.arrayBuffer()
+        const buffer = await context.decodeAudioData(data.slice(0))
+        bufferRef.current = buffer
       if (url) URL.revokeObjectURL(url)
+      if (resultUrl) URL.revokeObjectURL(resultUrl)
       const next = URL.createObjectURL(file)
       setUrl(next)
       setName(withSuffix(file.name, "-trim", "wav"))
@@ -328,7 +359,11 @@ export function AudioTrimmer() {
       setStart(0)
       setEnd(buffer.duration)
       setResult(null)
+      setResultUrl(null)
       setLoaded(true)
+      } finally {
+        await context.close()
+      }
     } catch {
       setError("This browser could not decode that audio. Try WAV, MP3, or M4A.")
     }
@@ -354,14 +389,8 @@ export function AudioTrimmer() {
             ]}
           />
           <div className="grid max-w-xl gap-4 sm:grid-cols-2">
-            <label className="flex flex-col gap-2 text-[13px]">
-              Start
-              <input type="range" min={0} max={duration} step={0.01} value={start} onChange={(event) => setStart(Math.min(Number(event.target.value), end - 0.05))} />
-            </label>
-            <label className="flex flex-col gap-2 text-[13px]">
-              End
-              <input type="range" min={0} max={duration} step={0.01} value={end} onChange={(event) => setEnd(Math.max(Number(event.target.value), start + 0.05))} />
-            </label>
+            <RangeControl label="Start" value={start} min={0} max={duration} step={0.01} display={`${start.toFixed(2)}s`} onChange={(value) => setStart(Math.min(value, end - 0.05))} />
+            <RangeControl label="End" value={end} min={0} max={duration} step={0.01} display={`${end.toFixed(2)}s`} onChange={(value) => setEnd(Math.max(value, start + 0.05))} />
             <Button
               type="button"
               variant="outline"
@@ -387,7 +416,7 @@ export function AudioTrimmer() {
       ) : null}
       <IssueList issues={error ? [error] : []} />
       <StatusLine status={busy ? "processing" : result ? "complete" : "idle"}>
-        {busy ? "Exporting WAV…" : result ? `Clip ready · ${formatBytes(resultBytes)}` : null}
+        {busy ? "Exporting WAV…" : result ? `Clip ready · ${formatBytes(result.size)} · ${name}` : null}
       </StatusLine>
       <ActionBar>
         <Button
@@ -401,9 +430,9 @@ export function AudioTrimmer() {
             try {
               const range = clampRange(start, end, buffer.duration)
               const blob = encodeWav(buffer, range.start, range.end)
-              if (result) URL.revokeObjectURL(result)
-              setResult(URL.createObjectURL(blob))
-              setResultBytes(blob.size)
+              if (resultUrl) URL.revokeObjectURL(resultUrl)
+              setResult(blob)
+              setResultUrl(URL.createObjectURL(blob))
               setError(null)
             } catch {
               setError("Could not export that clip.")
@@ -415,23 +444,29 @@ export function AudioTrimmer() {
           {busy ? "Exporting…" : "Export WAV"}
         </Button>
         {result ? (
-          <Button type="button" variant="outline" className="h-10" onClick={async () => downloadBlob(await (await fetch(result)).blob(), name)}>
+          <Button type="button" variant="outline" className="h-10" onClick={() => downloadBlob(result, name)}>
             Download
           </Button>
         ) : null}
         <ResetButton
           onClick={() => {
             if (url) URL.revokeObjectURL(url)
-            if (result) URL.revokeObjectURL(result)
+            if (resultUrl) URL.revokeObjectURL(resultUrl)
             bufferRef.current = null
             setUrl(null)
             setResult(null)
+            setResultUrl(null)
             setDuration(0)
             setError(null)
             setLoaded(false)
           }}
         />
       </ActionBar>
+      {resultUrl ? (
+        <Section title="Clip">
+          <audio src={resultUrl} controls className="w-full" />
+        </Section>
+      ) : null}
     </FileToolShell>
   )
 }

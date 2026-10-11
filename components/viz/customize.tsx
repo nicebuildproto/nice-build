@@ -1,8 +1,8 @@
 "use client"
 
-import { ColorField, MetaFields, Segmented, SliderField, ToggleField } from "@/components/viz/fields"
+import { MetaFields, Segmented, SliderField, ToggleField } from "@/components/viz/fields"
 import { defaultVizStyle, type VizStyle } from "@/lib/viz/style"
-import { vizThemes, type VizThemeId } from "@/lib/viz/themes"
+import { vizThemes, type StageTone, type VizThemeId } from "@/lib/viz/themes"
 import type { VizMeta } from "@/lib/viz/style"
 import type { ReactNode } from "react"
 
@@ -12,6 +12,7 @@ export function VizCustomize({
   onStyle,
   onMeta,
   extra,
+  afterTheme,
   omit = [],
 }: {
   style: VizStyle
@@ -19,19 +20,30 @@ export function VizCustomize({
   onStyle: (next: Partial<VizStyle>) => void
   onMeta: (next: Partial<VizMeta>) => void
   extra?: ReactNode
-  omit?: Array<"values" | "labels" | "percent" | "grid" | "legend">
+  /** Rendered directly under the theme control. */
+  afterTheme?: ReactNode
+  omit?: Array<"theme" | "values" | "labels" | "percent" | "grid" | "legend">
 }) {
   return (
     <div className="flex flex-col gap-6">
       <Segmented
-        label="Theme"
-        value={style.theme}
-        options={Object.values(vizThemes).map((theme) => ({ id: theme.id, label: theme.label }))}
-        onChange={(theme: VizThemeId) =>
-          onStyle({ theme, background: theme === style.theme ? style.background : vizThemes[theme].background })
-        }
+        label="Stage"
+        value={style.stage}
+        options={[
+          { id: "white", label: "White" },
+          { id: "dusk", label: "Dusk" },
+        ]}
+        onChange={(stage: StageTone) => onStyle({ stage })}
       />
-      <ColorField label="Background" value={style.background} onChange={(background) => onStyle({ background })} />
+      {omit.includes("theme") ? null : (
+        <Segmented
+          label="Theme"
+          value={style.theme}
+          options={Object.values(vizThemes).map((theme) => ({ id: theme.id, label: theme.label }))}
+          onChange={(theme: VizThemeId) => onStyle({ theme })}
+        />
+      )}
+      {afterTheme}
       {omit.includes("values") ? null : (
         <ToggleField label="Show values" checked={style.showValues} onChange={(showValues) => onStyle({ showValues })} />
       )}

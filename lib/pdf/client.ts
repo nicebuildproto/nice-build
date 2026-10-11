@@ -21,8 +21,24 @@ export async function openPdf(file: File) {
   }
   const pdfjs = await loadPdfjs()
   const data = await file.arrayBuffer()
-  const document = await pdfjs.getDocument({ data: new Uint8Array(data) }).promise
-  return { document, bytes: new Uint8Array(data) }
+  try {
+    const document = await pdfjs.getDocument({ data: new Uint8Array(data) }).promise
+    return { document, bytes: new Uint8Array(data) }
+  } catch (error) {
+    throw new Error(explainOpenError(error))
+  }
+}
+
+function explainOpenError(error: unknown) {
+  const name = error && typeof error === "object" && "name" in error ? String((error as { name: string }).name) : ""
+  const message = error instanceof Error ? error.message : ""
+  if (name === "PasswordException" || /password/i.test(message)) {
+    return "This PDF is password-protected. Remove the password, then try again."
+  }
+  if (name === "InvalidPDFException" || /invalid pdf/i.test(message)) {
+    return "This file could not be read as a PDF. It may be damaged."
+  }
+  return "Could not read that PDF."
 }
 
 export async function renderPage(document: PDFDocumentProxy, pageNumber: number, maxWidth = 720) {

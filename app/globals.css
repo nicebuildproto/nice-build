@@ -52,7 +52,7 @@
   --nb-primary: #111111;
   --nb-secondary: #6B7280;
   --nb-accent: #F4F4F5;
-  --nb-yellow: #ff0101;
+  --nb-yellow: #90d8cb;
   color-scheme: light;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -92,7 +92,7 @@
   --nb-primary: #f4f4f5;
   --nb-secondary: #a1a1aa;
   --nb-accent: #27272a;
-  --nb-yellow: #ff0101;
+  --nb-yellow: #90d8cb;
   color-scheme: dark;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);

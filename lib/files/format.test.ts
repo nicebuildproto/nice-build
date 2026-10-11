@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import test from "node:test"
-import { describeAccept, fileMatchesAccept, fileStem, formatBytes, percentChange, rejectReason, withSuffix } from "./format.ts"
+import { batchLimitNote, describeAccept, explainPdfError, fileMatchesAccept, fileStem, formatBytes, percentChange, rejectReason, takeBatch, withSuffix } from "./format.ts"
 
 test("fileStem drops the last extension", () => {
   assert.equal(fileStem("photo.jpg"), "photo")
@@ -43,6 +43,23 @@ test("rejectReason explains size and type", () => {
   assert.ok(reason?.includes("larger"))
   const txt = new File(["hi"], "notes.txt", { type: "text/plain" })
   assert.ok(rejectReason(txt, "image/jpeg,.jpg")?.includes("supported"))
+})
+
+test("takeBatch respects the remaining room", () => {
+  const { accepted, skipped } = takeBatch(["a", "b", "c"], 2, 3)
+  assert.deepEqual(accepted, ["a"])
+  assert.equal(skipped, 2)
+})
+
+test("batchLimitNote stays quiet when nothing was skipped", () => {
+  assert.equal(batchLimitNote(0, 12, "images"), null)
+  assert.match(batchLimitNote(2, 12, "images") ?? "", /12 images/)
+})
+
+test("explainPdfError names password protection", () => {
+  assert.match(explainPdfError(new Error("Input document is encrypted")), /password-protected/)
+  assert.match(explainPdfError(new Error("Add at least two PDFs")), /at least two/)
+  assert.match(explainPdfError(new Error("nope"), "Could not merge those PDFs."), /merge/)
 })
 
 test("describeAccept lists friendly types", () => {
