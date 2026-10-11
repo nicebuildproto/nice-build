@@ -128,7 +128,7 @@ export function TemplateStep({
   onChoose: (templateId: string | null) => void
 }) {
   return (
-    <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-4 py-6 sm:gap-8 sm:px-6 sm:py-12">
+    <div className="mx-auto flex w-full max-w-5xl grow flex-col gap-6 px-4 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:gap-8 sm:px-6 sm:pt-12 sm:pb-12 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
       <div className="flex flex-col gap-2">
         <button
           type="button"

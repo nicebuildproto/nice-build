@@ -327,13 +327,23 @@ export function FlashingDesigner({
         : "Continue"
 
   const canvas = stage === "edit" && pieceLengthMm !== null
+  // Opening the dialog is deferred a tick: on touch the dialog's outside-press listener fires on click, and would
+  // otherwise receive the same click that opened it (and close it straight away).
+  const requestStartOver = () => {
+    if (!hasWork) {
+      resetAll()
+      return
+    }
+    window.setTimeout(() => setConfirmReset(true), 0)
+  }
+
   const startOver =
     stage !== "intro" ? (
       <Button
         type="button"
         variant="ghost"
         className="h-9 px-2.5 text-muted-foreground"
-        onClick={() => (hasWork ? setConfirmReset(true) : resetAll())}
+        onClick={requestStartOver}
       >
         Start over
       </Button>
@@ -467,7 +477,7 @@ export function FlashingDesigner({
                     type="button"
                     variant="ghost"
                     className="h-8 px-2 text-[var(--nb-secondary)]"
-                    onClick={() => (hasWork ? setConfirmReset(true) : resetAll())}
+                    onClick={requestStartOver}
                   >
                     Start over
                   </Button>
