@@ -53,7 +53,7 @@ export function IconButton({
       </TooltipTrigger>
       <TooltipContent side={side}>
         {label}
-        {shortcut ? <kbd className="ml-2 rounded bg-white/15 px-1 text-xs tabular-nums">{shortcut}</kbd> : null}
+        {shortcut ? <kbd className="ml-2 rounded bg-background/15 px-1 text-xs tabular-nums">{shortcut}</kbd> : null}
       </TooltipContent>
     </Tooltip>
   )

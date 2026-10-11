@@ -81,7 +81,7 @@ export function OrderStep({
         </header>
 
         <section className="flex flex-col gap-3">
-          <h2 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">Delivery</h2>
+          <h2 className="text-xs font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">Delivery</h2>
           <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Delivery or pickup">
             {(["delivery", "pickup"] as const).map((option) => (
               <button
@@ -103,7 +103,7 @@ export function OrderStep({
         </section>
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">Your details</h2>
+          <h2 className="text-xs font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">Your details</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field id={nameId} name="name" label="Name" autoComplete="name" enterKeyHint="next" required />
             <Field id={companyId} name="company" label="Company" autoComplete="organization" enterKeyHint="next" />
@@ -114,7 +114,7 @@ export function OrderStep({
 
         {fulfillment === "delivery" ? (
           <section className="flex flex-col gap-4">
-            <h2 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
+            <h2 className="text-xs font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">
               Delivery details
             </h2>
             <Field id={addressId} name="address" label="Address" autoComplete="street-address" enterKeyHint="next" required />
@@ -127,7 +127,7 @@ export function OrderStep({
         ) : null}
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-[11px] font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">Order summary</h2>
+          <h2 className="text-xs font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">Order summary</h2>
           <div className="overflow-hidden rounded-xl border border-border">
             <div className="max-h-56 overflow-hidden border-b border-border bg-white">
               <TechnicalDrawing points={points} taper={taper} taperLengths={taperLengths} info={info} />

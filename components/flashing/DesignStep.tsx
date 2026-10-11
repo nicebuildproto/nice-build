@@ -476,7 +476,7 @@ export function DesignStep({
       const angle = i > 0 && i < points.length - 1 ? foldAngleAt(points, i) : segmentAngle(points, from)
       overlay = (
         <div
-          className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium tabular-nums shadow-[0_6px_16px_-8px_rgba(24,24,27,0.3)]"
+          className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium tabular-nums shadow-md"
           style={{ left: Math.min(Math.max(p.x, 80), api.size.w - 80), top: Math.max(p.y - 56, 24) }}
         >
           {formatMm(length)} mm · {Math.round(angle)}°

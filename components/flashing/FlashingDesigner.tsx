@@ -445,10 +445,10 @@ export function FlashingDesigner({
         className={cn(
           "flex flex-1 flex-col",
           canvas
-            ? "h-dvh overflow-hidden"
+            ? "h-dvh flex-none overflow-hidden"
             : stage === "order" || stage === "done"
               ? "min-h-[100dvh]"
-              : "min-h-[100dvh] lg:h-[100dvh] lg:overflow-hidden"
+              : "min-h-[100dvh] lg:h-[100dvh] lg:flex-none lg:overflow-hidden"
         )}
         style={{ overflowAnchor: "none" }}
       >
