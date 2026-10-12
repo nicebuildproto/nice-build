@@ -80,6 +80,23 @@ export function OrderStep({
           <p className="text-sm text-[var(--nb-secondary)]">This is a prototype. No payment will be taken.</p>
         </header>
 
+        <section className="flex flex-col gap-4">
+          <h2 className="text-xs font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">Order summary</h2>
+          <div className="overflow-hidden rounded-xl border border-border">
+            <div className="max-h-56 overflow-hidden border-b border-border bg-white">
+              <TechnicalDrawing points={points} taper={taper} taperLengths={taperLengths} info={info} />
+            </div>
+            <div className="flex flex-col gap-1 px-5 py-4">
+              <p className="text-sm text-[var(--nb-primary)]">{profileName}</p>
+              <p className="text-sm text-[var(--nb-secondary)]">
+                {quantity} × {pieceLengthMm.toLocaleString("en-AU")} mm · {materialSummary}
+              </p>
+              <p className="mt-2 text-xs text-[var(--nb-secondary)]">Estimated total</p>
+              <p className="text-3xl font-semibold tracking-[-0.03em] tabular-nums">{formatPrice(price.total)}</p>
+            </div>
+          </div>
+        </section>
+
         <section className="flex flex-col gap-3">
           <h2 className="text-xs font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">Delivery</h2>
           <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Delivery or pickup">
@@ -125,23 +142,6 @@ export function OrderStep({
             </div>
           </section>
         ) : null}
-
-        <section className="flex flex-col gap-4">
-          <h2 className="text-xs font-medium tracking-[0.14em] text-[var(--nb-secondary)] uppercase">Order summary</h2>
-          <div className="overflow-hidden rounded-xl border border-border">
-            <div className="max-h-56 overflow-hidden border-b border-border bg-white">
-              <TechnicalDrawing points={points} taper={taper} taperLengths={taperLengths} info={info} />
-            </div>
-            <div className="flex flex-col gap-1 px-5 py-4">
-              <p className="text-sm text-[var(--nb-primary)]">{profileName}</p>
-              <p className="text-sm text-[var(--nb-secondary)]">
-                {quantity} × {pieceLengthMm.toLocaleString("en-AU")} mm · {materialSummary}
-              </p>
-              <p className="mt-2 text-xs text-[var(--nb-secondary)]">Estimated total</p>
-              <p className="text-3xl font-semibold tracking-[-0.03em] tabular-nums">{formatPrice(price.total)}</p>
-            </div>
-          </div>
-        </section>
 
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
 

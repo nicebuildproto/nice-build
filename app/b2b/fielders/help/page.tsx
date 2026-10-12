@@ -1,5 +1,4 @@
 import { B2BAppHeader } from "@/components/b2b/B2BAppHeader"
-import { B2BContactButton } from "@/components/b2b/B2BContactButton"
 import { getB2BTenant } from "@/lib/b2b/tenants"
 import Link from "next/link"
 
@@ -13,7 +12,6 @@ export default function FieldersHelpPage() {
           logo={tenant.logo}
           customerName={tenant.customerName}
           productName={tenant.productName}
-          actions={<B2BContactButton />}
         />
       </header>
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-4 px-6 py-16">

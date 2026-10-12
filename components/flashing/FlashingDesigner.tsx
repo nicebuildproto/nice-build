@@ -349,7 +349,7 @@ export function FlashingDesigner({
       </Button>
     ) : null
   const canvasLogo = mark ?? <BrandLink logoClassName="h-7" />
-  const canvasActions_ = actions ?? <HeaderActions variant="stage" />
+  const canvasActions_ = actions === undefined ? <HeaderActions variant="stage" /> : actions
 
   const model: FlashingModel | null =
     canvas && pieceLengthMm !== null

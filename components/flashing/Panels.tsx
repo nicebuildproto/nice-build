@@ -332,8 +332,8 @@ export function StepControls({ m }: { m: FlashingModel }) {
       return (
         <>
           <SelectedSection m={m} />
-          <TemplatesSection m={m} />
           <OptionsSection m={m} />
+          <TemplatesSection m={m} />
           <ClearButton m={m} />
         </>
       )

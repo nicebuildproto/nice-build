@@ -352,7 +352,7 @@ export function DesktopRail({ m, top }: { m: FlashingModel; top: number }) {
           </Button>
           <div className="grid grid-cols-2 gap-2">
             <Button type="button" variant="outline" className="h-10 px-2" onClick={m.review.onRequestQuote}>
-              Request a quote
+              Request quote
             </Button>
             <Button type="button" variant="outline" className="h-10 px-2" onClick={m.review.onAddToCart}>
               Add to cart

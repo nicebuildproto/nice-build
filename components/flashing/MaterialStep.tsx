@@ -146,6 +146,42 @@ export function MaterialControls({
       {isColour ? (
         <>
           <section className="flex flex-col gap-3 py-4">
+            <h3 className={flashingLabel}>Colour facing</h3>
+            <div className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1" role="radiogroup" aria-label="Colour facing">
+              {(["out", "in"] as const).map((option) => {
+                const selected = option === side
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => onSideChange(option)}
+                    className={cn(
+                      "flex flex-col items-center gap-1.5 rounded-lg p-2 transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                      touch ? "min-h-24" : "min-h-20",
+                      selected ? "bg-card shadow-sm ring-1 ring-border" : "hover:bg-card/60"
+                    )}
+                  >
+                    <ProfileSection
+                      points={points}
+                      faceColour={colour?.hex ?? null}
+                      backColour={bareMetal}
+                      colourSide={option}
+                      width={120}
+                      height={80}
+                      thickness={6}
+                      className="h-auto w-full max-w-[120px]"
+                    />
+                    <span className={cn("text-xs", selected ? "font-medium text-foreground" : "text-muted-foreground")}>
+                      {sideLabel(option)}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+          <section className="flex flex-col gap-3 pt-4">
             <div className="flex items-baseline justify-between gap-2">
               <h3 className={flashingLabel}>COLORBOND® colour</h3>
             </div>
@@ -202,42 +238,6 @@ export function MaterialControls({
             </p>
           </section>
 
-          <section className="flex flex-col gap-3 pt-4">
-            <h3 className={flashingLabel}>Colour facing</h3>
-            <div className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1" role="radiogroup" aria-label="Colour facing">
-              {(["out", "in"] as const).map((option) => {
-                const selected = option === side
-                return (
-                  <button
-                    key={option}
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    onClick={() => onSideChange(option)}
-                    className={cn(
-                      "flex flex-col items-center gap-1.5 rounded-lg p-2 transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-                      touch ? "min-h-24" : "min-h-20",
-                      selected ? "bg-card shadow-sm ring-1 ring-border" : "hover:bg-card/60"
-                    )}
-                  >
-                    <ProfileSection
-                      points={points}
-                      faceColour={colour?.hex ?? null}
-                      backColour={bareMetal}
-                      colourSide={option}
-                      width={120}
-                      height={80}
-                      thickness={6}
-                      className="h-auto w-full max-w-[120px]"
-                    />
-                    <span className={cn("text-xs", selected ? "font-medium text-foreground" : "text-muted-foreground")}>
-                      {sideLabel(option)}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          </section>
         </>
       ) : null}
     </div>

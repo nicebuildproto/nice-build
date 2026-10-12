@@ -256,7 +256,7 @@ export function MobileChrome({
         {review ? (
           <div className="grid grid-cols-2 gap-2 pt-2" style={{ paddingLeft: safeLeft, paddingRight: safeRight }}>
             <Button type="button" variant="outline" className="h-12 px-2 text-base" onClick={m.review.onRequestQuote}>
-              Request a quote
+              Request quote
             </Button>
             <Button type="button" variant="outline" className="h-12 px-2 text-base" onClick={m.review.onAddToCart}>
               Add to cart
@@ -480,11 +480,11 @@ function Dock({
 
   return (
     <div className="flex h-14 items-center gap-2 overflow-x-auto [scrollbar-width:none]" style={pad} role="toolbar" aria-label="Drawing tools">
-      <button type="button" className={chip} onClick={() => onOpen("templates")}>
-        <LayoutTemplate className="size-4 max-[399px]:hidden" aria-hidden /> Templates
-      </button>
       <button type="button" className={chip} onClick={() => onOpen("options")}>
         <SlidersHorizontal className="size-4 max-[399px]:hidden" aria-hidden /> Options
+      </button>
+      <button type="button" className={chip} onClick={() => onOpen("templates")}>
+        <LayoutTemplate className="size-4 max-[399px]:hidden" aria-hidden /> Templates
       </button>
       <button type="button" aria-label="Undo" className={cn(chip, "w-10 px-0")} disabled={!m.canUndo} onClick={m.onUndo}>
         <Undo2 className="size-5" aria-hidden />

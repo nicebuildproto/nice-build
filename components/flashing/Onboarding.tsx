@@ -5,9 +5,29 @@ import { Input } from "@/components/ui/input"
 import { templates, type FlashingTemplate } from "@/lib/flashing/templates"
 import { cn } from "@/lib/utils"
 import { ArrowLeft, Plus } from "lucide-react"
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { PIECE_LENGTH_MAX, PIECE_LENGTH_MIN } from "./PriceBar"
 import { ProfileIcon } from "./ProfileShape"
+
+/** Shared card for the two onboarding screens (welcome and piece length). */
+export function OnboardingCard({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <div className="flex min-h-0 flex-1 flex-col items-center overflow-y-auto px-4 py-6 sm:px-6 sm:py-16">
+      <div
+        className={cn(
+          "my-auto flex w-full max-w-lg min-w-0 flex-col gap-6 rounded-2xl border border-border bg-card p-5 text-card-foreground sm:p-8",
+          className
+        )}
+      >
+        {children}
+      </div>
+    </div>
+  )
+}
+
+export const onboardingHeading = "text-2xl font-semibold tracking-tight text-[var(--nb-primary)] sm:text-3xl"
+export const onboardingBody = "text-[15px] leading-relaxed text-[var(--nb-secondary)]"
+export const onboardingCta = "h-12 w-full px-5 text-base sm:h-11 sm:w-fit"
 
 export function LengthStep({
   initial,
@@ -41,27 +61,26 @@ export function LengthStep({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 items-stretch justify-center sm:items-center sm:px-6 sm:py-16">
+    <OnboardingCard>
       <form
-        className="flex min-h-0 w-full flex-1 flex-col gap-6 sm:max-w-sm sm:flex-none"
+        className="flex min-w-0 flex-col gap-6"
         onSubmit={(event) => {
           event.preventDefault()
           submit()
         }}
       >
-        <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-5 pt-6 sm:flex-none sm:overflow-visible sm:p-0">
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           {onBack ? (
             <button
               type="button"
               onClick={onBack}
-              className="flex h-11 w-fit items-center gap-1 text-sm text-[var(--nb-secondary)] transition-colors hover:text-[var(--nb-primary)]"
+              className="-mt-2 flex h-11 w-fit items-center gap-1 text-sm text-[var(--nb-secondary)] transition-colors hover:text-[var(--nb-primary)]"
             >
               <ArrowLeft className="size-4" /> Back
             </button>
           ) : null}
-          <h1 className="text-2xl font-semibold tracking-tight">How long is this piece?</h1>
-          <p className="text-sm text-[var(--nb-secondary)]">
+          <h1 className={onboardingHeading}>How long is this piece?</h1>
+          <p className={onboardingBody}>
             Choose the length for this design. Need another piece? You can add it later with a different
             design, length or quantity.
           </p>
@@ -109,14 +128,11 @@ export function LengthStep({
             className="h-12 w-28 text-base tabular-nums"
           />
         </label>
-        </div>
-        <div className="sticky bottom-0 border-t border-border bg-background px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:static sm:border-0 sm:bg-transparent sm:p-0">
-          <Button type="submit" size="lg" className="h-12 w-full text-base sm:h-11">
-            {submitLabel}
-          </Button>
-        </div>
+        <Button type="submit" size="lg" className={onboardingCta}>
+          {submitLabel}
+        </Button>
       </form>
-    </div>
+    </OnboardingCard>
   )
 }
 

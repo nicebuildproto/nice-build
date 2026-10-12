@@ -1,27 +1,41 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { flashingLabel } from "./chrome"
+import { OnboardingCard, onboardingBody, onboardingCta, onboardingHeading } from "./Onboarding"
 
 export function IntroStep({ onStart }: { onStart: () => void }) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-5 py-8 sm:px-6 sm:py-16">
-      <div className="flex w-full max-w-lg flex-col gap-6 rounded-2xl max-sm:border max-sm:border-border max-sm:p-5">
-        <div className="flex flex-col gap-3">
-          <h1 className="text-3xl font-semibold tracking-tight text-[var(--nb-primary)] sm:text-4xl">
-            Welcome, Fielders team.
-          </h1>
-          <p className="text-[15px] leading-relaxed text-[var(--nb-secondary)]">
-            This prototype shows what flashing orders could look like live on fielders.com.au. Customers
-            can configure, preview, request a quote or pay and order, start to finish.
-          </p>
-          <p className="text-[15px] leading-relaxed text-[var(--nb-secondary)]">
-            Have a play and let us know what you think.
-          </p>
-        </div>
-        <Button type="button" size="lg" className="h-12 w-full px-5 text-base sm:h-11 sm:w-fit" onClick={onStart}>
-          Start designing
-        </Button>
+    <OnboardingCard>
+      <div className="flex flex-col gap-3">
+        <p className={flashingLabel}>A working prototype by Nice Tools</p>
+        <h1 className={onboardingHeading}>Welcome, Fielders team.</h1>
+        <p className={onboardingBody}>
+          We’ve built this to make ordering easier for your customers and simpler for your team to manage.
+        </p>
+        <p className={onboardingBody}>
+          If you see a fit for Fielders, give me a call on{" "}
+          <a
+            href="tel:0497999339"
+            className="whitespace-nowrap text-[var(--nb-primary)] underline underline-offset-4"
+          >
+            0497 999 339
+          </a>{" "}
+          to discuss bringing it to fielders.com.au.
+        </p>
+        <p className={onboardingBody}>
+          Cheers,
+          <br />
+          Mitch
+        </p>
       </div>
-    </div>
+      <div role="note" className="flex flex-col gap-0.5 rounded-lg bg-muted px-3 py-2.5 text-sm text-muted-foreground">
+        <p className="font-medium text-foreground">Prototype disclaimer</p>
+        <p>Pricing is indicative only and hasn’t been configured to Fielders’ pricing rules.</p>
+      </div>
+      <Button type="button" size="lg" className={onboardingCta} onClick={onStart}>
+        Try the prototype
+      </Button>
+    </OnboardingCard>
   )
 }
