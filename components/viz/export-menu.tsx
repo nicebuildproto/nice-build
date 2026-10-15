@@ -28,9 +28,9 @@ export function ExportMenu({
     downloadBlob(`${filename}.png`, blob)
   }
 
-  function svg() {
+  async function svg() {
     if (!svgRef.current) return
-    downloadText(`${filename}.svg`, serializeSvg(svgRef.current), "image/svg+xml")
+    downloadText(`${filename}.svg`, await serializeSvg(svgRef.current), "image/svg+xml")
   }
 
   async function copy() {

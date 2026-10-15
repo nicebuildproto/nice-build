@@ -262,13 +262,13 @@ export function SankeyGenerator({ title = "Sankey Diagram Generator" }: { title?
 
   async function exportPng() {
     if (!svgRef.current) return
-    const blob = await svgToPngBlob(svgRef.current, 2)
+    const blob = await svgToPngBlob(svgRef.current, 3)
     downloadBlob("sankey-diagram.png", blob)
   }
 
-  function exportSvg() {
+  async function exportSvg() {
     if (!svgRef.current) return
-    downloadText("sankey-diagram.svg", serializeSvg(svgRef.current), "image/svg+xml")
+    downloadText("sankey-diagram.svg", await serializeSvg(svgRef.current), "image/svg+xml")
   }
 
   async function copyDiagram() {
