@@ -42,11 +42,29 @@ export interface NodeOffset {
   y: number
 }
 
+export type NumberFormat = "value" | "percent" | "both" | "compact" | "hidden"
+
+export interface NodeSettings {
+  numberFormat: NumberFormat
+  note: string
+}
+
+export const defaultNodeSettings: NodeSettings = { numberFormat: "value", note: "" }
+
 export interface LaidNode {
   id: string
   name: string
   layer: number
   value: number
+  /** The number as shown in the label, in the node's chosen format. Empty when hidden. */
+  numberText: string
+  /** The wrapped note, one entry per line. */
+  noteLines: string[]
+  note: string
+  /** Line heights for the label block (title and number line, then note lines). */
+  labelLine: number
+  noteSize: number
+  noteLine: number
   x: number
   y: number
   width: number

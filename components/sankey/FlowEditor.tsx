@@ -4,6 +4,7 @@ import { stageFloat } from "@/components/stage/chrome"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ColorField, colorPickerLocked } from "@/components/viz/fields"
+import type { NumberFormat } from "@/lib/sankey/types"
 import { cn } from "@/lib/utils"
 import { Copy, Plus, Trash2, X } from "lucide-react"
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
@@ -14,6 +15,23 @@ export type FlowTarget = {
   target: string
   value: string
 }
+
+export type NodeFields = {
+  numberFormat: NumberFormat
+  note: string
+  noteMax: number
+  onNumberFormat: (value: NumberFormat) => void
+  onApplyToAll: () => void
+  onNote: (value: string) => void
+}
+
+const numberFormats: { id: NumberFormat; label: string }[] = [
+  { id: "value", label: "Value" },
+  { id: "percent", label: "% of total" },
+  { id: "both", label: "Value and %" },
+  { id: "compact", label: "Compact" },
+  { id: "hidden", label: "Hidden" },
+]
 
 export function FlowEditor({
   title,
@@ -30,6 +48,7 @@ export function FlowEditor({
   color,
   onColor,
   recent = [],
+  nodeFields,
   onClose,
 }: {
   title: string
@@ -46,6 +65,7 @@ export function FlowEditor({
   color?: string
   onColor?: (value: string) => void
   recent?: string[]
+  nodeFields?: NodeFields
   onClose: () => void
 }) {
   const panelRef = useRef<HTMLDivElement>(null)
@@ -61,7 +81,7 @@ export function FlowEditor({
     if (left + width > window.innerWidth - pad) left = x - width - 14
     if (top + height > window.innerHeight - pad) top = window.innerHeight - height - pad
     setBox({ left: Math.max(pad, left), top: Math.max(pad, top) })
-  }, [x, y, targets.length, recent.length])
+  }, [x, y, targets.length, recent.length, nodeFields?.note.length])
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -89,7 +109,7 @@ export function FlowEditor({
       ref={panelRef}
       role="dialog"
       aria-label={`Edit ${title}`}
-      className={cn(stageFloat, "fixed z-[80] flex w-[300px] flex-col gap-3 rounded-2xl p-3")}
+      className={cn(stageFloat, "fixed z-[80] flex max-h-[calc(100dvh-24px)] w-[300px] max-w-[calc(100vw-24px)] flex-col gap-3 overflow-y-auto rounded-2xl p-3")}
       style={{ left: box?.left ?? -9999, top: box?.top ?? -9999 }}
       onPointerDown={(event) => event.stopPropagation()}
     >
@@ -173,6 +193,61 @@ export function FlowEditor({
             </div>
           ) : null}
           <ColorField label="Node colour" value={color} onChange={onColor} />
+        </>
+      ) : null}
+      {nodeFields ? (
+        <>
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="sankey-number-format"
+              className="text-[11px] font-medium tracking-[0.08em] text-[var(--nb-secondary)] uppercase"
+            >
+              Show number as
+            </label>
+            <div className="flex items-center gap-2">
+              <select
+                id="sankey-number-format"
+                value={nodeFields.numberFormat}
+                onChange={(event) => nodeFields.onNumberFormat(event.target.value as NumberFormat)}
+                className="h-9 min-w-0 flex-1 rounded-lg border border-input bg-transparent px-2 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:h-8 md:text-[13px]"
+              >
+                {numberFormats.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={nodeFields.onApplyToAll}
+                className="shrink-0 px-1 py-2 text-base text-[var(--nb-secondary)] underline underline-offset-4 hover:text-[var(--nb-primary)] md:text-[13px]"
+              >
+                Apply to all nodes
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-baseline justify-between">
+              <label
+                htmlFor="sankey-node-note"
+                className="text-[11px] font-medium tracking-[0.08em] text-[var(--nb-secondary)] uppercase"
+              >
+                Note
+              </label>
+              <span className="text-[12px] text-[var(--nb-secondary)] tabular-nums" aria-live="off">
+                {nodeFields.note.length}/{nodeFields.noteMax}
+              </span>
+            </div>
+            <textarea
+              id="sankey-node-note"
+              value={nodeFields.note}
+              maxLength={nodeFields.noteMax}
+              rows={3}
+              placeholder="Add a short note (optional)"
+              onChange={(event) => nodeFields.onNote(event.target.value)}
+              className="w-full resize-y rounded-lg border border-input bg-transparent px-2.5 py-2 text-base leading-snug outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-[13px]"
+            />
+          </div>
         </>
       ) : null}
     </div>,

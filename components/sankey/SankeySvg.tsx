@@ -122,29 +122,54 @@ export function SankeySvg({
               strokeWidth={selected ? 2 / zoom : 0}
             />
             {style.showLabels ? (
-              <text
-                x={labelX}
-                y={node.y + node.height / 2}
-                textAnchor={anchor}
-                dominantBaseline="middle"
-                fill={style.labelColor}
-                fontSize={style.labelSize}
-                fontWeight={style.labelWeight}
-                className="select-none"
-                style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}
-              >
-                {node.name}
-                {style.showValues ? (
-                  <tspan
+              <>
+                <text
+                  x={labelX}
+                  y={node.y + node.height / 2 - (node.noteLines.length * node.noteLine) / 2}
+                  textAnchor={anchor}
+                  dominantBaseline="middle"
+                  fill={style.labelColor}
+                  fontSize={style.labelSize}
+                  fontWeight={style.labelWeight}
+                  className="select-none"
+                  style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}
+                >
+                  {node.name}
+                  {style.showValues && node.numberText ? (
+                    <tspan
+                      fill={style.labelColor}
+                      fillOpacity={0.62}
+                      fontSize={style.valueSize}
+                      fontWeight={400}
+                    >
+                      {`  ${node.numberText}`}
+                    </tspan>
+                  ) : null}
+                </text>
+                {node.noteLines.map((line, index) => (
+                  <text
+                    key={index}
+                    x={labelX}
+                    y={
+                      node.y +
+                      node.height / 2 -
+                      (node.noteLines.length * node.noteLine) / 2 +
+                      node.labelLine / 2 +
+                      node.noteLine * (index + 0.5)
+                    }
+                    textAnchor={anchor}
+                    dominantBaseline="middle"
                     fill={style.labelColor}
-                    fillOpacity={0.62}
-                    fontSize={style.valueSize}
+                    fillOpacity={0.7}
+                    fontSize={node.noteSize}
                     fontWeight={400}
+                    className="select-none"
+                    style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}
                   >
-                    {`  ${formatValue(node.value)}`}
-                  </tspan>
-                ) : null}
-              </text>
+                    {line}
+                  </text>
+                ))}
+              </>
             ) : null}
           </g>
         )

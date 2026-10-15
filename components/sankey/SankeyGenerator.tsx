@@ -16,12 +16,16 @@ import {
 import { DataLead } from "@/components/viz/data-entry"
 import { defaultExample, sankeyExamples, type SankeyExample } from "@/lib/sankey/examples"
 import { downloadBlob, downloadText, serializeSvg, svgToPngBlob } from "@/lib/sankey/export"
+import { settingsFor } from "@/lib/sankey/format"
 import { layoutSankey } from "@/lib/sankey/layout"
+import { NOTE_MAX_LENGTH } from "@/lib/sankey/notes"
 import { parsePastedTable, validFlows } from "@/lib/sankey/parse"
 import {
   defaultStyle,
   newRow,
   type NodeOffset,
+  type NodeSettings,
+  type NumberFormat,
   type SankeyRow,
   type StyleSettings,
 } from "@/lib/sankey/types"
@@ -42,6 +46,7 @@ export function SankeyGenerator({ title = "Sankey Diagram Generator" }: { title?
   const [rows, setRows] = useState<SankeyRow[]>(() => defaultExample.rows.map((row) => ({ ...row, id: newRow().id })))
   const [style, setStyle] = useState<StyleSettings>(defaultStyle)
   const [offsets, setOffsets] = useState<Record<string, NodeOffset>>({})
+  const [nodeSettings, setNodeSettings] = useState<Record<string, NodeSettings>>({})
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
   const [selectedLink, setSelectedLink] = useState<string | null>(null)
   const [editor, setEditor] = useState<{ kind: "node" | "link"; id: string; x: number; y: number } | null>(null)
@@ -73,8 +78,8 @@ export function SankeyGenerator({ title = "Sankey Diagram Generator" }: { title?
     return names
   }, [flows])
   const layout = useMemo(
-    () => layoutSankey(flows, style, offsets, frame),
-    [flows, style, offsets, frame]
+    () => layoutSankey(flows, style, offsets, frame, nodeSettings),
+    [flows, style, offsets, frame, nodeSettings]
   )
 
   useEffect(() => {
@@ -109,13 +114,25 @@ export function SankeyGenerator({ title = "Sankey Diagram Generator" }: { title?
   }, [])
 
   function updateRow(id: string, key: keyof Pick<SankeyRow, "source" | "target" | "value">, value: string) {
-    setRows((current) => current.map((row) => (row.id === id ? { ...row, [key]: value } : row)))
+    const next = rows.map((row) => (row.id === id ? { ...row, [key]: value } : row))
+    setRows(next)
+    if (key !== "value") pruneNodeSettings(next)
+  }
+
+  /** Drop settings for any node name that no longer appears in a row, so they never attach to a different node. */
+  function pruneNodeSettings(nextRows: SankeyRow[]) {
+    const used = new Set(nextRows.flatMap((row) => [row.source.trim(), row.target.trim()]).filter(Boolean))
+    setNodeSettings((current) => {
+      const kept = Object.entries(current).filter(([name]) => used.has(name))
+      return kept.length === Object.keys(current).length ? current : Object.fromEntries(kept)
+    })
   }
 
   function loadExample(example: SankeyExample) {
     const next = example.rows.map((row) => ({ ...row, id: newRow().id }))
     setRows(next)
     setOffsets({})
+    setNodeSettings({})
     setSelectedNode(null)
     setSelectedLink(null)
     setNodeColors(nodePalette(next, vizThemes[style.theme].series))
@@ -138,6 +155,7 @@ export function SankeyGenerator({ title = "Sankey Diagram Generator" }: { title?
     event.preventDefault()
     setRows(parsed)
     setOffsets({})
+    setNodeSettings({})
   }
 
   function renameNode(from: string, to: string) {
@@ -161,6 +179,14 @@ export function SankeyGenerator({ title = "Sankey Diagram Generator" }: { title?
       delete next[from]
       return next
     })
+    setNodeSettings((current) => {
+      if (!(from in current)) return current
+      const next = { ...current }
+      // Settings follow the rename, unless the new name already has its own.
+      if (!(to in next)) next[to] = current[from]
+      delete next[from]
+      return next
+    })
     setSelectedNode(to)
     setEditor((current) => (current?.kind === "node" && current.id === from ? { ...current, id: to } : current))
   }
@@ -175,6 +201,7 @@ export function SankeyGenerator({ title = "Sankey Diagram Generator" }: { title?
   }
 
   function deleteFlow(id: string) {
+    pruneNodeSettings(rows.length === 1 ? [] : rows.filter((row) => row.id !== id))
     setRows((current) => (current.length === 1 ? [newRow()] : current.filter((row) => row.id !== id)))
     setSelectedLink((current) => (current === id ? null : current))
     setEditor((current) => (current?.kind === "link" && current.id === id ? null : current))
@@ -254,6 +281,18 @@ export function SankeyGenerator({ title = "Sankey Diagram Generator" }: { title?
     await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })])
   }
 
+  function updateNodeSettings(name: string, patch: Partial<NodeSettings>) {
+    setNodeSettings((current) => ({ ...current, [name]: { ...settingsFor(current, name), ...patch } }))
+  }
+
+  function applyFormatToAll(numberFormat: NumberFormat) {
+    setNodeSettings((current) => {
+      const next = { ...current }
+      for (const name of nodeNames) next[name] = { ...settingsFor(current, name), numberFormat }
+      return next
+    })
+  }
+
   const dataPanel = (
     <div className="flex flex-col gap-3" onPaste={onPaste}>
       <DataLead hint="Each row is where a flow starts, where it goes, and how much moves. You can paste a table from a spreadsheet.">
@@ -282,6 +321,7 @@ export function SankeyGenerator({ title = "Sankey Diagram Generator" }: { title?
           setRows([newRow(), newRow(), newRow()])
           setOffsets({})
           setNodeColors({})
+          setNodeSettings({})
         }}
       >
         Clear
@@ -422,6 +462,18 @@ export function SankeyGenerator({ title = "Sankey Diagram Generator" }: { title?
           onDelete={deleteFlow}
           onDuplicate={duplicateFlow}
           onAddTarget={() => addTarget(editor.kind === "node" ? editor.id : (rows.find((row) => row.id === editor.id)?.source ?? ""))}
+          nodeFields={
+            editor.kind === "node"
+              ? {
+                  numberFormat: settingsFor(nodeSettings, editor.id).numberFormat,
+                  note: settingsFor(nodeSettings, editor.id).note,
+                  noteMax: NOTE_MAX_LENGTH,
+                  onNumberFormat: (numberFormat) => updateNodeSettings(editor.id, { numberFormat }),
+                  onApplyToAll: () => applyFormatToAll(settingsFor(nodeSettings, editor.id).numberFormat),
+                  onNote: (note) => updateNodeSettings(editor.id, { note: note.slice(0, NOTE_MAX_LENGTH) }),
+                }
+              : undefined
+          }
           color={editor.kind === "node" ? (nodeColors[editor.id] ?? style.nodeColor) : undefined}
           recent={[...new Set(nodeNames.map((name) => nodeColors[name] ?? style.nodeColor))]}
           onColor={
