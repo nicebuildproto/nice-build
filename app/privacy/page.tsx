@@ -38,11 +38,11 @@ export default function PrivacyPage() {
       </InfoSection>
       <InfoSection title="Contact">
         <p>
-          The note on the <Link href="/contact" className="underline-offset-4 hover:underline">contact page</Link> is not sent or stored. It remains in the browser until you leave the page.
+          If you send a note from the <Link href="/contact" className="underline-offset-4 hover:underline">contact page</Link>, we receive your name, email and message so we can reply. It’s delivered to us by email through a service called Resend. We don’t add you to a mailing list.
         </p>
       </InfoSection>
       <InfoSection title="Changes">
-        <p>This page was last updated on 8 October 2026. If the way visits are recorded changes, this page will change with it.</p>
+        <p>This page was last updated on 15 October 2026. If the way visits are recorded changes, this page will change with it.</p>
       </InfoSection>
     </InfoPage>
   )

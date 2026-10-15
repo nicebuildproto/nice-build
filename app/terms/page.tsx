@@ -32,9 +32,9 @@ export default function TermsPage() {
       <InfoSection title="The site">
         <p>Tools, copy, and these terms can change. The date below is when this page was last updated.</p>
         <p>
-          Questions can go through the <Link href="/contact" className="underline-offset-4 hover:underline">contact page</Link>. That form does not send yet.
+          Questions are welcome on the <Link href="/contact" className="underline-offset-4 hover:underline">contact page</Link>.
         </p>
-        <p>Last updated 8 October 2026.</p>
+        <p>Last updated 15 October 2026.</p>
       </InfoSection>
     </InfoPage>
   )

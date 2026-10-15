@@ -50,6 +50,11 @@ export default function AboutPage() {
           ))}
         </ul>
       </InfoSection>
+      <InfoSection title="Missing something?">
+        <p>
+          Wish a tool existed? Tell us the job you’re trying to get done on the <Link href="/contact" className="underline-offset-4 hover:underline">contact page</Link>.
+        </p>
+      </InfoSection>
     </InfoPage>
   )
 }
