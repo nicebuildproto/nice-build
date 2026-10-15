@@ -53,6 +53,8 @@ export function SankeyGenerator({ title = "Sankey Diagram Generator" }: { title?
   const [nodeColors, setNodeColors] = useState<Record<string, string>>(() =>
     nodePalette(defaultExample.rows, vizThemes[defaultStyle.theme].series)
   )
+  const [exportingPptx, setExportingPptx] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
   const [hoveredLink, setHoveredLink] = useState<string | null>(null)
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
@@ -271,6 +273,23 @@ export function SankeyGenerator({ title = "Sankey Diagram Generator" }: { title?
     downloadText("sankey-diagram.svg", await serializeSvg(svgRef.current), "image/svg+xml")
   }
 
+  async function exportPptx() {
+    if (!svgRef.current || exportingPptx) return
+    setExportingPptx(true)
+    try {
+      const { exportSankeyPptx } = await import("@/lib/sankey/pptx")
+      await exportSankeyPptx(svgRef.current, {
+        flows,
+        nodeNotes: layout.nodes.map((node) => ({ name: node.name, note: node.note })),
+      })
+    } catch {
+      setToast("Couldn’t make the PowerPoint file. Give it another go.")
+      window.setTimeout(() => setToast(null), 5000)
+    } finally {
+      setExportingPptx(false)
+    }
+  }
+
   async function copyDiagram() {
     if (!svgRef.current) return
     const blob = await svgToPngBlob(svgRef.current, 2)
@@ -390,14 +409,18 @@ export function SankeyGenerator({ title = "Sankey Diagram Generator" }: { title?
       actions={
         <>
           <DropdownMenu>
-            <DropdownMenuTrigger render={<Button variant="default" className="h-8" />}>
-              Export
+            <DropdownMenuTrigger render={<Button variant="default" className="h-8" disabled={exportingPptx} />}>
+              {exportingPptx ? "Preparing slide…" : "Export"}
               <ChevronDown />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="min-w-56">
               <DropdownMenuItem onClick={exportPng}>PNG</DropdownMenuItem>
               <DropdownMenuItem onClick={exportSvg}>SVG</DropdownMenuItem>
               <DropdownMenuItem onClick={copyDiagram}>Copy image</DropdownMenuItem>
+              <DropdownMenuItem onClick={exportPptx} className="flex-col items-start gap-0.5">
+                <span>PowerPoint (.pptx)</span>
+                <span className="text-[12px] font-normal text-muted-foreground">One slide, ready to drop into your deck.</span>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Button type="button" variant="ghost" className="h-8" onClick={resetAll}>
@@ -442,6 +465,14 @@ export function SankeyGenerator({ title = "Sankey Diagram Generator" }: { title?
           />
         )}
       </div>
+      {toast ? (
+        <div
+          role="alert"
+          className="fixed bottom-4 left-1/2 z-[90] max-w-[calc(100vw-24px)] -translate-x-1/2 rounded-lg bg-[var(--nb-primary)] px-4 py-2.5 text-sm text-[var(--background)] shadow-lg"
+        >
+          {toast}
+        </div>
+      ) : null}
       {editor ? (
         <FlowEditor
           title={editor.kind === "node" ? editor.id || "Node" : "Flow"}

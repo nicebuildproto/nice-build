@@ -158,9 +158,15 @@ function exportSize(svg: SVGSVGElement): { width: number; height: number } {
  * Clone the live SVG into a standalone file: explicit size and viewBox, an explicit sans-serif font
  * on every text element (page CSS does not apply inside a standalone SVG), and the site font embedded.
  */
-export async function getExportSvg(svg: SVGSVGElement): Promise<ExportSvg> {
+export async function getExportSvg(svg: SVGSVGElement, options: { tight?: boolean } = {}): Promise<ExportSvg> {
   const clone = svg.cloneNode(true) as SVGSVGElement
-  const { width, height } = exportSize(svg)
+  const live = exportSize(svg)
+  const view = svg.viewBox.baseVal
+  // "tight" sizes the file to the diagram itself, with no spare space around it (used for slides).
+  const { width, height } =
+    options.tight && view.width && view.height
+      ? { width: Math.round(view.width), height: Math.round(view.height) }
+      : live
 
   const family = bodyFamily()
   const stack = fontStack(family)
@@ -230,8 +236,16 @@ export function downloadText(filename: string, text: string, type: string) {
 }
 
 export async function svgToPngBlob(svg: SVGSVGElement, scale = 2): Promise<Blob> {
+  return (await svgToPng(svg, scale)).blob
+}
+
+export async function svgToPng(
+  svg: SVGSVGElement,
+  scale = 2,
+  options: { tight?: boolean } = {}
+): Promise<{ blob: Blob; width: number; height: number }> {
   if (document.fonts?.ready) await document.fonts.ready
-  const { xml, width, height } = await getExportSvg(svg)
+  const { xml, width, height } = await getExportSvg(svg, options)
   const blob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" })
   const url = URL.createObjectURL(blob)
   const img = new Image()
@@ -263,7 +277,7 @@ export async function svgToPngBlob(svg: SVGSVGElement, scale = 2): Promise<Blob>
 
     return await new Promise((resolve, reject) => {
       canvas.toBlob((next) => {
-        if (next) resolve(next)
+        if (next) resolve({ blob: next, width, height })
         else reject(new Error("Could not create a PNG."))
       }, "image/png")
     })
