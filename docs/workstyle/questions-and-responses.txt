@@ -1,0 +1,299 @@
+WORKSHAPE WORK-STYLE ASSESSMENT: ALL QUESTIONS AND RESPONSES
+Assessment version 2026.2. Generated from lib/workstyle/questions.ts by `npm run workstyle:audit`.
+
+Shown to participants as written. Options are shuffled for each participant (options marked “stays last” never move);
+ranking items start in a random order. Scoring values are not shown to participants.
+Up to 3 optional follow-up questions are asked at the end of a chapter, only when the earlier answers call for them.
+Every question can be skipped. The last step is an optional sentence to finish in the participant’s own words.
+
+============================================================================================
+CHAPTER 1 · MONDAY, 9AM
+The week’s about to start. A few questions on how you like to get going.
+============================================================================================
+
+Q1  [q01]  Choose one
+    Think of the last idea or solution you were really proud of. Where were you when it came
+    together?
+      a) On my own, on a walk or doing something unrelated
+      b) At my desk, writing or sketching it out
+      c) Mid-conversation, hearing myself say it out loud
+      d) At a whiteboard or on a call, building on what someone else said
+
+Q2  [q02]  Choose one
+    A deadline is two weeks away. Which sounds most like how it usually goes for you?
+      a) I split it into steps early and tick through them at a steady pace
+      b) I do the hardest part first, then the rest falls into place
+      c) I let it simmer, then do a focused push as the date gets closer
+      d) I work on whatever the project needs that day, with no fixed schedule
+
+Q3  [q03]  Choose all that apply (limited) (up to 2)
+    Pick the two ingredients that most often make a day feel like a good one.
+    (Pick up to two.)
+      a) A long stretch with nothing booked
+      b) A few quick, unplanned chats
+      c) A clear list I can work through
+      d) A mix of different kinds of task
+      e) People working nearby
+      f) Knowing nobody expects a reply for a while
+
+Q4  [q04]  Slide to a position on a 5-point scale
+    After your manager hands you an important goal, you’d like them to…
+    (Slide to the statement that’s closer to you. The middle means ‘it depends’.)
+      ◀  Leave me to it. I’ll shout if I need anything.
+      ▶  Stay in the loop as it takes shape. I think best with a sounding board.
+      Five stops: far left, a little left, in the middle (“it depends”), a little right, far right.
+
+Q5  [q05]  Divide units between the options
+    Of everything you say and hear at work, how would you ideally split it?
+    (Share six blocks across the options. Use all six.)
+      a) Longer written notes or docs I can reread
+      b) Short written updates and replies
+      c) Scheduled calls or meetings
+      d) Quick chats and spontaneous conversations
+
+Q6  [q06]  Choose all that apply (limited) (up to 3)
+    Which of these would give you a lift on a Monday? Pick up to three.
+    (Pick up to three.)
+      a) A new priority that replaces an old one
+      b) A process I know I can rely on for months
+      c) A first attempt that might fail
+      d) Digging deeper into something already agreed
+      e) An open brief with no obvious answer
+      f) Polishing something that already works
+
+Q7  [q07]  Slide to a position on a 5-point scale
+    Which mistake is harder for you to shrug off?
+    (Slide to the statement that’s closer to you. The middle means ‘it depends’.)
+      ◀  Spending weeks analysing something a quick test would have settled
+      ▶  Acting on a hunch, then finding out an hour of checking would have caught it
+      Five stops: far left, a little left, in the middle (“it depends”), a little right, far right.
+
+============================================================================================
+CHAPTER 2 · DEEP IN IT
+The work is underway and the days are filling up. How do you actually move through it?
+============================================================================================
+
+Q8  [q08]  Choose one
+    A meeting is moving fast, and the topic is one you have views on. What do you usually
+    do?
+      a) Speak early and refine as I go
+      b) Jump in once someone else’s point sparks mine
+      c) Wait until I have a clear point, then say it once
+      d) Listen throughout and follow up afterwards
+
+Q9  [q09]  Slide to a position on a 5-point scale
+    Next week’s calendar, ideally…
+    (Slide to the statement that’s closer to you. The middle means ‘it depends’.)
+      ◀  Every block has a purpose. I’m fine with little room for surprises.
+      ▶  Plenty of gaps for whatever turns up. I’m fine not knowing what Thursday holds.
+      Five stops: far left, a little left, in the middle (“it depends”), a little right, far right.
+
+Q10  [q10]  Choose one
+    Your team is split between two plausible routes, and nobody has proof. What would you
+    push for?
+      a) Pull together the data and examples that exist, then choose
+      b) Run a small pilot of each and let the results decide
+      c) Pick the one that’s easiest to reverse and move
+      d) Ask the most experienced person to make the call
+
+Q11  [q11]  Divide units between the options
+    Picture your ideal week. How would you share out your time?
+    (Share six blocks across the options. Use all six.)
+      a) Long, uninterrupted stretches on one thing
+      b) Planned solo blocks of an hour or two
+      c) Short bursts across lots of different tasks
+      d) Working alongside other people
+
+Q12  [q12]  Choose one
+    On a shared project, when do you feel most responsible for how it turns out?
+      a) When one piece has my name on it and I can run it my way
+      b) When we all sign off on the whole thing together
+      c) When I own the result but can pull people in as I need them
+      d) When I can hand over my part and trust the others with theirs
+
+Q13  [q13]  Choose one
+    In a meeting, a senior colleague proposes a plan you have doubts about. What do you
+    usually do?
+      a) Say so right then, politely
+      b) Ask questions that bring the problem out
+      c) Raise it one-to-one afterwards
+      d) Think it through and send my concerns in writing
+
+Q14  [q14]  Slide to a position on a 5-point scale
+    Mid-sprint, you spot an idea that might matter more than what’s on the list. You’d
+    rather…
+    (Slide to the statement that’s closer to you. The middle means ‘it depends’.)
+      ◀  Look into it now. I’ll accept some loose ends.
+      ▶  Note it and protect the plan. I’ll accept I might miss it.
+      Five stops: far left, a little left, in the middle (“it depends”), a little right, far right.
+
+============================================================================================
+CHAPTER 3 · PLOT TWIST
+Plans shift, someone disagrees, a deadline wobbles. What do you do?
+============================================================================================
+
+Q15  [q15]  Choose one
+    A colleague sends a non-urgent question while you’re mid-task. What happens next?
+      a) I finish my thought, then reply when I surface
+      b) I glance, answer if it’s quick, and carry on
+      c) I reply straight away. Switching doesn’t bother me
+      d) I’d have muted notifications, so I’d see it later
+
+Q16  [q16]  Choose one
+    Three days before a launch, a stakeholder asks for a significant change. What do you do
+    first?
+      a) Find out what’s driving it and what it would affect, then respond
+      b) Agree to the cheap part now and park the rest
+      c) Adapt quickly and re-plan as we go
+      d) Hold the plan unless there’s a strong reason to change
+
+Q17  [q17]  Rank the options
+    Rank what would make you comfortable committing to a decision. Most important first.
+    (Tap in order, most important first.)
+      a) Numbers or sources that add up
+      b) A small trial that worked
+      c) Someone I trust has done it before
+      d) Knowing we can undo it if needed
+
+Q18  [q18]  Choose one
+    It’s the afternoon before a deadline, and you’re behind. What do you do?
+      a) Close the door and work through it alone
+      b) Pull in a couple of people and tackle it together
+      c) Re-plan the remaining hours and sequence what’s left
+      d) Cut the scope, tell everyone, and ship what’s solid
+
+Q19  [q19]  Choose one
+    Someone tells you a piece of your work missed the mark. What’s your first instinct?
+      a) Ask questions now and talk it through
+      b) Listen, say thanks, and take it away to think
+      c) Ask them to send it in writing
+      d) Get started on a fix, then check back
+
+Q20  [q20]  Slide to a position on a 5-point scale
+    Which kind of day leaves you more drained? Slide toward the one that drains you more.
+    (Slide to the statement that’s closer to you. The middle means ‘it depends’.)
+      ◀  A day of talking things through while they’re still half-formed
+      ▶  A day of working things out alone, with nobody to bounce them off
+      Five stops: far left, a little left, in the middle (“it depends”), a little right, far right.
+
+Q21  [q21]  Choose all that apply (limited) (up to 2)
+    Which two of these annoy you most at work?
+    (Pick up to two.)
+      a) Meetings that could have been a message
+      b) Messages that needed a conversation
+      c) Plans that change without warning
+      d) Plans so fixed that nothing can adjust
+      e) Waiting on other people before I can move
+      f) Decisions made without my input
+
+Follow-up  [decision-stakes]  Optional, only if triggered: Any of decisions is conflicted (reads “depends on context”, with at least two answers)
+    Your answers about deciding pointed in different directions. Which sounds most like you?
+      a) I check first when the stakes are high and test quickly when they’re low
+      b) I move first in areas I know and check first in ones I don’t
+      c) It depends on how easy the decision is to undo
+      d) It varies too much for a simple rule
+
+Follow-up  [pressure-shift]  Optional, only if triggered: q18 points the opposite way from the rest of the profile on any dimension, by 1.5 or more
+    When time is tight, you do something a little different from your usual approach. Which
+    is closest?
+      a) I tighten up: more structure, less discussion
+      b) I loosen up: faster, more improvising
+      c) I go quiet and head down
+      d) I pull people in and talk it through
+      e) Not really different
+
+============================================================================================
+CHAPTER 4 · FROM THE OUTSIDE
+Last stretch: how working with you tends to feel to the people around you.
+============================================================================================
+
+Q22  [q22]  Choose one
+    To you, a good plan is mostly…
+      a) A promise we hold each other to
+      b) A checklist so nothing gets dropped
+      c) A starting hypothesis for the first week
+      d) A best guess we expect to rewrite
+
+Q23  [q23]  Choose one
+    You haven’t heard from a teammate on a shared project for a few days. What do you tend
+    to assume?
+      a) They’re busy and it’s on track
+      b) I’d send a quick message to see how it’s going
+      c) Something might be stuck, so I’d get on a call
+      d) We should have agreed a rhythm so I didn’t have to guess
+      e) It depends who it is  [stays last]
+
+Q24  [q24]  Divide units between the options
+    On work you care about, how would you like decisions to be shared out?
+    (Share six blocks across the options. Use all six.)
+      a) Things I decide on my own
+      b) Things someone else decides, and I carry out
+      c) Things I decide with one or two people
+      d) Things the whole group decides together
+
+Q25  [q25]  Rank the options
+    Rank what makes tough feedback easiest to take in. Most helpful first.
+    (Tap in order, most important first.)
+      a) A proper back-and-forth conversation
+      b) Time to take it in before I reply
+      c) Getting it soon, while it’s fresh
+      d) Having it in writing to come back to
+
+Q26  [q26]  Choose all that apply (limited) (up to 2)
+    If you could only keep two of these at work, which two?
+    (Pick up to two.)
+      a) Quiet time to think before I commit
+      b) Quick back-and-forth to shape ideas
+      c) A plan I can trust
+      d) Room to change course
+      e) Clear ownership of my piece
+      f) A team to build it with
+
+Q27  [q27]  Choose one
+    You’re handing a project to a colleague. How do you set them up?
+      a) A detailed written doc they can reread
+      b) A walkthrough, then notes
+      c) A shared chat where they can ask anything as it comes up
+      d) A short summary plus a standing weekly catch-up
+
+Q28  [q28]  Choose all that apply (limited) (up to 2)
+    On a tough day, which of these might a colleague say about working with you? Pick up to
+    two that feel fair.
+    (Pick up to two.)
+      a) “Goes quiet and disappears into the work”
+      b) “Talks it through at length, sometimes past the point it helps”
+      c) “Holds on tight to the plan”
+      d) “Changes direction faster than we can follow”
+      e) “Pushes back before they’ve heard everything”
+      f) “Needs time before replying and can seem unreachable”
+      g) “Wants more proof before moving”
+      h) “Tries things before we’ve agreed they’re worth it”
+
+Follow-up  [structure-phase]  Optional, only if triggered: Any of structure is conflicted (reads “depends on context”, with at least two answers)
+    Your answers about planning pointed in different directions. Which sounds most like you?
+      a) I like things open while an idea is forming, then pinned down when it’s time to deliver
+      b) I like a firm frame at the start, then freedom inside it
+      c) It depends more on who I’m working with than on the stage
+      d) It varies too much for a simple rule
+
+Follow-up  [focus-collab]  Optional, only if triggered: Any of focus, collaboration is conflicted (reads “depends on context”, with at least two answers)
+    Your answers about focus time and working with others pointed in different directions.
+    How do the two fit together for you?
+      a) Alone to produce, together to shape
+      b) Together to start, alone to finish
+      c) I alternate, day by day
+      d) Both matter, and getting the balance right is the hard part
+
+Follow-up  [feedback-timing]  Optional, only if triggered: Any of feedback is conflicted (reads “depends on context”, with at least two answers)
+    Your answers about feedback pointed in different directions. Which sounds most like you?
+      a) I’m fine hearing it right away; I just need time before I respond
+      b) Quick for small things, slower for anything weighty
+      c) It depends who is giving it
+      d) It varies too much for a simple rule
+
+============================================================================================
+LAST STEP · OPTIONAL
+============================================================================================
+
+Finish the sentence, in your own words: “It helps me most when the people I work with…”
+    (Up to 400 characters. Shown in the participant’s own words in their guide. Stays on their device.)

@@ -3,6 +3,10 @@ import { registry } from "./lib/registry"
 
 const nextConfig: NextConfig = {
   transpilePackages: ["pdfjs-dist", "tesseract.js", "gifenc"],
+  // The share-card route reads its font files at request time; make sure they ship with it.
+  outputFileTracingIncludes: {
+    "/how-i-work/p/[code]/card": ["./app/how-i-work/_fonts/**/*"],
+  },
   async redirects() {
     return [
       ...registry
